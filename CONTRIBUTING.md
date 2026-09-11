@@ -460,7 +460,6 @@ CODEOWNERS file, so nothing is applied to your PR automatically — read the che
 |---|---|---|
 | `ci.yml` | `typecheck`, `lint`, `test` | `tsc --noEmit`, `eslint .`, `bun test --bail` |
 | `pr-title.yml` | `pr-title` | PR title parses as a Conventional Commit |
-| `agent-forge-guard.yml` | `test-guard` | A PR may not weaken its own tests |
 | `security.yml` | `actions-security`, `security` | Pinned actions and dependency scanning |
 
 Two are worth knowing before they surprise you:
@@ -470,11 +469,6 @@ Two are worth knowing before they surprise you:
   `no-unsafe-*` at untyped SDK and JSON boundaries). Do not add errors; you are not
   expected to clear the existing warnings.
 
-- **`test-guard` blocks a net loss of assertions.** If a PR removes more assertions
-  from a test file than it adds, the check fails, because a change that weakens its
-  own test cannot be reviewed as a change. When the removal is correct — deleting a
-  stale `@ts-expect-error`, for instance — say so in the PR body on a line starting
-  with `agent-forge: test-edit-approved`, and explain why.
 
 ## 📋 Pull Request Process
 
@@ -505,12 +499,6 @@ Two are worth knowing before they surprise you:
    > ignored entirely. Run `bun run scripts/check-coverage.ts` locally to see where
    > you stand, or `--report` to print the numbers without failing.
 
-   > **If a change reduces its own test's assertions, the `test-guard` check fails.**
-   > That is deliberate and applies to humans as well as agents. When the reduction
-   > is correct — for example when the fixtures asserted on something that no longer
-   > exists — put a line in the PR body beginning `agent-forge: test-edit-approved`
-   > and explain why. Note that re-running the check replays the original event, so
-   > it will not see a body you edited afterwards; push a commit to re-evaluate.
 
 2. **Creating a PR**
    - Create a PR against the `main` branch

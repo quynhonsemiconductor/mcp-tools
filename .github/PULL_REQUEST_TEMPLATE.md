@@ -29,7 +29,6 @@ client problem.
 Worth flagging if any apply:
   - a decision that could reasonably have gone the other way, and why it went this way
   - something you could not verify, and what would be needed to verify it
-  - assertions removed from a test. `test-guard` fails on a net loss and will not
-    explain itself; if the removal is correct — a stale `@ts-expect-error`, say — add a
-    line starting `agent-forge: test-edit-approved` with the reason.
+  - assertions removed from a test. Say which ones and why: a change that makes
+    its own test weaker cannot be reviewed as a change.
 -->
