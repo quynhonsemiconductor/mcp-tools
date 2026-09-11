@@ -74,10 +74,24 @@ if (!reg) {
   process.exit(1);
 }
 
+// Validate against the tool's own schema first, the way the MCP layer does.
+// Calling execute() with raw input instead surfaces a TypeError from deep inside
+// the tool for what is really a bad argument — which reads like a defect when it
+// is not — and skips the defaults the schema fills in.
+const parsed = reg.config.parameters.safeParse(args);
+if (!parsed.success) {
+  console.log(`INVALID ${toolId} — arguments rejected by the tool's own schema`);
+  for (const issue of parsed.error.issues) {
+    const at = issue.path.length > 0 ? issue.path.join('.') : '(root)';
+    console.log(`  ${at}: ${issue.message}`);
+  }
+  process.exit(2);
+}
+
 const started = Date.now();
 try {
   const handler = new reg.handlerClass();
-  const result = await handler.execute(args);
+  const result = await handler.execute(parsed.data);
   const text = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
   console.log(`PASS ${toolId} (${Date.now() - started}ms)`);
   console.log(text.length > 1500 ? `${text.slice(0, 1500)}\n… truncated` : text);

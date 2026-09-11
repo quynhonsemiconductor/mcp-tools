@@ -752,8 +752,25 @@ export abstract class OAuthHandler {
         }
       }, this.config.timeout);
 
-      // Open browser
+      // Open browser. The URL also goes to the terminal, not only into the log file
+
+      // under the home directory: when open() resolves but no browser actually
+
+      // appears — which happens — the user otherwise sees nothing for the whole
+
+      // timeout and then just 'OAuth timed out'. The fallback below only runs when
+
+      // open() rejects, which is a different failure.
+
       logInfo(`Opening browser for ${this.config.providerName} OAuth: ${url}`);
+
+      logWarn(
+
+        `\nIf no browser window opened, open this URL to sign in to ` +
+
+          `${this.config.providerName}:\n\n${url}\n`,
+
+      );
       open(url).catch((err: unknown) => {
         // Browser failed to open - fail immediately instead of waiting for timeout
         const message = err instanceof Error ? err.message : String(err);

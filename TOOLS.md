@@ -15,6 +15,27 @@ servers appear here too — they are registered at runtime and cannot be seen in
 
 **Enabled** column: ● on by default, ○ registered but dormant (enable via `.qnscmcp.yaml`).
 
+## Verification notes
+
+Tools are checked by invoking their own `execute()` through the registry with
+`bun run scripts/try-tool.ts <id> '<json>'`, which validates arguments against the
+tool's schema exactly as the MCP layer does. That bypasses the editor, so a failure
+is attributable to the tool rather than to transport or client configuration.
+
+Findings so far:
+
+- **GitHub auth works per user.** The OAuth App flow was exercised end to end: the
+  first call opened a browser and took 8.6s, the second reused the keyring token and
+  took 0.8s with no prompt. Seven read-only GitHub tools were verified against the
+  real organisation.
+- **Only 15 of the 91 GitHub tools are enabled by default.** The rest need
+  `tools.include` or `tools.includeCategories` in `.qnscmcp.yaml`. Anyone expecting
+  all 92 to appear will be surprised.
+- **`weather` cannot work here.** It calls `api.weather.gov`, the US National
+  Weather Service: verified passing for New York coordinates and returning 404 for
+  Ho Chi Minh City. Marked `[-]` rather than `[!]` — it is not broken, just
+  US-only, and would need a different provider to be useful.
+
 **Review status:** `[ ]` not checked, `[x]` verified working, `[!]` broken/needs work, `[-]` not applicable to us.
 
 ---
@@ -44,8 +65,8 @@ servers appear here too — they are registered at runtime and cannot be seen in
 |---|---|---|---|---|
 | [ ] | ○ | `github-create-branch` | `createGithubBranch` | Creates a new branch in github repo |
 | [ ] | ○ | `github-create-update-file-content` | `createOrUpdateGithubFileContent` | Creates or updates a file in a branch. Accepts plain text via content or a local file path via filePath. Do NOT base64-encode anything — the tool handles all encoding internally. |
-| [ ] | ● | `github-get-branch` | `getGithubBranch` | Gets a branch in a GitHub repository |
-| [ ] | ● | `github-list-branches` | `listGithubBranches` | Lists branches for a GitHub repository |
+| [x] | ● | `github-get-branch` | `getGithubBranch` | Gets a branch in a GitHub repository |
+| [x] | ● | `github-list-branches` | `listGithubBranches` | Lists branches for a GitHub repository |
 | [ ] | ● | `github-merge-branch` | `mergeGithubBranch` | Merges a branch in a GitHub repository |
 | [ ] | ○ | `github-rename-branch` | `renameGithubBranch` | Renames a branch in a GitHub repository |
 
@@ -90,8 +111,8 @@ servers appear here too — they are registered at runtime and cannot be seen in
 | [ ] | ● | `github-issues-create` | `createGithubIssue` | Creates a new issue in a GitHub repository |
 | [ ] | ● | `github-issues-get` | `getGithubIssue` | Gets the contents of an issue within a repository |
 | [ ] | ○ | `github-issues-get-comments` | `getGithubIssueComments` | Gets the comments of an issue within a repository |
-| [ ] | ● | `github-issues-list` | `listGithubIssues` | Lists and filters repository issues |
-| [ ] | ● | `github-issues-list-sub-issues` | `listGithubSubIssues` | Lists all sub-issues of a parent issue, showing the formal parent-child relationships established via addGithubSubIssue |
+| [x] | ● | `github-issues-list` | `listGithubIssues` | Lists and filters repository issues |
+| [x] | ● | `github-issues-list-sub-issues` | `listGithubSubIssues` | Lists all sub-issues of a parent issue, showing the formal parent-child relationships established via addGithubSubIssue |
 | [ ] | ● | `github-issues-remove-sub-issue` | `removeGithubSubIssue` | Removes a sub-issue from a parent issue, dissolving the parent-child relationship without deleting either issue |
 | [ ] | ○ | `github-issues-search` | `searchGithubIssues` | Searches for issues and pull requests across GitHub |
 | [ ] | ○ | `github-issues-update` | `updateGithubIssue` | Updates an existing issue in a GitHub repository |
@@ -135,13 +156,13 @@ servers appear here too — they are registered at runtime and cannot be seen in
 | [ ] | ● | `github-pulls-add-reviewers` | `addGithubPullRequestReviewers` | Adds reviewers to a pull request |
 | [ ] | ● | `github-pulls-create` | `createGithubPullRequest` | Creates a new pull request in a repository |
 | [ ] | ○ | `github-pulls-create-review` | `createGithubPullRequestReview` | Creates a review on a pull request |
-| [ ] | ● | `github-pulls-get` | `getGithubPullRequest` | Gets the details of a specific pull request within a repository |
+| [x] | ● | `github-pulls-get` | `getGithubPullRequest` | Gets the details of a specific pull request within a repository |
 | [ ] | ○ | `github-pulls-get-comments` | `getGithubPullRequestComments` | Gets the comments on a pull request |
 | [ ] | ○ | `github-pulls-get-files` | `getGithubPullRequestFiles` | Gets the list of files changed in a pull request |
 | [ ] | ○ | `github-pulls-get-review-threads` | `getGithubPullRequestReviewThreads` | Lists review threads for a pull request, including resolution state and comment details. |
 | [ ] | ○ | `github-pulls-get-reviews` | `getGithubPullRequestReviews` | Gets the reviews on a pull request |
-| [ ] | ● | `github-pulls-get-status` | `getGithubPullRequestStatus` | Gets the combined status of all status checks for a pull request |
-| [ ] | ● | `github-pulls-list` | `listGithubPullRequests` | Lists and filters repository pull requests |
+| [x] | ● | `github-pulls-get-status` | `getGithubPullRequestStatus` | Gets the combined status of all status checks for a pull request |
+| [x] | ● | `github-pulls-list` | `listGithubPullRequests` | Lists and filters repository pull requests |
 | [ ] | ○ | `github-pulls-mark-ready` | `markGithubPullRequestReady` | Marks a draft pull request as ready for review |
 | [ ] | ○ | `github-pulls-merge` | `mergeGithubPullRequest` | Merges a pull request |
 | [ ] | ● | `github-pulls-remove-reviewers` | `removeGithubPullRequestReviewers` | Removes reviewers from a pull request |
@@ -201,7 +222,7 @@ servers appear here too — they are registered at runtime and cannot be seen in
 | [ ] | ○ | `delete-entities` | `deleteEntities` | Delete multiple entities and their associated relations from the knowledge graph | – |
 | [ ] | ○ | `delete-observations` | `deleteObservations` | Delete specific observations from entities in the knowledge graph | – |
 | [ ] | ○ | `delete-relations` | `deleteRelations` | Delete multiple relations from the knowledge graph | – |
-| [ ] | ○ | `open-nodes` | `openNodes` | Open/expand specific nodes in the knowledge graph to show their connections and related entities | – |
+| [x] | ○ | `open-nodes` | `openNodes` | Open/expand specific nodes in the knowledge graph to show their connections and related entities | – |
 | [x] | ○ | `read-graph` | `readGraph` | Read and query the knowledge graph structure, entities, and relations | – |
 | [x] | ○ | `search-nodes` | `searchNodes` | Search for entities/nodes in the knowledge graph by content, name, or other fields | – |
 
@@ -245,21 +266,21 @@ servers appear here too — they are registered at runtime and cannot be seen in
 
 | ✓ | On | Tool ID | Function | Description | Requires |
 |---|---|---|---|---|---|
-| [ ] | ○ | `claude-code-usage` | `getClaudeCodeUsage` | Retrieve the usage statistics for a Claude Code project. | – |
+| [x] | ○ | `claude-code-usage` | `getClaudeCodeUsage` | Retrieve the usage statistics for a Claude Code project. | – |
 | [x] | ● | `clipboard` | `getClipboardContent` | Fetch the contents of the clipboard (text, images, or binary data). Used to see what is on the clipboard. | – |
 | [x] | ○ | `convert-unix-timestamp` | `convertUnixTimestamp` | Convert unix timestamps to human readable time representations | – |
 | [x] | ● | `doctor` | `doctor` | Diagnose MCP configuration issues when tools fail with authentication, connection, or permission errors. Checks for missing environment variables (API keys, tokens), invalid paths, and configuration problems. Use this when Splunk, Slack, GitHub, or other external service tools report errors. | – |
 | [ ] | ○ | `execute-task` | `executeTask` | Get next pending task and mark tasks as completed in a unified execution workflow. Enforces one task in progress at a time per list. | – |
 | [x] | ○ | `get-converted-time` | `convertTime` | Convert time between timezones. | – |
 | [x] | ○ | `get-current-time` | `getCurrentTime` | Get current time in a specific timezone. | – |
-| [ ] | ○ | `get-task-statistics` | `getTaskStatistics` | Get task completion statistics and history with comprehensive analytics | – |
+| [x] | ○ | `get-task-statistics` | `getTaskStatistics` | Get task completion statistics and history with comprehensive analytics | – |
 | [ ] | ○ | `location-to-coords` | `getCoordinatesFromLocation` | Convert a location or POI to latitude and longitude coordinates | `GEOCODE_MAPS_API_KEY` |
 | [ ] | ○ | `logout` | `logout` | Log out of a single remote MCP server. Clears the locally-stored session token and opens the gateway credential manager (behind SSO) to revoke your saved credential for that server. | – |
-| [ ] | ○ | `manage-task-lists` | `manageTaskLists` | Create, view, delete, and list task lists with comprehensive management capabilities | – |
+| [x] | ○ | `manage-task-lists` | `manageTaskLists` | Create, view, delete, and list task lists with comprehensive management capabilities | – |
 | [ ] | ○ | `manage-tasks` | `manageTasks` | Add, edit, delete, and insert tasks within task lists with full CRUD capabilities | – |
 | [ ] | ○ | `reauth` | `reauth` | Force re-authentication for a given service. Clears stored tokens and triggers a fresh login flow. | – |
 | [ ] | ○ | `reorder-tasks` | `reorderTasks` | Reorder tasks within a task list by updating their positions | – |
-| [ ] | ○ | `weather` | `getWeatherForecast` | Get the weather forecast for a given latitude and longitude | – |
+| [-] | ○ | `weather` | `getWeatherForecast` | Get the weather forecast for a given latitude and longitude | – |
 
 #### k6 (6)
 
