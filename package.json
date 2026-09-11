@@ -96,7 +96,7 @@
     "handlebars": "4.7.9",
     "inquirer": "^9.3.8",
     "inquirer-select-pro": "1.0.0-alpha.9",
-    "js-yaml": "4.3.1",
+    "js-yaml": "4.3.2",
     "json-schema-to-zod": "2.7.0",
     "luxon": "3.7.2",
     "marked": "18.0.3",
