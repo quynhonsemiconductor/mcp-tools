@@ -1,0 +1,102 @@
+// -----------------------------------------------------
+// DNS Module Security Controls
+// -----------------------------------------------------
+// Create a mock for dns module
+const originalModule = require('dns');
+
+// Error factory function
+const createError = (method, hostname) => {
+  {{#if hasAllowlist}}
+  const errorMessage = `DNS lookup for hostname '${hostname}' is not allowed (not in allowlist)`;
+  {{else}}
+  const errorMessage = "Network access is not allowed in this MCP";
+  {{/if}}
+  return new Error(`${errorMessage} [method: ${method}, hostname: ${hostname}]`);
+};
+
+// Check if a hostname is in the allowlist
+function isHostnameAllowed(hostname) {
+  // Check if hostname is allowed based on allowlist setting
+  {{#if hasAllowlist}}
+  try {
+    // Network allowlist from security options
+    const allowlist = {{{allowlistJSON}}};
+
+    // Check if the hostname matches any allowlist entry
+    return allowlist.some(allowedDomain =>
+      hostname === allowedDomain ||
+      hostname.endsWith(`.${allowedDomain}`)
+    );
+  } catch (e) {
+    return false;
+  }
+  {{else}}
+  // No allowlist - block all requests
+  return false;
+  {{/if}}
+}
+
+// Create a module where all methods that perform lookups are blocked
+const secureModule = { ...originalModule };
+
+// Block promise-based APIs
+if (originalModule.promises) {
+  secureModule.promises = { ...originalModule.promises };
+
+  // Override promise-based methods
+  ['lookup', 'resolve', 'resolve4', 'resolve6', 'resolveAny', 'resolveCname',
+   'resolveMx', 'resolveNs', 'resolveTxt', 'resolveSrv', 'resolvePtr',
+   'resolveNaptr', 'resolveSoa', 'reverse'].forEach(method => {
+    if (typeof originalModule.promises[method] === 'function') {
+      secureModule.promises[method] = function(hostname, ...args) {
+        // Check if hostname is allowed
+        const allowed = isHostnameAllowed(hostname);
+
+        if (allowed) {
+          return originalModule.promises[method](hostname, ...args);
+        }
+
+        return Promise.reject(createError(method, hostname));
+      };
+    }
+  });
+}
+
+// Override callback-based methods
+['lookup', 'resolve', 'resolve4', 'resolve6', 'resolveAny', 'resolveCname',
+ 'resolveMx', 'resolveNs', 'resolveTxt', 'resolveSrv', 'resolvePtr',
+ 'resolveNaptr', 'resolveSoa', 'reverse'].forEach(method => {
+  if (typeof originalModule[method] === 'function') {
+    secureModule[method] = function(hostname, ...args) {
+      // Extract callback from args
+      let callback;
+      for (let i = args.length - 1; i >= 0; i--) {
+        if (typeof args[i] === 'function') {
+          callback = args[i];
+          break;
+        }
+      }
+
+      // Check if hostname is allowed
+      const allowed = isHostnameAllowed(hostname);
+
+      if (allowed) {
+        return originalModule[method](hostname, ...args);
+      }
+
+
+      // Call callback with error if provided
+      if (callback) {
+        process.nextTick(() => {
+          callback(createError(method, hostname));
+        });
+      }
+
+      // Return undefined for callback-based APIs
+      return undefined;
+    };
+  }
+});
+
+// Export the secure module
+module.exports = secureModule;

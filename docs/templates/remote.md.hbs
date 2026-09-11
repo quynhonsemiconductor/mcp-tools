@@ -1,0 +1,77 @@
+# {{ name }}
+
+{{ description }}
+
+**Category:** :material-tag: `{{ category }}`
+
+**ID:** `{{ id }}`
+
+## Connection Details
+
+| Property | Value |
+|----------|-------|
+| **URL** | `{{ url }}` |
+{{#if requiredEnvVars}}
+| **Auth Method** | Environment Variables |
+{{else}}
+| **Auth Method** | OAuth |
+{{/if}}
+
+{{#if requiredEnvVars}}
+## Required Environment Variables
+
+The following environment variables must be set to connect to this server:
+
+| Variable | Description |
+|----------|-------------|
+{{#each requiredEnvVars}}
+| `{{ this }}` | Required for authentication |
+{{/each}}
+
+!!! warning "Authentication Required"
+    Ensure all required environment variables are configured before connecting to this server.
+{{/if}}
+
+{{#if headers}}
+## Headers
+
+The following headers are sent with requests to this server:
+
+| Header | Value |
+|--------|-------|
+{{#each headers}}
+| `{{ @key }}` | `{{ this }}` |
+{{/each}}
+{{/if}}
+
+{{#if parameters}}
+## Parameters
+
+Optional parameters that can be sent to this server:
+
+| Parameter | Value |
+|-----------|-------|
+{{#each parameters}}
+| `{{ @key }}` | `{{ this }}` |
+{{/each}}
+{{/if}}
+
+## Configuration
+
+Add this server to your `.qnscmcp.yaml` configuration:
+
+```yaml
+tools:
+  includeRemoteMCPs:
+    - {{ id }}
+```
+
+{{#if requiredEnvVars}}
+### Environment Setup
+
+```bash
+{{#each requiredEnvVars}}
+export {{ this }}="your-value-here"
+{{/each}}
+```
+{{/if}}

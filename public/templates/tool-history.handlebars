@@ -1,0 +1,16 @@
+<div class="history-header">
+  <h3>History for <span class="tool-name">{{name}}</span></h3>
+  <div class="tool-stats">
+    <span class="stat-item">{{historyItems.length}} calls</span>
+  </div>
+</div>
+
+{{#if historyItems.length}}
+  <div class="history-list">
+    {{#each historyItems}}
+      {{> historyItem}}
+    {{/each}}
+  </div>
+{{else}}
+  <p>No history entries found</p>
+{{/if}}

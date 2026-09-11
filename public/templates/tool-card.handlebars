@@ -1,0 +1,19 @@
+<div class="tool-card" data-id="{{id}}">
+  <div class="card-header">
+    <div class="tool-title-group">
+      <h3 title="{{name}}">{{name}}</h3>
+      <p class="tool-id" title="{{id}}">{{id}}</p>
+    </div>
+  </div>
+  <div class="description">
+    <p title="{{description}}">{{substring description 0 150}}</p>
+  </div>
+  <div class="actions">
+    <button class="details-btn" onclick="viewToolDetails('{{id}}')">
+      <span class="btn-icon">ℹ️</span>Details
+    </button>
+    <button class="history-btn" onclick="viewToolHistory('{{id}}')">
+      <span class="btn-icon">📊</span>History
+    </button>
+  </div>
+</div>

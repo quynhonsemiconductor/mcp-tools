@@ -1,0 +1,63 @@
+{
+  "manifest_version": "0.3",
+  "name": "qnscmcp",
+  "display_name": "QNSC MCP",
+  "version": "0.0.1-dev",
+  "description": "QNSC MCP Server — GitHub, SharePoint, Chrome DevTools, AWS docs, Postgres and more",
+  "author": {
+    "name": "QNSC",
+    "url": "https://github.com/quynhonsemiconductor"
+  },
+  "documentation": "https://github.com/quynhonsemiconductor/mcp-tools#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quynhonsemiconductor/mcp-tools/"
+  },
+  "icon": "qnsc-icon.png",
+  "server": {
+    "type": "binary",
+    "entry_point": "qnsc-mcp",
+    "mcp_config": {
+      "command": "${__dirname}/qnsc-mcp",
+      "args": ["--config", "fromEnv"],
+      "env": {
+        "GITHUB_TOKEN": "${user_config.github_token}",
+        "GRAFANA_K6_TOKEN": "${user_config.grafana_k6_token}",
+        "GOOGLE_CRUX_API_KEY": "${user_config.google_crux_api_key}",
+        "SWAGGER_HUB_API_KEY": "${user_config.swagger_hub_api_key}"
+      }
+    }
+  },
+  "user_config": {
+    "github_token": {
+      "type": "string",
+      "title": "GitHub token",
+      "description": "Personal access token for github.com. Unlocks the 92 GitHub tools (issues, pull requests, Actions, projects, repositories). Create one under Settings > Developer settings > Personal access tokens with the 'repo', 'read:org' and 'workflow' scopes. Everything else works without it.",
+      "required": false,
+      "sensitive": true
+    },
+    "grafana_k6_token": {
+      "type": "string",
+      "title": "Grafana k6 token",
+      "description": "Personal API token from Grafana Cloud k6. Enables the 6 load-testing tools.",
+      "required": false,
+      "sensitive": true
+    },
+    "google_crux_api_key": {
+      "type": "string",
+      "title": "Google CrUX API key",
+      "description": "Chrome UX Report API key, for the 4 Core Web Vitals tools. Created in Google Cloud Console after enabling the Chrome UX Report API.",
+      "required": false,
+      "sensitive": true
+    },
+    "swagger_hub_api_key": {
+      "type": "string",
+      "title": "SwaggerHub API key",
+      "description": "For the 2 OpenAPI tools. Found in SwaggerHub account settings.",
+      "required": false,
+      "sensitive": true
+    }
+  },
+  "keywords": ["qnsc", "mcp"],
+  "license": "PRIVATE"
+}

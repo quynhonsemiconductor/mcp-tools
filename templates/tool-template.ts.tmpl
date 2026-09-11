@@ -1,0 +1,55 @@
+import { z } from 'zod';
+import { Tool, ToolHandler } from '../../registry';
+import { logInfo } from '../../services/logger';
+import { CatchErrors } from '../../utils';
+
+/**
+ * Schema definition for the {{TOOL_NAME}} tool parameters
+ */
+export const {{TOOL_CLASS_NAME}}Schema = z.object({
+  input: z.string().describe('The input for the tool'),
+  // Add more parameters as needed
+});
+
+/**
+ * Type for the {{TOOL_NAME}} tool parameters
+ */
+export type {{TOOL_CLASS_NAME}}Params = z.infer<typeof {{TOOL_CLASS_NAME}}Schema>;
+
+/**
+ * {{TOOL_NAME}} - {{TOOL_DESCRIPTION_BRIEF}}
+ */
+@Tool({
+  id: '{{TOOL_ID}}',
+  name: '{{TOOL_NAME}}',
+  description: '{{TOOL_DESCRIPTION}}',
+  category: '{{TOOL_CATEGORY}}',
+  parameters: {{TOOL_CLASS_NAME}}Schema,
+  annotations: {
+    title: '{{UI_NAME}}',
+    {{TOOL_ANNOTATIONS}}
+  }})
+export class {{TOOL_CLASS_NAME}} implements ToolHandler {
+  /**
+   * Execute the tool
+   */
+  @CatchErrors()
+  async execute(args: {{TOOL_CLASS_NAME}}Params): Promise<string> {
+    // Implement your tool logic here
+    logInfo(`Executing tool with input: ${args.input}`);
+
+    // Process the input using our helper method
+    const processed = this.processInput(args.input);
+    const result = `Processed: ${processed}`;
+
+    return result;
+  }
+
+  /**
+   * Helper method example - add your tool-specific helper methods here
+   */
+  private processInput(input: string): string {
+    // Example helper method - implement your own logic
+    return input.toUpperCase();
+  }
+}

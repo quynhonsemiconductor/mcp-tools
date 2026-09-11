@@ -1,0 +1,22 @@
+telemetry = false
+
+[install]
+exact = true
+# registry = "https://registry.npmjs.org"
+
+[define]
+EMBEDDED_CREDENTIAL_CONTEXT = "{}"
+BUILD_ENVIRONMENT_TIER = '"non-prod"'
+
+[test]
+coverage = true
+coverageThreshold = 0.78
+coverageReporter = ["text", "lcov"]
+coverageDir = "coverage"
+coverageExclude = []
+testSkipPatterns = ["bundled-mcps/**", "node_modules/**"]
+preload = ["./src/test-utils/mocks.ts"]
+root = "./src"
+
+[test.reporter]
+junit = "reports/junit.xml"

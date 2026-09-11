@@ -1,0 +1,124 @@
+// -----------------------------------------------------
+// TLS Module Security Controls
+// -----------------------------------------------------
+// Create a mock for tls module
+const originalModule = require('tls');
+const EventEmitter = require('events');
+
+// Error factory function
+const createError = (method, host, port) => {
+  {{#if hasAllowlist}}
+  const errorMessage = `TLS connection to '${host}:${port}' is not allowed (not in allowlist)`;
+  {{else}}
+  const errorMessage = "Network access is not allowed in this MCP";
+  {{/if}}
+  return new Error(`${errorMessage} [method: ${method}, host: ${host}, port: ${port}]`);
+};
+
+// Check if a URL is in the allowlist
+function isUrlAllowed(url) {
+  // Check if the URL is allowed based on allowlist setting
+  {{#if hasAllowlist}}
+  try {
+    // Parse the URL to check against the allowlist
+    const urlString = url.toString();
+    const parsedUrl = new URL(urlString);
+    const hostname = parsedUrl.hostname;
+
+    // Network allowlist from security options
+    const allowlist = {{{allowlistJSON}}};
+
+    // Check if the hostname matches any allowlist entry
+    return allowlist.some(allowedDomain =>
+      hostname === allowedDomain ||
+      hostname.endsWith(`.${allowedDomain}`)
+    );
+  } catch (e) {
+    return false;
+  }
+  {{else}}
+  // No allowlist - block all requests
+  return false;
+  {{/if}}
+}
+
+// Create a mock socket that immediately errors
+function createMockTLSSocket() {
+  const socket = new EventEmitter();
+
+  // Add socket methods that return 'this'
+  ['connect', 'setEncoding', 'write', 'end', 'destroy', 'pause', 'resume', 'setTimeout', 'setKeepAlive', 'on', 'once'].forEach(method => {
+    socket[method] = function(...args) {
+      if (method === 'on' || method === 'once') {
+        const event = args[0];
+        const handler = args[1];
+
+        if (event === 'error') {
+          // Schedule the error handler to be called
+          process.nextTick(() => handler(createError('connect', 'unknown', 'unknown')));
+        }
+      }
+      return socket;
+    };
+  });
+
+  return socket;
+}
+
+// Create secure module that blocks connections
+const secureModule = {
+  ...originalModule,
+
+  // Override connection methods
+  connect: function(...args) {
+    // Extract host and port info
+    let options = {};
+    let host = 'unknown';
+    let port = 'unknown';
+
+    if (typeof args[0] === 'object') {
+      options = args[0];
+      host = options.host || 'unknown';
+      port = options.port || 'unknown';
+    } else if (args.length >= 2 && typeof args[0] === 'number') {
+      port = args[0];
+      host = typeof args[1] === 'string' ? args[1] : 'unknown';
+    }
+
+    // Check if connection is allowed
+    let allowed = false;
+    try {
+      allowed = isUrlAllowed(`https://${host}:${port}`);
+    } catch (e) {
+      allowed = false;
+    }
+
+    if (allowed) {
+      return originalModule.connect(...args);
+    }
+
+    const socket = createMockTLSSocket();
+
+    // Emit error on next tick
+    process.nextTick(() => {
+      socket.emit('error', createError('connect', host, port));
+    });
+
+    return socket;
+  },
+
+  // Override server creation
+  createServer: function(...args) {
+    const server = originalModule.createServer(...args);
+    // Block listen by overriding it
+    const originalListen = server.listen;
+    server.listen = function(...listenArgs) {
+      // Just return the server without actually listening
+      return server;
+    };
+    return server;
+  }
+};
+
+// Export the secure module
+module.exports = secureModule;

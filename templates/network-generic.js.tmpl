@@ -1,0 +1,40 @@
+// -----------------------------------------------------
+// Generic Network Module Security Controls for {{moduleName}}
+// -----------------------------------------------------
+// Create a mock for {{moduleName}} module
+const originalModule = require('{{moduleName}}');
+
+// Error factory function
+const createError = (method) => {
+  const errorMessage = "Network access is not allowed in this MCP";
+  return new Error(`${errorMessage} [module: {{moduleName}}, method: ${method}]`);
+};
+
+// Export a module that has the same shape but blocks operations
+module.exports = new Proxy(originalModule, {
+  get(target, prop) {
+    if (typeof target[prop] === 'function') {
+      return function(...args) {
+        // If last arg is a callback, call it with an error
+        if (typeof args[args.length - 1] === 'function') {
+          const callback = args[args.length - 1];
+          process.nextTick(() => {
+            callback(createError(prop));
+          });
+          return;
+        }
+
+        // If function normally returns a Promise, return rejected promise
+        if (prop.toString().startsWith('promise') ||
+            prop.toString().endsWith('Async') ||
+            target[prop].constructor.name === 'AsyncFunction') {
+          return Promise.reject(createError(prop));
+        }
+
+        // Return empty object for other cases
+        return {};
+      };
+    }
+    return target[prop];
+  }
+});

@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun test:*)",
+      "Bash(ls:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(grep:*)",
+      "Bash(diff:*)",
+      "Bash(chmod:*)",
+      "Bash(cat:*)",
+      "Bash(find:*)"
+    ],
+    "deny": []
+  },
+  "test": {
+    "command": "bun test",
+    "coverageCommand": "bun test --coverage",
+    "specificTestCommand": "bun test {path}"
+  }
+}

@@ -1,0 +1,76 @@
+name: Bug report
+description: Something in the toolkit does not work
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Run `qnsc-mcp doctor` first and paste its output below. It validates the config
+        files, environment variables, keyring and TLS trust store, and it resolves most
+        reports on its own — usually a config file the client never loaded, or a missing
+        credential.
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: qnsc-mcp doctor output
+      description: Paste the whole thing. Redact tokens.
+      render: text
+    validations:
+      required: true
+
+  - type: input
+    id: tool
+    attributes:
+      label: Which tool
+      description: >
+        The tool id, e.g. `github-issues-list`. `qnsc-mcp list-tools --filtered` shows
+        what is actually enabled — a tool missing from that list is a configuration
+        question rather than a bug.
+      placeholder: github-issues-list
+    validations:
+      required: false
+
+  - type: dropdown
+    id: client
+    attributes:
+      label: MCP client
+      options:
+        - Claude Desktop
+        - Claude Code
+        - VS Code (Copilot)
+        - Cursor
+        - JetBrains
+        - Other / none (running the CLI directly)
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version and platform
+      description: Output of `qnsc-mcp --version`, plus your OS and architecture.
+      placeholder: 0.1.0, macOS 15 arm64
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened
+      description: >
+        Include the exact error if there is one. If a tool returned a result that was
+        merely wrong rather than an error, say what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: >
+        If you can reproduce it outside your editor, `bun run scripts/try-tool.ts <id>
+        '<json-args>'` calls the tool directly and rules out the client, transport and
+        config.
+    validations:
+      required: false

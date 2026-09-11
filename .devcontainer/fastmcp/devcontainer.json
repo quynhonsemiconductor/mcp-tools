@@ -1,0 +1,15 @@
+{
+  "name": "FastMCP DevContainer",
+  "forwardPorts": [3000],
+  "remoteUser": "root",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "fastmcp",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "oven.bun-vscode"
+      ]
+    }
+  }
+}

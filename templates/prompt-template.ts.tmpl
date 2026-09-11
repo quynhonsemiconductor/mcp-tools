@@ -1,0 +1,35 @@
+import { Prompt } from '../../registry/prompts';
+import { PromptHandler } from '../../registry/prompts/types';
+import { CatchErrors } from '../../utils';
+
+/**
+ * {{PROMPT_NAME}} - {{PROMPT_DESCRIPTION_BRIEF}}
+ */
+@Prompt({
+  id: '{{PROMPT_ID}}',
+  name: '{{PROMPT_NAME}}',
+  description: '{{PROMPT_DESCRIPTION}}',
+  category: '{{PROMPT_CATEGORY}}',
+  arguments: [
+    {
+      name: 'text',
+      description: 'Some text to echo back',
+      required: true
+    }
+  ]
+})
+export class {{PROMPT_CLASS_NAME}} implements PromptHandler {
+  /**
+   * Generate the prompt template
+   */
+  @CatchErrors()
+  async load(args: Record<string, any>): Promise<string> {
+    return `
+You are a... and you just echo back text from the text tag below.
+
+<text>
+${args.text}
+</text>
+    `;
+  }
+}

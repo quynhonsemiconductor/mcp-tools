@@ -1,0 +1,235 @@
+{
+  "name": "browsertools",
+  "version": "0.0.0",
+  "entryPoint": "dist/mcp-server.js",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.4.1",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "llm-cost": "^1.0.5",
+    "node-fetch": "^2.7.0",
+    "ws": "^8.18.0"
+  },
+  "bundleSize": 176659,
+  "moduleFormat": "commonjs",
+  "source": {
+    "repository": "https://github.com/AgentDeskAI/browser-tools-mcp",
+    "ref": "v1.2.0"
+  },
+  "companions": [
+    {
+      "name": "browsertools-server",
+      "description": "Companion for Browser Tools.",
+      "entryPoint": "./dist/browser-connector.js",
+      "bundlePath": "companions/browsertools-server/dist/browser-connector.js",
+      "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.4.1",
+        "body-parser": "^1.20.3",
+        "cors": "^2.8.5",
+        "express": "^4.21.2",
+        "lighthouse": "^11.6.0",
+        "llm-cost": "^1.0.5",
+        "node-fetch": "^2.7.0",
+        "puppeteer-core": "^22.4.1",
+        "ws": "^8.18.0"
+      },
+      "moduleFormat": "esm",
+      "version": "1.2.0",
+      "staticFiles": [
+        "node_modules/lighthouse/shared/localization/locales/ar-XB.json:dist/locales/ar-XB.json",
+        "node_modules/lighthouse/shared/localization/locales/ar.json:dist/locales/ar.json",
+        "node_modules/lighthouse/shared/localization/locales/bg.json:dist/locales/bg.json",
+        "node_modules/lighthouse/shared/localization/locales/ca.json:dist/locales/ca.json",
+        "node_modules/lighthouse/shared/localization/locales/cs.json:dist/locales/cs.json",
+        "node_modules/lighthouse/shared/localization/locales/da.json:dist/locales/da.json",
+        "node_modules/lighthouse/shared/localization/locales/de.json:dist/locales/de.json",
+        "node_modules/lighthouse/shared/localization/locales/el.json:dist/locales/el.json",
+        "node_modules/lighthouse/shared/localization/locales/en-GB.json:dist/locales/en-GB.json",
+        "node_modules/lighthouse/shared/localization/locales/en-US.json:dist/locales/en-US.json",
+        "node_modules/lighthouse/shared/localization/locales/en-XA.json:dist/locales/en-XA.json",
+        "node_modules/lighthouse/shared/localization/locales/en-XL.json:dist/locales/en-XL.json",
+        "node_modules/lighthouse/shared/localization/locales/es-419.json:dist/locales/es-419.json",
+        "node_modules/lighthouse/shared/localization/locales/es.json:dist/locales/es.json",
+        "node_modules/lighthouse/shared/localization/locales/fi.json:dist/locales/fi.json",
+        "node_modules/lighthouse/shared/localization/locales/fil.json:dist/locales/fil.json",
+        "node_modules/lighthouse/shared/localization/locales/fr.json:dist/locales/fr.json",
+        "node_modules/lighthouse/shared/localization/locales/he.json:dist/locales/he.json",
+        "node_modules/lighthouse/shared/localization/locales/hi.json:dist/locales/hi.json",
+        "node_modules/lighthouse/shared/localization/locales/hr.json:dist/locales/hr.json",
+        "node_modules/lighthouse/shared/localization/locales/hu.json:dist/locales/hu.json",
+        "node_modules/lighthouse/shared/localization/locales/id.json:dist/locales/id.json",
+        "node_modules/lighthouse/shared/localization/locales/it.json:dist/locales/it.json",
+        "node_modules/lighthouse/shared/localization/locales/ja.json:dist/locales/ja.json",
+        "node_modules/lighthouse/shared/localization/locales/ko.json:dist/locales/ko.json",
+        "node_modules/lighthouse/shared/localization/locales/lt.json:dist/locales/lt.json",
+        "node_modules/lighthouse/shared/localization/locales/lv.json:dist/locales/lv.json",
+        "node_modules/lighthouse/shared/localization/locales/nl.json:dist/locales/nl.json",
+        "node_modules/lighthouse/shared/localization/locales/no.json:dist/locales/no.json",
+        "node_modules/lighthouse/shared/localization/locales/pl.json:dist/locales/pl.json",
+        "node_modules/lighthouse/shared/localization/locales/pt-PT.json:dist/locales/pt-PT.json",
+        "node_modules/lighthouse/shared/localization/locales/pt.json:dist/locales/pt.json",
+        "node_modules/lighthouse/shared/localization/locales/ro.json:dist/locales/ro.json",
+        "node_modules/lighthouse/shared/localization/locales/ru.json:dist/locales/ru.json",
+        "node_modules/lighthouse/shared/localization/locales/sk.json:dist/locales/sk.json",
+        "node_modules/lighthouse/shared/localization/locales/sl.json:dist/locales/sl.json",
+        "node_modules/lighthouse/shared/localization/locales/sr-Latn.json:dist/locales/sr-Latn.json",
+        "node_modules/lighthouse/shared/localization/locales/sr.json:dist/locales/sr.json",
+        "node_modules/lighthouse/shared/localization/locales/sv.json:dist/locales/sv.json",
+        "node_modules/lighthouse/shared/localization/locales/ta.json:dist/locales/ta.json",
+        "node_modules/lighthouse/shared/localization/locales/te.json:dist/locales/te.json",
+        "node_modules/lighthouse/shared/localization/locales/th.json:dist/locales/th.json",
+        "node_modules/lighthouse/shared/localization/locales/tr.json:dist/locales/tr.json",
+        "node_modules/lighthouse/shared/localization/locales/uk.json:dist/locales/uk.json",
+        "node_modules/lighthouse/shared/localization/locales/vi.json:dist/locales/vi.json",
+        "node_modules/lighthouse/shared/localization/locales/zh-HK.json:dist/locales/zh-HK.json",
+        "node_modules/lighthouse/shared/localization/locales/zh-TW.json:dist/locales/zh-TW.json",
+        "node_modules/lighthouse/shared/localization/locales/zh.json:dist/locales/zh.json",
+        "node_modules/lighthouse/flow-report/assets/standalone-flow-template.html:flow-report/assets/standalone-flow-template.html",
+        "node_modules/lighthouse/flow-report/assets/standalone-flow-template.html:dist/flow-report/assets/standalone-flow-template.html",
+        "package.json"
+      ]
+    }
+  ],
+  "security": {
+    "allowNetwork": false,
+    "networkAllowlist": [],
+    "allowFileSystem": false
+  },
+  "entrypoint": "dist/mcp-server.js",
+  "tools": [
+    {
+      "name": "getConsoleLogs",
+      "description": "Check our browser logs",
+      "schema": {
+        "type": "object"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getConsoleErrors",
+      "description": "Check our browsers console errors",
+      "schema": {
+        "type": "object"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getNetworkErrors",
+      "description": "Check our network ERROR logs",
+      "schema": {
+        "type": "object"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getNetworkLogs",
+      "description": "Check ALL our network logs",
+      "schema": {
+        "type": "object"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "takeScreenshot",
+      "description": "Take a screenshot of the current browser tab",
+      "schema": {
+        "type": "object"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getSelectedElement",
+      "description": "Get the selected element from the browser",
+      "schema": {
+        "type": "object"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "wipeLogs",
+      "description": "Wipe all browser logs from memory",
+      "schema": {
+        "type": "object"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "runAccessibilityAudit",
+      "description": "Run an accessibility audit on the current page",
+      "schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "runPerformanceAudit",
+      "description": "Run a performance audit on the current page",
+      "schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "runSEOAudit",
+      "description": "Run an SEO audit on the current page",
+      "schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "runNextJSAudit",
+      "description": "Tool from bundled MCP",
+      "schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "runDebuggerMode",
+      "description": "Run debugger mode to debug an issue in our application",
+      "schema": {
+        "type": "object"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "runAuditMode",
+      "description": "Run audit mode to optimize our application for SEO, accessibility and performance",
+      "schema": {
+        "type": "object"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "runBestPracticesAudit",
+      "description": "Run a best practices audit on the current page",
+      "schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    }
+  ],
+  "securityScan": {
+    "timestamp": "2025-08-05T02:35:09.242Z",
+    "riskScore": 65,
+    "summary": "The Browser Tools MCP server has several significant security issues, primarily related to network security, access control, and injection vulnerabilities. The most critical issue is the use of unencrypted HTTP for all communications, which exposes sensitive data to interception. The server also lacks proper authentication mechanisms, allowing anyone who can connect to the server port to access all functionality. Additionally, there are potential command injection vulnerabilities in the AppleScript execution code. The application handles large amounts of sensitive data including network requests, console logs, and screenshots, but lacks proper access controls and data protection mechanisms. While the application is designed to run locally, these security issues could still pose risks, especially if the server is exposed to untrusted networks or if malicious code is executed in the browser being monitored.",
+    "findingsCount": 9
+  }
+}

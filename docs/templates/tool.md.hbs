@@ -1,0 +1,43 @@
+# {{ name }}
+
+{{ description }}
+
+**Category:** {{ category }}
+
+## Parameters
+
+{{#if parameters}}
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+{{#each parameters}}
+| `{{ @key }}` | {{#if enum}}`enum`{{else}}`{{ type }}`{{/if}} | {{#if required}}Yes{{else}}No{{/if}} | {{ description }} |
+{{/each}}
+
+{{#each parameters}}
+{{#if enum}}
+### `{{ @key }}` Values
+
+| Value | Description |
+|-------|-------------|
+{{#each enum}}
+| `{{ this }}` | |
+{{/each}}
+
+{{/if}}
+{{/each}}
+{{else}}
+This tool does not require any parameters.
+{{/if}}
+
+## Usage
+
+```json
+{
+  "name": "{{ name }}",
+  "arguments": {
+{{#each parameters}}
+    "{{ @key }}": "<{{ @key }}>"{{#unless @last}},{{/unless}}
+{{/each}}
+  }
+}
+```

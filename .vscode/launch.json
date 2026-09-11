@@ -1,0 +1,68 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "dev",
+      "runtimeExecutable": "bun",
+      "args": ["run", "dev:nowatch"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "dev-direct",
+      "runtimeExecutable": "bun",
+      "program": "${workspaceFolder}/src/mcp.ts",
+      "args": ["--transportType", "httpStream"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "environment": "development"
+      },
+      "sourceMaps": true,
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "bun",
+      "request": "launch",
+      "name": "eval",
+      "runtime": "bun",
+      "runtimeArgs": ["eval"],
+      "cwd": "${workspaceFolder}",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "type": "bun",
+      "request": "launch",
+      "name": "one shot",
+      "runtime": "bun",
+      "runtimeArgs": [
+        "run",
+        "agentEvals/langChain",
+        "\"#linkRemoteTestCasesToTestSet TS123 link test cases for sprint testing\""
+      ],
+      "cwd": "${workspaceFolder}",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "type": "bun",
+      "request": "launch",
+      "name": "proj",
+      "runtime": "bun",
+      "runtimeArgs": ["run", "src/tools/k6/k6-iterations.ts", "US1234"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "bun",
+      "request": "launch",
+      "name": "rerun experiment evals",
+      "runtime": "bun",
+      "runtimeArgs": ["run", "agentEvals/codeEvals", "RXhwZXJpbWVudDo0Mg=="],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

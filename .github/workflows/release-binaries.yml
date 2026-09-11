@@ -1,0 +1,109 @@
+# =============================================================================
+# Release Binaries — builds qnsc-mcp binaries + .mcpb bundles (Claude Desktop
+# extension format) for each tag Release Please cuts, and attaches them as
+# GitHub Release assets.
+#
+# Triggers on the semver tag Release Please pushes when its release PR is
+# merged (release.yml handles that part) — same "separate workflow per
+# trigger" pattern.
+#
+# Unsigned build: no macOS Developer ID cert exists for QNSC yet, so these
+# binaries are ad-hoc signed only. Users get one Gatekeeper right-click-Open
+# on first run (same as any unsigned CLI tool) — see docs/src/development/
+# RELEASE-PROCESS.md for what a signed/notarized pipeline would add.
+#
+# All five targets scripts/build.ts supports are built here. Each needs a
+# @napi-rs/keyring binding entry in that script and its platform package in the
+# lockfile; both are present for every target below.
+# =============================================================================
+name: Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      # Keep going if one target fails, so a single broken platform does not
+      # withhold the artifacts for the rest.
+      fail-fast: false
+      matrix:
+        include:
+          - target: bun-darwin-arm64
+            outfile: qnsc-mcp-macos-arm64
+            mcpb: qnsc-mcp-macos-arm64.mcpb
+          - target: bun-darwin-x64
+            outfile: qnsc-mcp-macos-x64
+            mcpb: qnsc-mcp-macos-x64.mcpb
+          - target: bun-linux-x64
+            outfile: qnsc-mcp-linux-x64
+            mcpb: qnsc-mcp-linux-x64.mcpb
+          - target: bun-linux-arm64
+            outfile: qnsc-mcp-linux-arm64
+            mcpb: qnsc-mcp-linux-arm64.mcpb
+          # Bun cross-compiles the .exe from the Linux runner; the extension is
+          # required or Windows will not treat the download as executable. The
+          # bundle name is spelled out because scripts/build.ts omits the .exe
+          # there, so "<outfile>.mcpb" would not match what it writes.
+          - target: bun-windows-x64
+            outfile: qnsc-mcp-windows-x64.exe
+            mcpb: qnsc-mcp-windows-x64.mcpb
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: '1.3.11'
+          # NO CACHE in the release build. setup-bun caches by default, and a cache
+          # is writable by workflows running on pull requests — so a poisoned entry
+          # could reach the binaries that get signed and published from a tag. The
+          # cost is one clean install per release; the alternative is a supply-chain
+          # hole in the one workflow that produces artifacts users download.
+          no-cache: true
+
+      - run: bun install --frozen-lockfile
+
+      - name: Build binary + .mcpb (${{ matrix.target }})
+        env:
+          TARGET: ${{ matrix.target }}
+          OUTFILE: ${{ matrix.outfile }}
+          NO_SECURITY_SCAN: 'true'
+          # Embedding the org's OAuth App lets each teammate sign in as
+          # themselves on first use, so nobody has to create or paste a personal
+          # access token. Absent secrets are not fatal: the build warns and the
+          # binary falls back to GITHUB_TOKEN.
+          GITHUB_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+          GITHUB_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+        run: bun run build:binary
+
+      - name: Checksum
+        # Values reach the shell as ENV, never as `${{ }}` inside `run:`. A template
+        # expansion is substituted into the script text before bash sees it, so the
+        # value becomes code rather than an argument.
+        env:
+          OUTFILE: ${{ matrix.outfile }}
+        run: shasum -a 256 "$OUTFILE" > "$OUTFILE.sha256"
+
+      - name: Upload to release
+        # REF_NAME is the important one: this workflow triggers on a tag push, and a
+        # tag name is attacker-controllable by anyone who can push one. Interpolated
+        # into the script it is shell code; passed as env it is a string.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF_NAME: ${{ github.ref_name }}
+          OUTFILE: ${{ matrix.outfile }}
+        run: |
+          gh release upload "$REF_NAME" \
+            "$OUTFILE" \
+            "$OUTFILE.sha256" \
+            "$OUTFILE.mcpb" \
+            --clobber

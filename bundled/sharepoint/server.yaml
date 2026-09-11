@@ -1,0 +1,30 @@
+name: sharepoint
+description: Most powerful SharePoint MCP server enabling seamless interaction with SharePoint Online through the SharePoint REST API.
+
+source:
+  repository: https://github.com/Zerg00s/server-sharepoint
+  ref: ab88045
+  entrypoint: build/src/index.js
+
+build:
+  enabled: true
+  command: bun run build
+  startFunction: startServer
+
+envVars:
+  - name: AZURE_APPLICATION_ID
+    description: "The Azure Application ID."
+    required: true
+    mock: "mocked"
+  - name: AZURE_APPLICATION_CERTIFICATE_THUMBPRINT
+    description: "The Azure Application Certificate Thumbprint."
+    required: true
+    mock: "mocked"
+  - name: AZURE_APPLICATION_CERTIFICATE_PASSWORD
+    description: "The Azure Application Certificate Password."
+    required: true
+    mock: "mocked"
+  - name: M365_TENANT_ID
+    description: "The Azure Microsoft 365 tenant ID."
+    required: true
+    mock: "mocked"

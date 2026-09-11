@@ -1,0 +1,81 @@
+<div class='modal-backdrop'></div>
+<div class='modal-container'>
+  <div class='modal'>
+    <div class='modal-header'>
+      <div><h3>{{name}} <span class="version">{{version}}</span></h3> <div class='tool-id'>ID: {{id}}</div></div>
+
+
+      <button class='close-modal' onclick='closeModal()'>&times;</button>
+    </div>
+    <div class='modal-content'>
+      <div>
+        <h4 class='tool-description'>Description</h4>
+        <p>{{description}}</p>
+      </div>
+
+      <div class='modal-details'>
+          <div class='tool-parameters'>
+            <h4>Parameters</h4>
+              {{#if parameters}}
+                <div class='parameters-list'>
+                  {{#each parameters}}
+                    <div class='parameter-item'>
+                      <div class='parameter-header'>
+                        <span class='parameter-name'>{{name}}</span>
+                        {{#if required}}<span
+                            class='parameter-required'
+                          >Required</span>{{/if}}
+                      </div>
+                      <div class='parameter-type'>{{type}}</div>
+                      <div class='parameter-description'>{{description}}</div>
+                    </div>
+                  {{/each}}
+                </div>
+              {{else}}
+                <p>No parameters available.</p>
+              {{/if}}
+          </div>
+
+          {{#if envVars}}
+          <div class='tool-env-vars'>
+            <h4>Environment Variables</h4>
+            <div class='env-vars-list'>
+              {{#each envVars}}
+                <div class='env-var-item'>
+                  <div class='env-var-header'>
+                    <span class='env-var-name'>{{key}}</span>
+                  </div>
+                  {{#if description}}<div class='env-var-description'>{{description}}</div>{{/if}}
+                </div>
+              {{/each}}
+            </div>
+          </div>
+          {{/if}}
+
+        <div class='tool-usage'>
+          <h4>Usage Stats</h4>
+          {{#each callStats}}
+            <div class='stat'>
+              <span class='stat-label'>{{status}} Calls:</span>
+              <span class='stat-value'>{{count}}</span>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+
+      {{#if schema}}
+        <div class='tool-schema'>
+          <h4>Schema</h4>
+          <pre>{{formatJson schema}}</pre>
+        </div>
+      {{/if}}
+    </div>
+    <div class='modal-footer'>
+      <button
+        class='view-history-btn'
+        onclick="viewToolHistory('{{id}}'); closeModal();"
+      >View History</button>
+      <button class='close-btn' onclick='closeModal()'>Close</button>
+    </div>
+  </div>
+</div>

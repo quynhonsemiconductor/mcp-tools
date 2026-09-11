@@ -1,0 +1,50 @@
+name: New tool or integration
+description: Request a tool, or a service the toolkit should reach
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you want to ask an assistant to do
+      description: >
+        Describe the task, not the API. "Find which PRs are blocked on review" is more
+        useful than "wrap the pulls endpoint" — it often turns out an existing tool
+        already covers it, or that one tool serves several requests.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: shape
+    attributes:
+      label: How should it be reached
+      description: >
+        Native tools live in this repo and call an API directly. Bundled MCPs are
+        third-party servers packaged into the binary. Remote MCPs are hosted by the
+        vendor. Prefer a vendor's own MCP server when one exists — less to maintain
+        here, and it stays current without us.
+      options:
+        - Native tool in this repo
+        - Bundled third-party MCP server
+        - Remote MCP server hosted by the vendor
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: service
+    attributes:
+      label: Service
+      placeholder: Cloudflare, Linear, Sentry…
+    validations:
+      required: false
+
+  - type: textarea
+    id: auth
+    attributes:
+      label: Credentials it would need
+      description: >
+        A token, an OAuth app, or nothing. Worth stating up front: anything requiring a
+        per-user secret changes how the tool is distributed, since each teammate then
+        has to supply their own.
+    validations:
+      required: false

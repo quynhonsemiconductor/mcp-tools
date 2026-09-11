@@ -1,0 +1,56 @@
+# =============================================================================
+# PR title — Conventional Commits, checked on its own.
+#
+# Kept in its own workflow (not folded into ci.yml) deliberately: this is the
+# only check that needs the `edited` pull_request trigger (title can change
+# after opening) and needs no repo checkout, so it's cheap. Folding `edited`
+# into a workflow that also runs the real test/lint jobs risks a false green —
+# an edit combined with `cancel-in-progress` can cancel the real run and
+# replace it with one where the heavy jobs are skipped, which GitHub counts as
+# passing, which is the bug this guards against.
+#
+# Release Please derives the CHANGELOG from PR titles, so a malformed title is
+# a release defect, not a style nit.
+# =============================================================================
+name: PR title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+concurrency:
+  group: pr-title-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read # required by amannn/action-semantic-pull-request
+
+jobs:
+  pr-title:
+    name: PR title (conventional commits)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            chore
+            docs
+            style
+            refactor
+            perf
+            security
+            test
+            build
+            ci
+            deps
+            revert
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" must start with a lowercase letter.

@@ -1,0 +1,39 @@
+{{#if calls.length}}
+  <div class="recent-calls-list">
+    {{#each calls}}
+      <div class="recent-call-item">
+        <div class="recent-call-header">
+          <span class="tool-name"><strong>{{toolName}}</strong></span>
+          <span class="call-time">{{formatDate timestamp}}</span>
+        </div>
+        <div class="recent-call-details">
+          <div class="call-category">Category: {{toolCategory}}</div>
+          <div class="call-status">Status: {{status}}</div>
+          <div class="call-runtime">Runtime: {{runTimeMs}}ms</div>
+        </div>
+        <div class="call-payload">
+          <details>
+            <summary>Payload</summary>
+            <div class="scrollable-content">
+              <pre>{{formatJson payload}}</pre>
+            </div>
+          </details>
+        </div>
+        <div class="call-result">
+          <details>
+            <summary>Result</summary>
+            <div class="scrollable-content">
+              <pre>{{formatJson result}}</pre>
+            </div>
+          </details>
+        </div>
+        <div class="call-actions">
+          <button class="link-btn" onclick="viewToolDetails('{{toolId}}')">View Tool Details</button>
+          <button class="link-btn" onclick="viewToolHistory('{{toolId}}')">View History</button>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+{{else}}
+  <p>No recent tool calls found.</p>
+{{/if}}

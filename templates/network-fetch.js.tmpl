@@ -1,0 +1,78 @@
+// -----------------------------------------------------
+// Fetch API Security Controls
+// -----------------------------------------------------
+// Store reference to original fetch
+const originalFetch = globalThis.fetch;
+
+// Error factory function
+const createError = (url) => {
+  {{#if hasAllowlist}}
+  const errorMessage = `Network access to URL is not allowed (not in allowlist)`;
+  {{else}}
+  const errorMessage = "Network access is not allowed in this MCP";
+  {{/if}}
+  return new Error(`${errorMessage} [method: fetch, url: ${url}]`);
+};
+
+// Check if a URL is in the allowlist
+function isUrlAllowed(url) {
+  // Check if the URL is allowed based on allowlist setting
+  {{#if hasAllowlist}}
+  try {
+    // Parse the URL to check against the allowlist
+    const urlString = url.toString();
+    const parsedUrl = new URL(urlString);
+    const hostname = parsedUrl.hostname;
+
+    // Network allowlist from security options
+    const allowlist = {{{allowlistJSON}}};
+
+    // Check if the hostname matches any allowlist entry
+    return allowlist.some(allowedDomain =>
+      hostname === allowedDomain ||
+      hostname.endsWith(`.${allowedDomain}`)
+    );
+  } catch (e) {
+    return false;
+  }
+  {{else}}
+  // No allowlist - block all requests
+  return false;
+  {{/if}}
+}
+
+// Create a secure fetch wrapper
+function secureFetch(input, init) {
+  let url;
+
+  // Extract URL from the input
+  if (typeof input === 'string') {
+    url = input;
+  } else if (input instanceof URL) {
+    url = input.href;
+  } else if (input instanceof Request) {
+    url = input.url;
+  } else {
+    url = 'unknown';
+  }
+
+  // Check if the request is allowed
+  const allowed = isUrlAllowed(url);
+
+  if (allowed) {
+    return originalFetch(input, init);
+  }
+
+
+  // Return a rejected Promise for the fetch call
+  return Promise.reject(createError(url));
+}
+
+// Override the global fetch function
+globalThis.fetch = secureFetch;
+
+// Override global fetch on self and window if they exist
+if (typeof self !== 'undefined') self.fetch = secureFetch;
+if (typeof window !== 'undefined') window.fetch = secureFetch;
+
+// No need to export anything as we're modifying the global fetch

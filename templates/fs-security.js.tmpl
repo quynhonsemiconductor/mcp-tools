@@ -1,0 +1,219 @@
+// -----------------------------------------------------
+// Filesystem Security Controls
+// -----------------------------------------------------
+
+// Error factory function
+const createError = (method, path) => {
+  {{#if allowedPaths.length}}
+  const errorMessage = "Filesystem access is restricted to allowed paths in this MCP";
+  {{else}}
+  const errorMessage = "Filesystem access is not allowed in this MCP";
+  {{/if}}
+  return new Error(`${errorMessage} [method: ${method}, path: ${path}]`);
+};
+
+// Function to check if a path is allowed based on security settings
+const isPathAllowed = (path) => {
+  if (!path) return false;
+
+  const resolvedPath = require('path').resolve(path);
+
+  {{#if allowedPaths.length}}
+  // Check against allowed paths list
+  const allowedPaths = [{{#each allowedPaths}}"{{this}}"{{#unless @last}}, {{/unless}}{{/each}}];
+
+  for (const allowedPath of allowedPaths) {
+    const resolvedAllowedPath = require('path').resolve(allowedPath);
+    // Allow if path is exactly the allowed path or is a subdirectory
+    if (resolvedPath === resolvedAllowedPath ||
+        resolvedPath.startsWith(resolvedAllowedPath + require('path').sep)) {
+      return true;
+    }
+  }
+  {{/if}}
+
+  // Default to deny if no conditions match
+  return false;
+};
+
+// Create a secure wrapper for synchronous methods
+const secureSync = (fn, method) => {
+  return function(path, ...args) {
+    if (isPathAllowed(path)) {
+      return require('fs')[method](path, ...args);
+    }
+
+    throw createError(method, path);
+  };
+};
+
+// Create a secure wrapper for callback methods
+const secureCallback = (fn, method) => {
+  return function(path, ...args) {
+    if (isPathAllowed(path)) {
+      return require('fs')[method](path, ...args);
+    }
+
+    // Find the callback function (usually the last argument)
+    const callback = args.find(arg => typeof arg === 'function');
+
+    if (callback) {
+      // Call the callback with an error
+      return callback(createError(method, path));
+    } else {
+      // No callback found, throw an error
+      throw createError(method, path);
+    }
+  };
+};
+
+// Create a secure wrapper for promise methods
+const securePromise = (fn, method) => {
+  return function(path, ...args) {
+    if (isPathAllowed(path)) {
+      return require('fs/promises')[method](path, ...args);
+    }
+    return Promise.reject(createError(method, path));
+  };
+};
+
+// Create secure fs module
+const secureFs = {
+  // File system methods
+  readFile: secureCallback(null, 'readFile'),
+  readFileSync: secureSync(null, 'readFileSync'),
+  writeFile: secureCallback(null, 'writeFile'),
+  writeFileSync: secureSync(null, 'writeFileSync'),
+  appendFile: secureCallback(null, 'appendFile'),
+  appendFileSync: secureSync(null, 'appendFileSync'),
+  access: secureCallback(null, 'access'),
+  accessSync: secureSync(null, 'accessSync'),
+  chown: secureCallback(null, 'chown'),
+  chownSync: secureSync(null, 'chownSync'),
+  chmod: secureCallback(null, 'chmod'),
+  chmodSync: secureSync(null, 'chmodSync'),
+  close: secureCallback(null, 'close'),
+  closeSync: secureSync(null, 'closeSync'),
+  copyFile: secureCallback(null, 'copyFile'),
+  copyFileSync: secureSync(null, 'copyFileSync'),
+  cp: secureCallback(null, 'cp'),
+  cpSync: secureSync(null, 'cpSync'),
+  createReadStream: secureSync(null, 'createReadStream'),
+  createWriteStream: secureSync(null, 'createWriteStream'),
+  exists: secureCallback(null, 'exists'),
+  existsSync: secureSync(null, 'existsSync'),
+  fchown: secureCallback(null, 'fchown'),
+  fchownSync: secureSync(null, 'fchownSync'),
+  fchmod: secureCallback(null, 'fchmod'),
+  fchmodSync: secureSync(null, 'fchmodSync'),
+  fdatasync: secureCallback(null, 'fdatasync'),
+  fdatasyncSync: secureSync(null, 'fdatasyncSync'),
+  fstat: secureCallback(null, 'fstat'),
+  fstatSync: secureSync(null, 'fstatSync'),
+  fsync: secureCallback(null, 'fsync'),
+  fsyncSync: secureSync(null, 'fsyncSync'),
+  ftruncate: secureCallback(null, 'ftruncate'),
+  ftruncateSync: secureSync(null, 'ftruncateSync'),
+  futimes: secureCallback(null, 'futimes'),
+  futimesSync: secureSync(null, 'futimesSync'),
+  lchown: secureCallback(null, 'lchown'),
+  lchownSync: secureSync(null, 'lchownSync'),
+  link: secureCallback(null, 'link'),
+  linkSync: secureSync(null, 'linkSync'),
+  lstat: secureCallback(null, 'lstat'),
+  lstatSync: secureSync(null, 'lstatSync'),
+  mkdir: secureCallback(null, 'mkdir'),
+  mkdirSync: secureSync(null, 'mkdirSync'),
+  mkdtemp: secureCallback(null, 'mkdtemp'),
+  mkdtempSync: secureSync(null, 'mkdtempSync'),
+  open: secureCallback(null, 'open'),
+  openSync: secureSync(null, 'openSync'),
+  opendir: secureCallback(null, 'opendir'),
+  opendirSync: secureSync(null, 'opendirSync'),
+  readdir: secureCallback(null, 'readdir'),
+  readdirSync: secureSync(null, 'readdirSync'),
+  readlink: secureCallback(null, 'readlink'),
+  readlinkSync: secureSync(null, 'readlinkSync'),
+  realpath: secureCallback(null, 'realpath'),
+  realpathSync: secureSync(null, 'realpathSync'),
+  rename: secureCallback(null, 'rename'),
+  renameSync: secureSync(null, 'renameSync'),
+  rm: secureCallback(null, 'rm'),
+  rmSync: secureSync(null, 'rmSync'),
+  rmdir: secureCallback(null, 'rmdir'),
+  rmdirSync: secureSync(null, 'rmdirSync'),
+  stat: secureCallback(null, 'stat'),
+  statSync: secureSync(null, 'statSync'),
+  symlink: secureCallback(null, 'symlink'),
+  symlinkSync: secureSync(null, 'symlinkSync'),
+  truncate: secureCallback(null, 'truncate'),
+  truncateSync: secureSync(null, 'truncateSync'),
+  unlink: secureCallback(null, 'unlink'),
+  unlinkSync: secureSync(null, 'unlinkSync'),
+  unwatchFile: secureCallback(null, 'unwatchFile'),
+  utimes: secureCallback(null, 'utimes'),
+  utimesSync: secureSync(null, 'utimesSync'),
+  watch: secureCallback(null, 'watch'),
+  watchFile: secureCallback(null, 'watchFile')
+};
+
+// Create secure fs/promises module
+const secureFsPromises = {
+  access: securePromise(null, 'access'),
+  appendFile: securePromise(null, 'appendFile'),
+  chmod: securePromise(null, 'chmod'),
+  chown: securePromise(null, 'chown'),
+  copyFile: securePromise(null, 'copyFile'),
+  cp: securePromise(null, 'cp'),
+  lchown: securePromise(null, 'lchown'),
+  link: securePromise(null, 'link'),
+  lstat: securePromise(null, 'lstat'),
+  mkdir: securePromise(null, 'mkdir'),
+  mkdtemp: securePromise(null, 'mkdtemp'),
+  open: securePromise(null, 'open'),
+  opendir: securePromise(null, 'opendir'),
+  readdir: securePromise(null, 'readdir'),
+  readFile: securePromise(null, 'readFile'),
+  readlink: securePromise(null, 'readlink'),
+  realpath: securePromise(null, 'realpath'),
+  rename: securePromise(null, 'rename'),
+  rm: securePromise(null, 'rm'),
+  rmdir: securePromise(null, 'rmdir'),
+  stat: securePromise(null, 'stat'),
+  symlink: securePromise(null, 'symlink'),
+  truncate: securePromise(null, 'truncate'),
+  unlink: securePromise(null, 'unlink'),
+  utimes: securePromise(null, 'utimes'),
+  watch: securePromise(null, 'watch'),
+  writeFile: securePromise(null, 'writeFile')
+};
+
+// Add constants
+const constants = { ...(require('fs').constants || {}) };
+
+// Assign constants
+Object.keys(constants).forEach(key => {
+  secureFs[key] = constants[key];
+});
+
+// Add promises property
+secureFs.promises = secureFsPromises;
+
+{{#if isEsm}}
+// ESM exports for ESM modules
+export default secureFs;
+export * from 'fs';
+export const promises = secureFsPromises;
+{{else}}
+// CommonJS exports for CJS modules
+// Note: We don't use conditional exports because they don't work well in bundlers
+// Instead, we create separate files for each format
+module.exports = secureFs;
+// Add constants and other properties to module.exports
+Object.keys(secureFs).forEach(function(key) {
+  module.exports[key] = secureFs[key];
+});
+module.exports.promises = secureFsPromises;
+// For compatibility, also export as default
+module.exports.default = secureFs;
+{{/if}}

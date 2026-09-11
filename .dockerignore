@@ -1,0 +1,10 @@
+node_modules
+.git
+bundled-mcps
+.llm
+.devcontainer
+.github
+.husky
+.vscode
+coverage
+docs

@@ -1,0 +1,111 @@
+// -----------------------------------------------------
+// HTTP/HTTPS Security Controls
+// -----------------------------------------------------
+// Create a mock for {{moduleName}} module
+const originalModule = require('{{moduleName}}');
+
+// Error factory function
+const createError = (method, url) => {
+  {{#if hasAllowlist}}
+  const errorMessage = `Network access to URL '${url}' is not allowed (not in allowlist)`;
+  {{else}}
+  const errorMessage = "Network access is not allowed in this MCP";
+  {{/if}}
+  return new Error(`${errorMessage} [method: ${method}, url: ${url}]`);
+};
+
+// Check if a URL is in the allowlist
+function isUrlAllowed(url) {
+  // Check if the URL is allowed based on allowlist setting
+  {{#if hasAllowlist}}
+  try {
+    // Parse the URL to check against the allowlist
+    const urlString = url.toString();
+    const parsedUrl = new URL(urlString);
+    const hostname = parsedUrl.hostname;
+
+    // Network allowlist from security options
+    const allowlist = {{{allowlistJSON}}};
+
+    // Check if the hostname matches any allowlist entry
+    return allowlist.some(allowedDomain =>
+      hostname === allowedDomain ||
+      hostname.endsWith(`.${allowedDomain}`)
+    );
+  } catch (e) {
+    return false;
+  }
+  {{else}}
+  // No allowlist - block all requests
+  return false;
+  {{/if}}
+}
+
+// Create request and get function replacements
+function secureRequest(...args) {
+  // Extract URL info for reporting
+  let url = "unknown";
+  let options = {};
+
+  if (typeof args[0] === 'string') {
+    url = args[0];
+  } else if (args[0] && (args[0].hostname || args[0].host)) {
+    const opt = args[0];
+    const protocol = opt.protocol || '{{moduleName}}:';
+    const host = opt.hostname || opt.host;
+    const port = opt.port ? `:${opt.port}` : '';
+    const path = opt.path || '/';
+    url = `${protocol}//${host}${port}${path}`;
+    options = opt;
+  }
+
+  // Check if request is allowed
+  const allowed = isUrlAllowed(url);
+
+  if (allowed) {
+    return originalModule.request(...args);
+  }
+
+  // If there's a callback (last argument is a function), call it with the error
+  if (typeof args[args.length - 1] === 'function') {
+    const callback = args[args.length - 1];
+    process.nextTick(() => {
+      callback(createError('request', url));
+    });
+    return {};
+  }
+
+  // Otherwise simulate a ClientRequest with proper event handling
+  const EventEmitter = require('events');
+  const req = new EventEmitter();
+
+  // Add request methods that return 'this'
+  ['end', 'write', 'abort', 'setTimeout', 'setHeader', 'on', 'once', 'emit'].forEach(method => {
+    req[method] = method === 'on' || method === 'once'
+      ? function(event, handler) {
+          if (event === 'error') {
+            // Schedule the error handler to be called
+            process.nextTick(() => handler(createError('request', url)));
+          }
+          return req;
+        }
+      : function() { return req; };
+  });
+
+  // Emit an error on next tick
+  process.nextTick(() => {
+    req.emit('error', createError('request', url));
+  });
+
+  return req;
+}
+
+// Create module with secure methods
+const secureModule = {
+  ...originalModule,
+  request: secureRequest,
+  get: secureRequest
+};
+
+// Export the secure module
+module.exports = secureModule;

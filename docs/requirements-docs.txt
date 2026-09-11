@@ -1,0 +1,6 @@
+mkdocs
+mkdocs-material
+pymdown-extensions
+markdown
+mdx_truly_sane_lists
+mkdocs-gen-files

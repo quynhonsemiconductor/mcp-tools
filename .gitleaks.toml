@@ -1,0 +1,46 @@
+title = "mcp-tools gitleaks config"
+
+# EXTENDS the default ruleset — it does not replace it.
+#
+# gitleaks 8 treats a discovered config as THE config, so a file with an [allowlist]
+# and no [[rules]] leaves the scanner with an EMPTY ruleset: it finds nothing, exits
+# 0, and the required `Secret scan (Gitleaks)` check goes green. Three sibling repos
+# shipped exactly that and had no secret scanning at all until 2026-09-09.
+#
+# Never delete these two lines to "simplify" the config.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known false-positives: test fixtures, docs examples and installer placeholders"
+
+paths = [
+  # Tests for the SECRET DETECTOR itself. This file's entire purpose is to feed
+  # realistic-looking credentials to the hardcoded-secrets validation check, so it
+  # will always contain matches and always should.
+  '''src/services/validation/checks/mcp/hardcoded-secrets\.test\.ts''',
+  # Fixtures asserting that the log sanitizer and the config validator redact or
+  # reject credentials — same reasoning: the input has to look real to test the code.
+  '''src/services/telemetry/log-sanitizer\.test\.ts''',
+  '''src/services/validation/config-validator\.test\.ts''',
+  '''src/services/validation/checks/mcp/executable-paths\.test\.ts''',
+  # Auth middleware tests: each sets a fake EXAMPLE_SERVICE_TOKEN / TEST_API_KEY in
+  # process.env to exercise a code path that reads one.
+  '''src/services/auth/middleware/.*\.test\.ts''',
+  '''src/services/auth/entra-id/credential-security\.test\.ts''',
+]
+
+regexes = [
+  # NOTE ON SHAPE: gitleaks matches these against the SECRET it extracted, not against
+  # the whole line, so each entry below is the captured value and is anchored.
+  #
+  # scripts/install.sh documents its own usage line:
+  #   curl -fsSL -H "Authorization: token YOUR_TOKEN" ...
+  # A path allowlist would be wrong here — an install script is exactly where a real
+  # token could be pasted by accident, so only the literal placeholder is suppressed.
+  '''^YOUR_TOKEN$''',
+  # docs/src/development/VALIDATION_SYSTEM.md shows a BAD example, annotated in the
+  # document as "❌ Will trigger warning" — the string exists to be flagged by the
+  # product, which is a different thing from being a credential.
+  '''sk-proj-abc123\.\.\.''',
+]

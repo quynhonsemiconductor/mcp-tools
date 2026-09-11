@@ -1,0 +1,21 @@
+FROM oven/bun:latest
+
+# Copy configuration files first for better layer caching
+COPY package.json bun.* .bun-version babel.config.js eslint.config.js tsconfig.json bunfig.toml ./
+
+# Install dependencies
+RUN bun install
+
+# Copy source code and other necessary files
+COPY src ./src
+COPY scripts ./scripts
+COPY templates ./templates
+
+# Create reports directory
+RUN mkdir -p reports
+
+# Set environment variables for consistent behavior
+ENV NODE_ENV=test
+
+# Set CMD to run tests with proper output handling
+CMD [ "sh", "-c", "bun test" ]

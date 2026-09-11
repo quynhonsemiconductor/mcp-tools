@@ -1,0 +1,22 @@
+name: markdown2pdf
+description: An Amazon S3 Model Context Protocol (MCP) server that provides tools for interacting with S3 buckets and objects.
+
+source:
+  repository: https://github.com/2b3pro/markdown2pdf-mcp
+  ref: 687dbfa
+  entrypoint: build/index.js
+
+build:
+  enabled: false
+  command: bun run build
+
+envVars:
+  - name: M2P_OUTPUT_DIR
+    description: "The output directory for the converted PDF files. Defaults to $HOME"
+    required: false
+    mock: "$HOME"
+
+staticFiles:
+  # - src/css/pdf.css:build/css/pdf.css
+  # - src/puppeteer/render.js:build/puppeteer/render.js
+  - src/runnings.js:build/runnings.js

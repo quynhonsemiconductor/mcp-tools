@@ -1,0 +1,30 @@
+import { Resource } from '../../registry/resources';
+import { ResourceHandler } from '../../registry/resources/types';
+import { CatchErrors } from '../../utils';
+
+/**
+ * {{RESOURCE_NAME}} - {{RESOURCE_DESCRIPTION_BRIEF}}
+ */
+@Resource({
+  id: '{{RESOURCE_ID}}',
+  name: '{{RESOURCE_NAME}}',
+  description: '{{RESOURCE_DESCRIPTION}}',
+  category: '{{RESOURCE_CATEGORY}}',
+  arguments: [
+    {
+      name: 'id',
+      description: 'Resource identifier',
+      required: true
+    }
+  ]
+})
+export class {{RESOURCE_CLASS_NAME}} implements ResourceHandler {
+  /**
+   * Load the resource content
+   */
+  @CatchErrors()
+  async load(args: Record<string, any>): Promise<string> {
+    // Implement resource loading logic here
+    return `Resource content for ${args.id}`;
+  }
+}

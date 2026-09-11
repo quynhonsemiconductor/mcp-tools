@@ -1,0 +1,1124 @@
+/* Config Editor Styles */
+
+.config-container {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+/* Ensure all text is visible on light theme */
+.config-container, .config-sidebar, .config-main,
+.config-controls, .categories-container, .tools-container,
+.yaml-preview, .file-upload-label, .file-info, .action-btn,
+.category-item, .tool-item, .mcp-item {
+  color: var(--text-main);
+}
+
+/* Fix headings in config editor */
+#config-view h1, #config-view h2, #config-view h3, #config-view h4,
+.config-sidebar h3, .config-main h3,
+.config-preview h3, .actions-container h3,
+.upload-container h3, .tools-header h3,
+.config-controls h3, .logging-options h3 {
+  color: var(--heading-color);
+}
+
+.config-sidebar {
+  flex: 1;
+  width: 350px;
+  max-width: 350px;
+}
+
+.config-main {
+  flex: 2;
+}
+
+.config-controls,
+.categories-container,
+.tools-container,
+.mcp-servers-container,
+.config-preview {
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Tab Navigation Styles */
+.tabs-nav {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
+}
+
+.tabs-nav::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tabs-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tabs-nav::-webkit-scrollbar-thumb {
+  background-color: var(--accent);
+  border-radius: 2px;
+}
+
+.tab-btn-slim {
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.85rem !important;
+  line-height: 1.2 !important;
+}
+
+.tab-btn {
+  padding: 0.75rem 1.25rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  opacity: 0.7;
+  transition: all 0.2s ease-in-out;
+  flex-shrink: 0;
+}
+
+.tab-btn:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.tab-btn.active {
+  opacity: 1;
+  border-bottom: 2px solid var(--accent);
+}
+
+/* Tool Category Group Styles */
+.tool-category-group {
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tool-category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+
+.tool-category-header:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.category-header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.category-expand-icon {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+}
+
+.tool-category-group.collapsed .category-expand-icon {
+  transform: rotate(-90deg);
+}
+
+.category-name {
+  font-weight: 600;
+  color: var(--heading-color);
+}
+
+.category-count {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-left: 0.25rem;
+}
+
+.category-toggle {
+  margin-left: auto;
+  padding-left: 1rem;
+}
+
+.tool-category-content {
+  display: block;
+}
+
+.tool-category-group.collapsed .tool-category-content {
+  display: none;
+}
+
+.tool-category-content .tool-item {
+  border-left: 3px solid transparent;
+  margin-left: 1.5rem;
+}
+
+.tool-category-content .tool-item:hover {
+  border-left-color: var(--accent);
+}
+
+.tab-content {
+  position: relative;
+}
+
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+/* Tabs Container Styles */
+.sidebar-tabs-container,
+.main-tabs-container, .tools-tabs-container {
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.tools-tabs-container {
+  margin-top: 2rem;
+}
+
+/* Remove margin from tab content containers */
+.sidebar-tabs-container .categories-container,
+.sidebar-tabs-container .mcp-servers-container,
+.sidebar-tabs-container .remote-mcp-servers-container,
+.sidebar-tabs-container .local-mcp-servers-container,
+.main-tabs-container .config-preview,
+.main-tabs-container .mcp-config-preview,
+.tools-tabs-container .tools-container,
+.main-tabs-container .config-controls,
+.tools-tabs-container .config-controls {
+  border: none;
+  padding: 0;
+  margin-bottom: 0;
+  background-color: transparent;
+}
+
+/* Upload section */
+.upload-container {
+  margin-bottom: 1.5rem;
+}
+
+.file-upload-area {
+  display: flex;
+  flex-direction: column;
+  margin: 1rem 0;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.file-upload-label {
+  background-color: var(--accent);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s;
+  margin-bottom: 0.5rem;
+}
+
+.file-upload-label:hover {
+  background-color: var(--focus);
+}
+
+#file-name {
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  word-break: break-all;
+}
+
+.file-info {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+/* Buttons */
+.primary-btn {
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.primary-btn:hover {
+  background-color: var(--focus);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.pending-changes {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: #b45309; /* amber warning tone */
+}
+
+.pending-changes.hidden {
+  display: none;
+}
+
+.action-btn {
+  flex: 1;
+  background-color: var(--hover-bg);
+  border: 1px solid var(--border);
+  padding: 0.75rem 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-main);
+}
+
+.action-btn:hover {
+  background-color: var(--border);
+}
+
+/* Search */
+.search-container {
+  margin-bottom: 1rem;
+}
+
+#tool-search {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* Categories list */
+.category-item {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.category-item:hover {
+  background-color: var(--hover-bg);
+}
+
+.category-item.active {
+  border-color: var(--accent);
+  background-color: var(--active-bg);
+}
+
+.category-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  margin-left: 10px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--toggle-enabled);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+}
+
+/* Indeterminate state for category toggles */
+input.indeterminate + .toggle-slider {
+  background-color: #8c9eff; /* Light blue color for indeterminate state */
+}
+
+input.indeterminate + .toggle-slider:before {
+  transform: translateX(13px); /* Middle position */
+  background-color: #f0f0f0; /* Slightly different color for the thumb */
+}
+
+/* Tristate toggle for category groups */
+.tristate-toggle {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.tristate-toggle .toggle-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 24px;
+  transition: background-color 0.3s;
+}
+
+.tristate-toggle .toggle-thumb {
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: transform 0.3s;
+  border-radius: 50%;
+}
+
+/* State: excluded (left position) */
+.tristate-toggle[data-state="excluded"] .toggle-track {
+  background-color: #f44336; /* Red for excluded */
+}
+
+.tristate-toggle[data-state="excluded"] .toggle-thumb {
+  transform: translateX(0);
+}
+
+/* State: neutral (middle position) */
+.tristate-toggle[data-state="neutral"] .toggle-track {
+  background-color: #ccc; /* Gray for neutral */
+}
+
+.tristate-toggle[data-state="neutral"] .toggle-thumb {
+  transform: translateX(13px);
+}
+
+/* State: included (right position) */
+.tristate-toggle[data-state="included"] .toggle-track {
+  background-color: var(--toggle-enabled); /* Green for included */
+}
+
+.tristate-toggle[data-state="included"] .toggle-thumb {
+  transform: translateX(26px);
+}
+
+/* Smaller tristate toggle for individual tools */
+.tristate-toggle-small {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.tristate-toggle-small .toggle-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 24px;
+  transition: background-color 0.3s;
+}
+
+.tristate-toggle-small .toggle-thumb {
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: transform 0.3s;
+  border-radius: 50%;
+}
+
+/* State: excluded (left position) */
+.tristate-toggle-small[data-state="excluded"] .toggle-track {
+  background-color: #f44336; /* Red for excluded */
+}
+
+.tristate-toggle-small[data-state="excluded"] .toggle-thumb {
+  transform: translateX(0);
+}
+
+/* State: neutral (middle position) */
+.tristate-toggle-small[data-state="neutral"] .toggle-track {
+  background-color: #ccc; /* Gray for neutral */
+}
+
+.tristate-toggle-small[data-state="neutral"] .toggle-thumb {
+  transform: translateX(13px);
+}
+
+/* State: included (right position) */
+.tristate-toggle-small[data-state="included"] .toggle-track {
+  background-color: var(--toggle-enabled); /* Green for included */
+}
+
+.tristate-toggle-small[data-state="included"] .toggle-thumb {
+  transform: translateX(26px);
+}
+
+/* Tools section */
+.tool-item {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tool-details {
+  flex: 1;
+}
+
+.tool-name {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.tool-description {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Secrets section */
+.secret-item {
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background-color: var(--background);
+}
+
+.secret-header {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: var(--heading-color);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.secret-required {
+  background-color: #ff6b6b;
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-weight: normal;
+}
+
+.secret-optional {
+  background-color: #51cf66;
+  color: white;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-weight: normal;
+}
+
+.secret-description {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.secret-default {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+/* MCP Servers section */
+.mcp-item {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.mcp-item:hover {
+  background-color: var(--hover-bg);
+}
+
+.mcp-item.active {
+  border-color: var(--accent);
+  background-color: var(--active-bg);
+}
+
+.mcp-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mcp-name {
+  font-weight: bold;
+}
+
+.mcp-version {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.mcp-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.mcp-tools-container {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Remote MCP Servers section */
+.remote-mcp-item, .local-mcp-item {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.remote-mcp-item:hover, .local-mcp-item:hover {
+  background-color: var(--hover-bg);
+}
+
+.remote-mcp-item.active, .local-mcp-item.active {
+  border-color: var(--accent);
+  background-color: var(--active-bg);
+}
+
+.remote-mcp-info, .local-mcp-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.remote-mcp-name, .local-mcp-name {
+  font-weight: bold;
+}
+
+.remote-mcp-description, .local-mcp-description {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-left: 0.5rem;
+}
+
+.remote-mcp-status, .local-mcp-status {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  margin-left: auto;
+  margin-right: 1rem;
+}
+
+.mcp-status {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.mcp-error-icon {
+  font-size: 0.75rem;
+  margin-right: 0.15rem;
+  vertical-align: middle;
+  cursor: default;
+}
+
+/* Hide the "enabled but not connected" warning the moment a server is toggled
+   off — reacts to the live checkbox state, so it clears before saving. */
+.mcp-item:has(.mcp-checkbox:not(:checked)) .mcp-error-icon {
+  display: none;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-connected {
+  background-color: #4CAF50; /* Green */
+}
+
+.status-disconnected {
+  background-color: #9E9E9E; /* Gray */
+}
+
+.status-error {
+  background-color: #F44336; /* Red */
+}
+
+.status-connecting {
+  background-color: #FF9800; /* Orange */
+}
+
+.remote-mcp-toggle, .local-mcp-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.remote-mcp-tools-count, .local-mcp-tools-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-right: 0.5rem;
+}
+
+.remote-mcp-servers-container, .local-mcp-servers-container {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+
+/* Logging Options */
+.logging-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.logging-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+}
+
+.logging-select,
+.logging-input {
+  width: 100px;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* Source info styling */
+.source-info {
+  float: right;
+  font-size: 0.75em;
+  color: var(--text-muted);
+  font-weight: normal;
+  font-style: italic;
+  margin-top: 0.3rem;
+}
+
+/* YAML Preview */
+.yaml-preview {
+  padding: 0;
+  border-radius: 4px;
+  max-height: 500px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  background-color: var(--code-bg);
+  border: 1px solid var(--border);
+}
+
+.yaml-preview code {
+  display: block;
+  padding: 1rem;
+  font-family: monospace;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* MCP Configuration Preview */
+.mcp-config-preview h3 {
+  color: var(--heading-color);
+  margin-bottom: 1rem;
+}
+
+.mcp-config-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.mcp-config-controls label {
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.mcp-format-select {
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background-color: var(--background);
+  color: var(--text-main);
+}
+
+.mcp-config-preview-content {
+  padding: 0;
+  border-radius: 4px;
+  max-height: 500px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  background-color: var(--code-bg);
+  border: 1px solid var(--border);
+}
+
+.mcp-config-preview-content code {
+  display: block;
+  padding: 1rem;
+  font-family: monospace;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* MCP Configuration Instructions */
+.mcp-config-instructions {
+  margin-top: 2rem;
+}
+
+.mcp-config-instructions h3 {
+  color: var(--heading-color);
+  margin-bottom: 1rem;
+}
+
+.config-instructions-content {
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.5rem;
+}
+
+.config-instructions-content h4 {
+  color: var(--heading-color);
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.config-instructions-content p {
+  color: var(--text-main);
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.config-instructions-content .file-path {
+  background-color: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-family: monospace;
+  font-size: 0.9rem;
+  margin: 0.5rem 0 1rem 0;
+  color: var(--accent);
+}
+
+.config-instructions-content .info-box {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-left: 4px solid #3b82f6;
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.config-instructions-content .info-box p {
+  margin: 0;
+  color: var(--text-main);
+}
+
+.config-instructions-content .warning-box {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-left: 4px solid #f59e0b;
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.config-instructions-content .warning-box p {
+  margin: 0;
+  color: var(--text-main);
+}
+
+.config-instructions-content ol {
+  padding-left: 1.5rem;
+  color: var(--text-main);
+}
+
+.config-instructions-content ol li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.config-instructions-content code {
+  background-color: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0.2rem 0.4rem;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+
+/* Tool content updates */
+#tools-content {
+  position: relative;
+}
+
+#tools-header {
+  margin-bottom: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 1000px) {
+  .config-container {
+    flex-direction: column;
+  }
+
+  .config-sidebar {
+    max-width: 100%;
+  }
+
+  .tabs-nav {
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    flex: 1;
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+  }
+}
+/* ============================================
+   Setup Instructions Tab Styles
+   ============================================ */
+
+.setup-instructions-container {
+  padding: 1.5rem;
+  background: var(--background-color, #fff);
+}
+
+#setup-header {
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-color, #e0e0e0);
+  padding-bottom: 1rem;
+}
+
+#setup-header h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--heading-color, #333);
+}
+
+.setup-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-secondary, #666);
+}
+
+#setup-tool-name {
+  font-weight: 600;
+  color: var(--primary-color, #0066cc);
+}
+
+.setup-content {
+  max-width: 900px;
+  line-height: 1.6;
+}
+
+/* Markdown content styling */
+.setup-content h1 {
+  font-size: 2rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: var(--heading-color, #333);
+  border-bottom: 2px solid var(--border-color, #e0e0e0);
+  padding-bottom: 0.5rem;
+}
+
+.setup-content h2 {
+  font-size: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--heading-color, #333);
+}
+
+.setup-content h3 {
+  font-size: 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--heading-color, #444);
+}
+
+.setup-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  background: var(--table-bg, #f9f9f9);
+}
+
+.setup-content th {
+  background: var(--table-header-bg, #e9ecef);
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  border: 1px solid var(--border-color, #dee2e6);
+}
+
+.setup-content td {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color, #dee2e6);
+  vertical-align: top;
+}
+
+.setup-content code {
+  background: var(--code-bg, #f4f4f4);
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: var(--code-text, #d63384);
+}
+
+.setup-content pre {
+  background: var(--pre-bg, #2d2d2d);
+  color: var(--pre-text, #f8f8f2);
+  padding: 1rem;
+  border-radius: 5px;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.setup-content pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 0.875rem;
+}
+
+.setup-content ul,
+.setup-content ol {
+  margin: 1rem 0;
+  padding-left: 2rem;
+}
+
+.setup-content li {
+  margin: 0.5rem 0;
+}
+
+.setup-content p {
+  margin: 1rem 0;
+}
+
+.setup-content a {
+  color: var(--link-color, #0066cc);
+  text-decoration: none;
+}
+
+.setup-content a:hover {
+  text-decoration: underline;
+}
+
+.setup-content blockquote {
+  border-left: 4px solid var(--border-color, #ddd);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--text-secondary, #666);
+}
+
+/* Loading and error states */
+.setup-loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary, #666);
+  font-style: italic;
+}
+
+.setup-error {
+  padding: 1rem;
+  background: var(--error-bg, #fff3cd);
+  border: 1px solid var(--error-border, #ffc107);
+  border-radius: 5px;
+  color: var(--error-text, #856404);
+  margin: 1rem 0;
+}
+
+.setup-not-available {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary, #999);
+}

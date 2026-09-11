@@ -1,0 +1,2071 @@
+{
+  "name": "sharepoint",
+  "version": "1.0.14",
+  "entryPoint": "build/src/index.js",
+  "dependencies": {
+    "@azure/msal-node": "^3.5.3",
+    "@modelcontextprotocol/sdk": "^1.10.1",
+    "@types/node-forge": "^1.3.11",
+    "axios": "^1.9.0",
+    "dotenv": "^16.5.0",
+    "node-forge": "^1.3.1",
+    "node-sp-auth": "^3.0.9",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.6",
+    "uuid": "^9.0.1"
+  },
+  "bundleSize": 2473738,
+  "moduleFormat": "commonjs",
+  "source": {
+    "repository": "https://github.com/Zerg00s/server-sharepoint",
+    "ref": "ab88045"
+  },
+  "envVars": [
+    {
+      "name": "AZURE_APPLICATION_ID",
+      "description": "The Azure Application ID.",
+      "required": true,
+      "mock": "mocked"
+    },
+    {
+      "name": "AZURE_APPLICATION_CERTIFICATE_THUMBPRINT",
+      "description": "The Azure Application Certificate Thumbprint.",
+      "required": true,
+      "mock": "mocked"
+    },
+    {
+      "name": "AZURE_APPLICATION_CERTIFICATE_PASSWORD",
+      "description": "The Azure Application Certificate Password.",
+      "required": true,
+      "mock": "mocked"
+    },
+    {
+      "name": "M365_TENANT_ID",
+      "description": "The Azure Microsoft 365 tenant ID.",
+      "required": true,
+      "mock": "mocked"
+    }
+  ],
+  "security": {
+    "allowNetwork": false,
+    "networkAllowlist": [],
+    "allowFileSystem": false
+  },
+  "entrypoint": "build/src/index.js",
+  "tools": [
+    {
+      "name": "getLists",
+      "description": "Get the list of SharePoint lists along with their Titles, URLs, ItemCounts, last modified date, description and base templateID",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getListItems",
+      "description": "Get all items from a specific SharePoint list identified by site URL and list title",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list to retrieve items from"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getListFields",
+      "description": "Get detailed information about fields/columns in a SharePoint list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list to retrieve fields from"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "createListItem",
+      "description": "Create a new item in a SharePoint list with specified field values",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "itemData": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "Key-value pairs of field names and their values for the new item"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "itemData"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "updateListItem",
+      "description": "Update an item in a SharePoint list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "itemId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "ID of the item to update"
+          },
+          "itemData": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "Key-value pairs of field names and their values to update"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "itemId",
+          "itemData"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "deleteListItem",
+      "description": "Delete an item from a SharePoint list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "itemId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "ID of the item to delete"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "itemId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "createList",
+      "description": "Create a new SharePoint list or document library",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listData": {
+            "type": "object",
+            "properties": {
+              "Title": {
+                "type": "string",
+                "description": "Title of the new list"
+              },
+              "Description": {
+                "type": "string",
+                "description": "Description for the new list"
+              },
+              "TemplateType": {
+                "type": "integer",
+                "description": "Template type (100 for generic list, 101 for document library)"
+              },
+              "Url": {
+                "type": "string",
+                "description": "Relative URL for the list (used in browser URLs)"
+              },
+              "ContentTypesEnabled": {
+                "type": "boolean",
+                "description": "Whether to enable content types"
+              },
+              "AllowContentTypes": {
+                "type": "boolean",
+                "description": "Whether to allow content types"
+              },
+              "EnableVersioning": {
+                "type": "boolean",
+                "description": "Whether to enable versioning"
+              },
+              "EnableMinorVersions": {
+                "type": "boolean",
+                "description": "Whether to enable minor versions (for document libraries)"
+              },
+              "EnableModeration": {
+                "type": "boolean",
+                "description": "Whether to enable content approval"
+              }
+            },
+            "required": [
+              "Title"
+            ],
+            "additionalProperties": false,
+            "description": "Properties for the new list"
+          }
+        },
+        "required": [
+          "url",
+          "listData"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "deleteList",
+      "description": "Delete a SharePoint list or document library",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list to delete"
+          },
+          "confirmation": {
+            "type": "string",
+            "description": "Confirmation string that must match the list title exactly"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "confirmation"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "updateList",
+      "description": "Update a SharePoint list properties (Title, Description, versioning settings, etc.)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list to update"
+          },
+          "updateData": {
+            "type": "object",
+            "properties": {
+              "Title": {
+                "type": "string",
+                "description": "New title for the list"
+              },
+              "Description": {
+                "type": "string",
+                "description": "New description for the list"
+              },
+              "EnableVersioning": {
+                "type": "boolean",
+                "description": "Whether to enable versioning"
+              },
+              "EnableMinorVersions": {
+                "type": "boolean",
+                "description": "Whether to enable minor versions"
+              },
+              "EnableModeration": {
+                "type": "boolean",
+                "description": "Whether to enable content approval"
+              },
+              "DraftVersionVisibility": {
+                "type": "number",
+                "description": "Draft visibility: 0=Reader, 1=Author, 2=Approver"
+              },
+              "ContentTypesEnabled": {
+                "type": "boolean",
+                "description": "Whether to enable content types"
+              },
+              "Hidden": {
+                "type": "boolean",
+                "description": "Whether the list is hidden"
+              },
+              "Ordered": {
+                "type": "boolean",
+                "description": "Whether list items can be manually ordered"
+              }
+            },
+            "additionalProperties": false,
+            "description": "List properties to update"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "updateData"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getSite",
+      "description": "Get the title of a SharePoint website",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "updateSite",
+      "description": "Update a SharePoint site properties (Title, Description, etc.)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "siteData": {
+            "type": "object",
+            "properties": {
+              "Title": {
+                "type": "string",
+                "description": "New title for the site"
+              },
+              "Description": {
+                "type": "string",
+                "description": "New description for the site"
+              },
+              "LogoUrl": {
+                "type": "string",
+                "description": "URL for the site logo"
+              }
+            },
+            "additionalProperties": true,
+            "description": "Site properties to update"
+          }
+        },
+        "required": [
+          "url",
+          "siteData"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getSiteUsers",
+      "description": "Get users from a SharePoint site, optionally filtered by role",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "All",
+              "Owners",
+              "Members",
+              "Visitors"
+            ],
+            "description": "Role to filter users by"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getSiteGroups",
+      "description": "Get all SharePoint groups for a site",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getGroupMembers",
+      "description": "Get members of a specific SharePoint group",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "groupId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "ID of the SharePoint group"
+          }
+        },
+        "required": [
+          "url",
+          "groupId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "addGroupMember",
+      "description": "Add a user to a SharePoint group",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "groupId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "ID of the SharePoint group"
+          },
+          "loginName": {
+            "type": "string",
+            "description": "Login name of the user to add"
+          }
+        },
+        "required": [
+          "url",
+          "groupId",
+          "loginName"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "removeGroupMember",
+      "description": "Remove a user from a SharePoint group",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "groupId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "ID of the SharePoint group"
+          },
+          "loginName": {
+            "type": "string",
+            "description": "Login name of the user to remove"
+          }
+        },
+        "required": [
+          "url",
+          "groupId",
+          "loginName"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getGlobalNavigationLinks",
+      "description": "Get global navigation links from a SharePoint site",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getQuickNavigationLinks",
+      "description": "Get quick navigation links (left navigation) from a SharePoint site",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getSubsites",
+      "description": "Get all subsites from a SharePoint site",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "deleteSubsite",
+      "description": "Delete a SharePoint subsite",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website/subsite to delete"
+          },
+          "confirmation": {
+            "type": "string",
+            "description": "Confirmation string that must match exactly the site name from the URL"
+          }
+        },
+        "required": [
+          "url",
+          "confirmation"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "addNavigationLink",
+      "description": "Add a navigation link to a SharePoint site (global or quick navigation)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "linkData": {
+            "type": "object",
+            "properties": {
+              "Title": {
+                "type": "string",
+                "description": "Title for the navigation link"
+              },
+              "Url": {
+                "type": "string",
+                "description": "URL for the navigation link"
+              },
+              "IsExternal": {
+                "type": "boolean",
+                "description": "Whether the link is external to SharePoint"
+              },
+              "ParentKey": {
+                "type": "string",
+                "description": "Key of the parent navigation node for creating child links"
+              }
+            },
+            "required": [
+              "Title",
+              "Url"
+            ],
+            "additionalProperties": false,
+            "description": "Navigation link properties"
+          },
+          "navigationType": {
+            "type": "string",
+            "enum": [
+              "Global",
+              "Quick"
+            ],
+            "description": "Type of navigation: Global (top) or Quick (left)"
+          }
+        },
+        "required": [
+          "url",
+          "linkData",
+          "navigationType"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "updateNavigationLink",
+      "description": "Update a navigation link in a SharePoint site (global or quick navigation)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "linkKey": {
+            "type": "string",
+            "description": "Key of the navigation link to update"
+          },
+          "navigationType": {
+            "type": "string",
+            "enum": [
+              "Global",
+              "Quick"
+            ],
+            "description": "Type of navigation: Global (top) or Quick (left)"
+          },
+          "updateData": {
+            "type": "object",
+            "properties": {
+              "Title": {
+                "type": "string",
+                "description": "New title for the navigation link"
+              },
+              "Url": {
+                "type": "string",
+                "description": "New URL for the navigation link"
+              },
+              "IsExternal": {
+                "type": "boolean",
+                "description": "Whether the link is external to SharePoint"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Navigation link properties to update"
+          }
+        },
+        "required": [
+          "url",
+          "linkKey",
+          "navigationType",
+          "updateData"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "deleteNavigationLink",
+      "description": "Delete a navigation link from a SharePoint site (global or quick navigation)",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "linkKey": {
+            "type": "string",
+            "description": "Key of the navigation link to delete"
+          },
+          "navigationType": {
+            "type": "string",
+            "enum": [
+              "Global",
+              "Quick"
+            ],
+            "description": "Type of navigation: Global (top) or Quick (left)"
+          }
+        },
+        "required": [
+          "url",
+          "linkKey",
+          "navigationType"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getListViews",
+      "description": "Get all views from a SharePoint list with optional field details",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list to retrieve views from"
+          },
+          "includeFields": {
+            "type": "boolean",
+            "description": "Whether to include the fields for each view"
+          },
+          "includeHidden": {
+            "type": "boolean",
+            "description": "Whether to include hidden views"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "createListView",
+      "description": "Create a new view for a SharePoint list with specified fields and settings",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "viewData": {
+            "type": "object",
+            "properties": {
+              "Title": {
+                "type": "string",
+                "description": "Title of the new view"
+              },
+              "ViewQuery": {
+                "type": "string",
+                "description": "CAML query for filtering items"
+              },
+              "RowLimit": {
+                "type": "integer",
+                "description": "Maximum number of items to display per page"
+              },
+              "ViewFields": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Array of field internal names to include in the view"
+              },
+              "PersonalView": {
+                "type": "boolean",
+                "description": "Whether this is a personal view"
+              },
+              "SetAsDefaultView": {
+                "type": "boolean",
+                "description": "Whether to set this as the default view"
+              }
+            },
+            "required": [
+              "Title"
+            ],
+            "additionalProperties": false,
+            "description": "Properties for the new view"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "viewData"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "updateListView",
+      "description": "Update an existing view for a SharePoint list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "viewTitle": {
+            "type": "string",
+            "description": "Title of the view to update"
+          },
+          "updateData": {
+            "type": "object",
+            "properties": {
+              "Title": {
+                "type": "string",
+                "description": "New title for the view"
+              },
+              "ViewQuery": {
+                "type": "string",
+                "description": "New CAML query for filtering items"
+              },
+              "RowLimit": {
+                "type": "integer",
+                "description": "New maximum number of items to display per page"
+              },
+              "ViewFields": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "New array of field internal names to include in the view"
+              },
+              "PersonalView": {
+                "type": "boolean",
+                "description": "Whether this is a personal view"
+              },
+              "SetAsDefaultView": {
+                "type": "boolean",
+                "description": "Whether to set this as the default view"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Properties to update in the view"
+          },
+          "appendFields": {
+            "type": "boolean",
+            "description": "Whether to append fields to existing ones instead of replacing them"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "viewTitle",
+          "updateData"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "deleteListView",
+      "description": "Delete a view from a SharePoint list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "viewTitle": {
+            "type": "string",
+            "description": "Title of the view to delete"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "viewTitle"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getViewFields",
+      "description": "Get all fields from a specific SharePoint list view",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "viewTitle": {
+            "type": "string",
+            "description": "Title of the view to get fields from"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "viewTitle"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "addViewField",
+      "description": "Add a field to a SharePoint list view",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "viewTitle": {
+            "type": "string",
+            "description": "Title of the view to modify"
+          },
+          "fieldName": {
+            "type": "string",
+            "description": "Internal name of the field to add to the view"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "viewTitle",
+          "fieldName"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "removeViewField",
+      "description": "Remove a field from a SharePoint list view",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "viewTitle": {
+            "type": "string",
+            "description": "Title of the view to modify"
+          },
+          "fieldName": {
+            "type": "string",
+            "description": "Internal name of the field to remove from the view"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "viewTitle",
+          "fieldName"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "removeAllViewFields",
+      "description": "Remove all fields from a SharePoint list view",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "viewTitle": {
+            "type": "string",
+            "description": "Title of the view to modify"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "viewTitle"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "moveViewFieldTo",
+      "description": "Move a field to a specific position in a SharePoint list view",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "viewTitle": {
+            "type": "string",
+            "description": "Title of the view to modify"
+          },
+          "fieldName": {
+            "type": "string",
+            "description": "Internal name of the field to move"
+          },
+          "index": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "New position index (0-based)"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "viewTitle",
+          "fieldName",
+          "index"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "createModernPage",
+      "description": "Create a modern page in SharePoint",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the page"
+          },
+          "fileName": {
+            "type": "string",
+            "description": "Optional filename for the page (e.g., 'sample.aspx')"
+          },
+          "pageLayoutType": {
+            "type": "string",
+            "description": "Page layout type (Article, Home, SingleWebPartAppPage, etc.)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the page"
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "description": "URL for the page thumbnail/banner image"
+          },
+          "promotedState": {
+            "type": "number",
+            "description": "Promotion state: 0=Not promoted, 1=Promoted, 2=Promoted to news"
+          },
+          "publishPage": {
+            "type": "boolean",
+            "description": "Whether to publish the page after creation"
+          },
+          "content": {
+            "type": "string",
+            "description": "HTML content for the page"
+          }
+        },
+        "required": [
+          "url",
+          "title"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getModernPages",
+      "description": "Get modern pages from a SharePoint site",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "pageTitle": {
+            "type": "string",
+            "description": "Optional - filter by page title"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Maximum number of pages to return"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getModernPage",
+      "description": "Get a specific modern page by ID from a SharePoint site",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "pageId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "ID of the page to retrieve"
+          }
+        },
+        "required": [
+          "url",
+          "pageId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "deleteModernPage",
+      "description": "Delete a modern page from SharePoint",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "pageId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "ID of the page to delete"
+          },
+          "confirmation": {
+            "type": "string",
+            "description": "Confirmation string that must match the page ID"
+          }
+        },
+        "required": [
+          "url",
+          "pageId",
+          "confirmation"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "createListField",
+      "description": "Create a new field (column) in a SharePoint list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "fieldData": {
+            "type": "object",
+            "properties": {
+              "Title": {
+                "type": "string",
+                "description": "Display name for the field (can contain spaces)"
+              },
+              "CleanName": {
+                "type": "string",
+                "description": "Clean name without spaces (used for internal name generation)"
+              },
+              "FieldTypeKind": {
+                "type": "integer",
+                "description": "Field type value: 0=Invalid, 1=Integer, 2=Text, 3=Note, 4=DateTime, 5=Choice, 6=Lookup, 7=Boolean (according to docs, but may not work), 8=Boolean, 9=Number, 10=Currency, 11=URL, 15=MultiChoice, 17=Calculated, 19=User"
+              },
+              "Required": {
+                "type": "boolean",
+                "description": "Whether the field is required"
+              },
+              "EnforceUniqueValues": {
+                "type": "boolean",
+                "description": "Whether the field must have unique values"
+              },
+              "StaticName": {
+                "type": "string",
+                "description": "Static name, if not provided will be generated from CleanName or Title"
+              },
+              "Description": {
+                "type": "string",
+                "description": "Description for the field"
+              },
+              "Choices": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "For choice fields (FieldTypeKind=5) or MultiChoice fields (FieldTypeKind=15)"
+              },
+              "DefaultValue": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ],
+                "description": "Default value for the field"
+              }
+            },
+            "required": [
+              "Title",
+              "FieldTypeKind"
+            ],
+            "additionalProperties": true,
+            "description": "Properties for the new field"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "fieldData"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "updateListField",
+      "description": "Update a field/column in a SharePoint list including display name, choices, etc.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "fieldInternalName": {
+            "type": "string",
+            "description": "Internal name of the field to update"
+          },
+          "updateData": {
+            "type": "object",
+            "properties": {
+              "Title": {
+                "type": "string",
+                "description": "New display name for the field"
+              },
+              "Description": {
+                "type": "string",
+                "description": "New description for the field"
+              },
+              "Required": {
+                "type": "boolean",
+                "description": "Whether the field is required"
+              },
+              "EnforceUniqueValues": {
+                "type": "boolean",
+                "description": "Whether the field must have unique values"
+              },
+              "Choices": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "New choices for choice fields"
+              },
+              "DefaultValue": {
+                "type": "string",
+                "description": "New default value for the field"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Field properties to update"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "fieldInternalName",
+          "updateData"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "deleteListField",
+      "description": "Delete a field (column) from a SharePoint list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "fieldInternalName": {
+            "type": "string",
+            "description": "Internal name of the field to delete"
+          },
+          "confirmation": {
+            "type": "string",
+            "description": "Confirmation string that must match the field internal name exactly"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "fieldInternalName",
+          "confirmation"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "batchCreateListItems",
+      "description": "Create multiple items in a SharePoint list using a single batch request",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {}
+            },
+            "description": "Array of objects containing field names and values for the new items"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "items"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "batchUpdateListItems",
+      "description": "Update multiple items in a SharePoint list using a single batch request",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "exclusiveMinimum": 0,
+                  "description": "ID of the item to update"
+                },
+                "data": {
+                  "type": "object",
+                  "additionalProperties": {},
+                  "description": "Key-value pairs of field names and values to update"
+                }
+              },
+              "required": [
+                "id",
+                "data"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Array of objects containing item IDs and update data"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "items"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "batchDeleteListItems",
+      "description": "Delete multiple items from a SharePoint list using a single batch request",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "itemIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "description": "Array of item IDs to delete"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "itemIds"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getListContentTypes",
+      "description": "Get all content types from a specific SharePoint list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list to retrieve content types from"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getListContentType",
+      "description": "Get a specific content type from a SharePoint list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list to retrieve content type from"
+          },
+          "contentTypeId": {
+            "type": "string",
+            "description": "ID of the content type to retrieve"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "contentTypeId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "createListContentType",
+      "description": "Create a new content type in a SharePoint list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "contentTypeData": {
+            "type": "object",
+            "properties": {
+              "Name": {
+                "type": "string",
+                "description": "Name of the new content type"
+              },
+              "Description": {
+                "type": "string",
+                "description": "Description for the new content type"
+              },
+              "ParentContentTypeId": {
+                "type": "string",
+                "description": "ID of the parent content type"
+              },
+              "Group": {
+                "type": "string",
+                "description": "Group for the new content type"
+              }
+            },
+            "required": [
+              "Name"
+            ],
+            "additionalProperties": false,
+            "description": "Properties for the new content type"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "contentTypeData"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "updateListContentType",
+      "description": "Update a content type in a SharePoint list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "contentTypeId": {
+            "type": "string",
+            "description": "ID of the content type to update"
+          },
+          "updateData": {
+            "type": "object",
+            "properties": {
+              "Name": {
+                "type": "string",
+                "description": "New name for the content type"
+              },
+              "Description": {
+                "type": "string",
+                "description": "New description for the content type"
+              },
+              "Group": {
+                "type": "string",
+                "description": "New group for the content type"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Properties to update in the content type"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "contentTypeId",
+          "updateData"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "deleteListContentType",
+      "description": "Delete a content type from a SharePoint list",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "listTitle": {
+            "type": "string",
+            "description": "Title of the SharePoint list"
+          },
+          "contentTypeId": {
+            "type": "string",
+            "description": "ID of the content type to delete"
+          },
+          "confirmation": {
+            "type": "string",
+            "description": "Confirmation string that must match the content type ID exactly"
+          }
+        },
+        "required": [
+          "url",
+          "listTitle",
+          "contentTypeId",
+          "confirmation"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getSiteContentTypes",
+      "description": "Get all content types from a SharePoint site",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getSiteContentType",
+      "description": "Get a specific content type from a SharePoint site",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "contentTypeId": {
+            "type": "string",
+            "description": "ID of the content type to retrieve"
+          }
+        },
+        "required": [
+          "url",
+          "contentTypeId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "updateSiteContentType",
+      "description": "Update a content type in a SharePoint site",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "contentTypeId": {
+            "type": "string",
+            "description": "ID of the content type to update"
+          },
+          "updateData": {
+            "type": "object",
+            "properties": {
+              "Name": {
+                "type": "string",
+                "description": "New name for the content type"
+              },
+              "Description": {
+                "type": "string",
+                "description": "New description for the content type"
+              },
+              "Group": {
+                "type": "string",
+                "description": "New group for the content type"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Properties to update in the content type"
+          }
+        },
+        "required": [
+          "url",
+          "contentTypeId",
+          "updateData"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "deleteSiteContentType",
+      "description": "Delete a content type from a SharePoint site",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "contentTypeId": {
+            "type": "string",
+            "description": "ID of the content type to delete"
+          },
+          "confirmation": {
+            "type": "string",
+            "description": "Confirmation string that must match the content type ID exactly"
+          }
+        },
+        "required": [
+          "url",
+          "contentTypeId",
+          "confirmation"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getRegionalSettings",
+      "description": "Get regional settings from a SharePoint site",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getSiteCollectionFeatures",
+      "description": "Get all features from a SharePoint site collection",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getSiteFeatures",
+      "description": "Get all features from a SharePoint site",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "getSiteFeature",
+      "description": "Get a specific feature from a SharePoint site by feature ID",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "featureId": {
+            "type": "string",
+            "description": "Feature ID (GUID) of the feature to retrieve"
+          }
+        },
+        "required": [
+          "url",
+          "featureId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    },
+    {
+      "name": "searchSharePointSite",
+      "description": "Search within a SharePoint site using KQL query",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the SharePoint website"
+          },
+          "query": {
+            "type": "string",
+            "description": "KQL (Keyword Query Language) search query"
+          },
+          "rowLimit": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "description": "Maximum number of results to return (default: 50)"
+          },
+          "startRow": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Starting row for pagination (default: 0)"
+          },
+          "selectProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Properties to select in results (optional)"
+          },
+          "sourceid": {
+            "type": "string",
+            "description": "Source ID to limit search scope (optional)"
+          }
+        },
+        "required": [
+          "url",
+          "query"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "annotations": {}
+    }
+  ],
+  "securityScan": {
+    "timestamp": "2025-08-08T15:51:36.218Z",
+    "riskScore": 25,
+    "summary": "The SharePoint MCP server implementation has a moderate security posture with a few areas of concern. The most significant issue is a potential command injection vulnerability in the certificate handling code, where user-provided inputs are directly incorporated into PowerShell commands. There are also minor concerns around URL construction, temporary file handling, and certificate password exposure. The code generally follows secure practices for authentication and API interactions, with proper use of request digests and tokens for SharePoint operations. No evidence of malicious code, backdoors, or data exfiltration attempts was found. The server appears to be a legitimate SharePoint integration tool with some security improvements needed in specific areas.",
+    "findingsCount": 5
+  }
+}

@@ -1,0 +1,102 @@
+// -----------------------------------------------------
+// Dgram (UDP) Module Security Controls
+// -----------------------------------------------------
+// Create a mock for dgram module
+const originalModule = require('dgram');
+const EventEmitter = require('events');
+
+// Error factory function
+const createError = (method, address, port) => {
+  {{#if hasAllowlist}}
+  const errorMessage = `UDP socket operation to ${address}:${port} is not allowed (not in allowlist)`;
+  {{else}}
+  const errorMessage = "Network access is not allowed in this MCP";
+  {{/if}}
+  return new Error(`${errorMessage} [method: ${method}, address: ${address}, port: ${port}]`);
+};
+
+// Create a mock socket that doesn't actually send or bind
+class SecureDgramSocket extends EventEmitter {
+  constructor(type) {
+    super();
+    this.type = type;
+  }
+
+  bind(...args) {
+    // Get the callback if it exists
+    let callback;
+    for (let i = args.length - 1; i >= 0; i--) {
+      if (typeof args[i] === 'function') {
+        callback = args[i];
+        break;
+      }
+    }
+
+    // Call callback with error or emit error
+    const error = createError('bind', 'unknown', 'unknown');
+    if (callback) {
+      process.nextTick(() => callback(error));
+    } else {
+      process.nextTick(() => this.emit('error', error));
+    }
+
+    return this;
+  }
+
+  send(...args) {
+    // Extract callback (last argument if function)
+    let callback;
+    if (typeof args[args.length - 1] === 'function') {
+      callback = args[args.length - 1];
+    }
+
+    // Call callback with error
+    if (callback) {
+      process.nextTick(() => {
+        callback(createError('send', 'unknown', 'unknown'));
+      });
+    }
+
+    return this;
+  }
+
+  close(callback) {
+    if (callback) {
+      process.nextTick(callback);
+    }
+    return this;
+  }
+
+  // Implement other socket methods that return this
+  address() { return { address: '0.0.0.0', port: 0, family: 'IPv4' }; }
+  setBroadcast() { return this; }
+  setMulticastTTL() { return this; }
+  setMulticastLoopback() { return this; }
+  addMembership() { return this; }
+  dropMembership() { return this; }
+  ref() { return this; }
+  unref() { return this; }
+}
+
+// Create secure module
+const secureModule = {
+  ...originalModule,
+
+  // Override createSocket
+  createSocket: function(...args) {
+    // Create a fake socket that blocks network operations
+    const type = typeof args[0] === 'object' ? args[0].type : args[0];
+    const socket = new SecureDgramSocket(type);
+
+    // Handle callback if provided
+    const callback = typeof args[args.length - 1] === 'function' ? args[args.length - 1] : null;
+    if (callback) {
+      process.nextTick(() => callback(socket));
+    }
+
+    return socket;
+  }
+};
+
+// Export the secure module
+module.exports = secureModule;

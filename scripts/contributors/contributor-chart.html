@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP Tools Contributors</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #eef2f7, #d8e6ff, #e0edff);
+      min-height: 100vh;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #334155;
+    }
+
+    .header {
+      text-align: center;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      padding: 0 1rem;
+    }
+
+    .header h1 {
+      font-size: 2.7rem;
+      margin-bottom: 0.5rem;
+      color: #1e3a8a;
+      text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
+      letter-spacing: -0.02em;
+    }
+
+    .header p {
+      font-size: 1.3rem;
+      color: #475569;
+      margin-top: 0.2rem;
+    }
+
+    .bubble-chart {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      padding: 1rem;
+      transition: transform 0.3s ease;
+    }
+
+    .bubble-avatar {
+      width: 90%;
+      height: auto;
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      object-fit: cover;
+      filter: contrast(1.05) saturate(1.1); /* Make avatars pop a bit more */
+    }
+
+    .bubble-name {
+      font-weight: 600;
+      margin-top: 0.5rem;
+      font-size: 1.1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90%;
+      text-shadow: 0px 0px 3px white, 0px 0px 5px white;
+      letter-spacing: 0.02em;
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 4px 10px;
+      border-radius: 8px;
+      display: inline-block;
+    }
+
+    .bubble-title {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90%;
+    }
+
+    .bubble-contributions {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background-color: #3949AB; /* Darker blue for better contrast */
+      color: white;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      z-index: 10;
+    }
+
+    /* Add hover effect for bubbles */
+    .bubble {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .bubble:hover {
+      transform: scale(1.05);
+      z-index: 100;
+    }
+
+    .legend {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      background-color: rgba(255, 255, 255, 0.7);
+      padding: 0.7rem 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      z-index: 10;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+
+    .legend-circle {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+
+    .circle-xlarge {
+      background-color: #FF5252; /* Red */
+    }
+
+    .circle-large {
+      background-color: #FFAB40; /* Orange */
+    }
+
+    .circle-medium {
+      background-color: #FFEB3B; /* Yellow */
+    }
+
+    .circle-small {
+      background-color: #66BB6A; /* Green */
+    }
+
+    .circle-xsmall {
+      background-color: #42A5F5; /* Blue */
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      font-size: 0.9rem;
+      color: #64748b;
+      text-align: center;
+    }
+
+    .loader {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3b82f6;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 50px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      text-align: center;
+      margin-top: 20px;
+      color: #3b82f6;
+      font-size: 1.2rem;
+    }
+
+    .error-message {
+      color: #ef4444;
+      text-align: center;
+      margin: 2rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>MCP Tools Contributors</h1>
+    <p>A visualization of the awesome people who built this project</p>
+  </div>
+
+  <div class="bubble-chart" id="bubbleChart">
+    <!-- Loading indicator -->
+    <div class="loader" id="loader"></div>
+    <div class="loading-text" id="loadingText">Loading contributor data...</div>
+  </div>
+
+  <!-- Legend commented out as requested
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-circle circle-xlarge"></div>
+      <span>Major Contributors (50+ commits)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-circle circle-large"></div>
+      <span>Active Contributors (20-49 commits)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-circle circle-medium"></div>
+      <span>Regular Contributors (10-19 commits)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-circle circle-small"></div>
+      <span>Occasional Contributors (5-9 commits)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-circle circle-xsmall"></div>
+      <span>Single Contributors (1-4 commits)</span>
+    </div>
+  </div>
+  -->
+
+  <div class="footer">
+    <p>Generated with QNSC MCP Tools - Last updated: February 2026</p>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Fetch contributor data from the JSON file
+      fetch('contributors.json')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to load contributor data: ${response.status} ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then(contributors => {
+          // Hide loading indicators
+          document.getElementById('loader').style.display = 'none';
+          document.getElementById('loadingText').style.display = 'none';
+
+          // *** CRITICAL FIX: Deduplicate contributors by username ***
+          // Create a map to track unique contributors by username
+          const uniqueContributorsMap = new Map();
+          contributors.forEach(contributor => {
+            if (!contributor.username) return; // Skip if no username
+            uniqueContributorsMap.set(contributor.username, contributor);
+          });
+
+          // Convert map values to array and sort
+          const processedContributors = Array.from(uniqueContributorsMap.values());
+
+          // Log the exact contents of the map to verify uniqueness
+          console.log('Number of unique contributors:', processedContributors.length);
+
+          const sortedContributors = processedContributors.sort((a, b) => b.contributions - a.contributions);
+
+          const bubbleChart = document.getElementById('bubbleChart');
+          const chartWidth = bubbleChart.offsetWidth;
+          const chartHeight = bubbleChart.offsetHeight;
+
+          // Set bubble sizes for different contribution buckets
+          const bubbleSizes = {
+            large: 220,       // 50+ contributions (Brian)
+            mediumLarge: 180, // 20-49 contributions
+            medium: 160,      // 10-19 contributions
+            mediumSmall: 150, // 5-9 contributions
+            small: 140        // 1-4 contributions
+          };
+
+          // Get maximum contribution count for reference
+          const maxContributions = sortedContributors[0].contributions;
+
+          // Create a function to generate bubbles
+          const createBubbleElement = (contributor, position, size) => {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.dataset.username = contributor.username; // Add data attribute to help debug
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${position.x - size / 2}px`;
+            bubble.style.top = `${position.y - size / 2}px`;
+
+            // Set bubble color based on contribution level
+            if (contributor.contributions >= 50) {
+              bubble.style.backgroundColor = 'rgba(255, 82, 82, 0.4)'; // Red with increased opacity
+              bubble.style.borderColor = '#FF5252';
+              bubble.style.borderWidth = '4px';
+              bubble.style.borderStyle = 'solid';
+              bubble.style.boxShadow = '0 0 15px rgba(255, 82, 82, 0.5)'; // Add glow effect
+            } else if (contributor.contributions >= 20) {
+              bubble.style.backgroundColor = 'rgba(255, 171, 64, 0.4)'; // Orange with increased opacity
+              bubble.style.borderColor = '#FFAB40';
+              bubble.style.borderWidth = '3px';
+              bubble.style.borderStyle = 'solid';
+              bubble.style.boxShadow = '0 0 10px rgba(255, 171, 64, 0.4)'; // Add glow effect
+            } else if (contributor.contributions >= 10) {
+              bubble.style.backgroundColor = 'rgba(255, 235, 59, 0.4)'; // Yellow with increased opacity
+              bubble.style.borderColor = '#FFEB3B';
+              bubble.style.borderWidth = '2px';
+              bubble.style.borderStyle = 'solid';
+            } else if (contributor.contributions >= 5) {
+              bubble.style.backgroundColor = 'rgba(102, 187, 106, 0.4)'; // Green with increased opacity
+              bubble.style.borderColor = '#66BB6A';
+              bubble.style.borderWidth = '2px';
+              bubble.style.borderStyle = 'solid';
+            } else {
+              bubble.style.backgroundColor = 'rgba(66, 165, 245, 0.4)'; // Blue with increased opacity
+              bubble.style.borderColor = '#42A5F5';
+              bubble.style.borderWidth = '2px';
+              bubble.style.borderStyle = 'solid';
+            }
+
+            // Avatar
+            const avatar = document.createElement('img');
+            avatar.className = 'bubble-avatar';
+
+            // Add subtle border color based on contribution level
+            if (contributor.contributions >= 50) {
+              avatar.style.borderColor = '#FF5252';
+            } else if (contributor.contributions >= 20) {
+              avatar.style.borderColor = '#FFAB40';
+            } else if (contributor.contributions >= 10) {
+              avatar.style.borderColor = '#FFEB3B';
+            } else if (contributor.contributions >= 5) {
+              avatar.style.borderColor = '#66BB6A';
+            } else {
+              avatar.style.borderColor = '#42A5F5';
+            }
+
+            // Build initial-letter SVG fallback
+            const initial = (contributor.name || contributor.username || "?").substring(0, 1).toUpperCase();
+            const initialSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%2360a5fa'/%3E%3Ctext x='50%' y='50%' font-size='70' font-weight='bold' text-anchor='middle' dy='.3em' fill='white'%3E${initial}%3C/text%3E%3C/svg%3E`;
+
+            // Avatar sources in priority: Slack > GitHub > initial SVG
+            const avatarSources = [
+              contributor.avatar_url,
+              contributor.github_avatar_url
+            ].filter(Boolean);
+
+            avatar.alt = `${contributor.name || contributor.username} avatar`;
+
+            if (avatarSources.length > 0) {
+              avatar.src = avatarSources[0];
+              let fallbackIndex = 1;
+              avatar.onerror = () => {
+                if (fallbackIndex < avatarSources.length) {
+                  avatar.src = avatarSources[fallbackIndex++];
+                } else {
+                  avatar.onerror = null;
+                  avatar.src = initialSvg;
+                }
+              };
+            } else {
+              avatar.src = initialSvg;
+            }
+            bubble.appendChild(avatar);
+
+            // Use only first name
+            const fullName = contributor.name || contributor.username;
+            const firstName = fullName.split(' ')[0];
+            const nameContainer = document.createElement('div');
+            nameContainer.className = 'bubble-name';
+            nameContainer.textContent = firstName;
+            nameContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+            nameContainer.style.padding = '4px 12px';
+            nameContainer.style.borderRadius = '10px';
+            nameContainer.style.display = 'inline-block';
+            nameContainer.style.position = 'absolute';
+            nameContainer.style.bottom = '10px';
+            nameContainer.style.left = '50%';
+            nameContainer.style.transform = 'translateX(-50%)';
+            nameContainer.style.fontSize = size >= 130 ? '1.1rem' : '0.9rem';
+            nameContainer.style.fontWeight = '600';
+            nameContainer.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+            bubble.appendChild(nameContainer);
+
+            // Contributions badge - just the number in corner
+            const contributionsBadge = document.createElement('div');
+            contributionsBadge.className = 'bubble-contributions';
+            contributionsBadge.textContent = `${contributor.contributions}`;
+            bubble.appendChild(contributionsBadge);
+
+            return bubble;
+          };
+
+          // Set up the bubble placement
+          const placeBubbles = () => {
+
+            // Track used names to prevent duplicates
+            const usedNames = new Set();
+
+            // Calculate common positions - these will be shared for certain contributor groups
+            const centerX = chartWidth / 2;
+            const centerY = chartHeight / 2;
+
+            const bubblePositions = [];
+
+            // Count first names to handle duplicates in labeling
+            const firstNames = new Set();
+            const nameOccurrences = {};
+
+            sortedContributors.forEach(contributor => {
+              const fullName = contributor.name || contributor.username;
+              const firstName = fullName.split(' ')[0];
+
+              if (firstNames.has(firstName)) {
+                nameOccurrences[firstName] = (nameOccurrences[firstName] || 1) + 1;
+              } else {
+                firstNames.add(firstName);
+                nameOccurrences[firstName] = 1;
+              }
+            });
+
+            // Create bubbles for each contributor
+            sortedContributors.forEach((contributor, index) => {
+              // Determine size based on contribution bucket
+              let size;
+              const contributions = contributor.contributions;
+
+              if (contributions >= 50) {
+                size = bubbleSizes.large;
+              } else if (contributions >= 20) {
+                size = bubbleSizes.mediumLarge;
+              } else if (contributions >= 10) {
+                size = bubbleSizes.medium;
+              } else if (contributions >= 5) {
+                size = bubbleSizes.mediumSmall;
+              } else {
+                size = bubbleSizes.small;
+              }
+
+              // Try to position the bubble without too much overlap
+              let attempts = 0;
+              let overlap = true;
+              let position;
+              let xRange, yRange;
+
+              // Place bubbles in rings based on contribution level
+              // Major contributors (20+) go in inner ring
+              if (contributor.contributions >= 20) {
+                xRange = [chartWidth * 0.3, chartWidth * 0.7];
+                yRange = [chartHeight * 0.3, chartHeight * 0.7];
+              }
+              // Medium contributors (5-19) go in middle ring
+              else if (contributor.contributions >= 5) {
+                xRange = [chartWidth * 0.2, chartWidth * 0.8];
+                yRange = [chartHeight * 0.2, chartHeight * 0.8];
+              }
+              // Small contributors (1-4) go in outer areas
+              else {
+                xRange = [chartWidth * 0.1, chartWidth * 0.9];
+                yRange = [chartHeight * 0.1, chartHeight * 0.9];
+              }
+
+              while (overlap && attempts < 100) {
+                position = {
+                  x: Math.random() * (xRange[1] - xRange[0]) + xRange[0],
+                  y: Math.random() * (yRange[1] - yRange[0]) + yRange[0],
+                  size: size
+                };
+
+                // Check for overlap with existing bubbles
+                overlap = bubblePositions.some(existingPos => {
+                  const dx = existingPos.x - position.x;
+                  const dy = existingPos.y - position.y;
+                  const distance = Math.sqrt(dx * dx + dy * dy);
+                  return distance < (existingPos.size / 2 + position.size / 2) * 0.6; // Allow significant overlap for more compact display
+                });
+
+                attempts++;
+              }
+
+              bubblePositions.push(position);
+
+              // Create a single bubble element per contributor
+              // Create one bubble element per contributor
+              const bubble = document.createElement('div');
+              bubble.className = 'bubble';
+              bubble.dataset.username = contributor.username; // Add data attribute to help debug
+              bubble.style.width = `${size}px`;
+              bubble.style.height = `${size}px`;
+              bubble.style.left = `${position.x - size / 2}px`;
+              bubble.style.top = `${position.y - size / 2}px`;
+
+              // Set bubble color based on contribution level
+              if (contributor.contributions >= 50) {
+                bubble.style.backgroundColor = 'rgba(255, 82, 82, 0.4)'; // Red with increased opacity
+                bubble.style.borderColor = '#FF5252';
+                bubble.style.borderWidth = '4px';
+                bubble.style.borderStyle = 'solid';
+                bubble.style.boxShadow = '0 0 15px rgba(255, 82, 82, 0.5)'; // Add glow effect
+              } else if (contributor.contributions >= 20) {
+                bubble.style.backgroundColor = 'rgba(255, 171, 64, 0.4)'; // Orange with increased opacity
+                bubble.style.borderColor = '#FFAB40';
+                bubble.style.borderWidth = '3px';
+                bubble.style.borderStyle = 'solid';
+                bubble.style.boxShadow = '0 0 10px rgba(255, 171, 64, 0.4)'; // Add glow effect
+              } else if (contributor.contributions >= 10) {
+                bubble.style.backgroundColor = 'rgba(255, 235, 59, 0.4)'; // Yellow with increased opacity
+                bubble.style.borderColor = '#FFEB3B';
+                bubble.style.borderWidth = '2px';
+                bubble.style.borderStyle = 'solid';
+              } else if (contributor.contributions >= 5) {
+                bubble.style.backgroundColor = 'rgba(102, 187, 106, 0.4)'; // Green with increased opacity
+                bubble.style.borderColor = '#66BB6A';
+                bubble.style.borderWidth = '2px';
+                bubble.style.borderStyle = 'solid';
+              } else {
+                bubble.style.backgroundColor = 'rgba(66, 165, 245, 0.4)'; // Blue with increased opacity
+                bubble.style.borderColor = '#42A5F5';
+                bubble.style.borderWidth = '2px';
+                bubble.style.borderStyle = 'solid';
+              }
+
+              // Avatar
+              const avatar = document.createElement('img');
+              avatar.className = 'bubble-avatar';
+
+              // Add subtle border color based on contribution level
+              if (contributor.contributions >= 50) {
+                avatar.style.borderColor = '#FF5252';
+              } else if (contributor.contributions >= 20) {
+                avatar.style.borderColor = '#FFAB40';
+              } else if (contributor.contributions >= 10) {
+                avatar.style.borderColor = '#FFEB3B';
+              } else if (contributor.contributions >= 5) {
+                avatar.style.borderColor = '#66BB6A';
+              } else {
+                avatar.style.borderColor = '#42A5F5';
+              }
+
+              // Build initial-letter SVG fallback
+              const initial = (contributor.name || contributor.username || "?").substring(0, 1).toUpperCase();
+              const initialSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Crect width='150' height='150' fill='%2360a5fa'/%3E%3Ctext x='50%' y='50%' font-size='70' font-weight='bold' text-anchor='middle' dy='.3em' fill='white'%3E${initial}%3C/text%3E%3C/svg%3E`;
+
+              // Avatar sources in priority: Slack > GitHub > initial SVG
+              const avatarSources = [
+                contributor.avatar_url,
+                contributor.github_avatar_url
+              ].filter(Boolean);
+
+              avatar.alt = `${contributor.name || contributor.username} avatar`;
+
+              if (avatarSources.length > 0) {
+                avatar.src = avatarSources[0];
+                let fallbackIndex = 1;
+                avatar.onerror = () => {
+                  if (fallbackIndex < avatarSources.length) {
+                    avatar.src = avatarSources[fallbackIndex++];
+                  } else {
+                    avatar.onerror = null;
+                    avatar.src = initialSvg;
+                  }
+                };
+              } else {
+                avatar.src = initialSvg;
+              }
+              bubble.appendChild(avatar);
+
+              // Name - add name directly inside the bubble
+              const nameContainer = document.createElement('div');
+              nameContainer.className = 'bubble-name';
+              // Use only first name and ensure uniqueness
+              const fullName = contributor.name || contributor.username;
+              const firstName = fullName.split(' ')[0];
+
+              // If this is a duplicate name, add username initial to distinguish
+              if (nameOccurrences[firstName] > 1) {
+                // Get initial from username if available
+                const username = contributor.username || '';
+                const initial = username.includes('-') ? username.split('-')[1][0] : '';
+
+                if (initial) {
+                  nameContainer.textContent = `${firstName} ${initial.toUpperCase()}`;
+                } else {
+                  nameContainer.textContent = `${firstName} ${contributor.contributions}`;
+                }
+              } else {
+                nameContainer.textContent = firstName;
+              }
+
+              // Track that we've used this name
+              usedNames.add(firstName);
+              // Don't overwrite the nameContainer text we just set above
+              nameContainer.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+              nameContainer.style.padding = '4px 12px';
+              nameContainer.style.borderRadius = '10px';
+              nameContainer.style.display = 'inline-block';
+              nameContainer.style.position = 'absolute';
+              nameContainer.style.bottom = '10px';
+              nameContainer.style.left = '50%';
+              nameContainer.style.transform = 'translateX(-50%)';
+              nameContainer.style.fontSize = size >= 130 ? '1.1rem' : '0.9rem';
+              nameContainer.style.fontWeight = '600';
+              nameContainer.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+              bubble.appendChild(nameContainer);
+
+              // Contributions badge - just the number in corner
+              const contributionsBadge = document.createElement('div');
+              contributionsBadge.className = 'bubble-contributions';
+              contributionsBadge.textContent = `${contributor.contributions}`;
+              bubble.appendChild(contributionsBadge);
+
+              bubbleChart.appendChild(bubble);
+            });
+          };
+
+          placeBubbles();
+        })
+        .catch(error => {
+          document.getElementById('loader').style.display = 'none';
+          document.getElementById('loadingText').style.display = 'none';
+
+          // Show error message
+          const errorMessage = document.createElement('div');
+          errorMessage.className = 'error-message';
+          errorMessage.textContent = `Error loading contributor data: ${error.message}`;
+          document.getElementById('bubbleChart').appendChild(errorMessage);
+          console.error('Error loading contributors:', error);
+        });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+// -----------------------------------------------------
+// Net Module Security Controls
+// -----------------------------------------------------
+// Create a mock for net module
+const originalModule = require('net');
+const EventEmitter = require('events');
+
+// Error factory function
+const createError = (method, host, port) => {
+  {{#if hasAllowlist}}
+  const errorMessage = `Network connection to '${host}:${port}' is not allowed (not in allowlist)`;
+  {{else}}
+  const errorMessage = "Network access is not allowed in this MCP";
+  {{/if}}
+  return new Error(`${errorMessage} [method: ${method}, host: ${host}, port: ${port}]`);
+};
+
+// Check if a URL is in the allowlist
+function isUrlAllowed(url) {
+  // Check if the URL is allowed based on allowlist setting
+  {{#if hasAllowlist}}
+  try {
+    // Parse the URL to check against the allowlist
+    const urlString = url.toString();
+    const parsedUrl = new URL(urlString);
+    const hostname = parsedUrl.hostname;
+
+    // Network allowlist from security options
+    const allowlist = {{{allowlistJSON}}};
+
+    // Check if the hostname matches any allowlist entry
+    return allowlist.some(allowedDomain =>
+      hostname === allowedDomain ||
+      hostname.endsWith(`.${allowedDomain}`)
+    );
+  } catch (e) {
+    return false;
+  }
+  {{else}}
+  // No allowlist - block all requests
+  return false;
+  {{/if}}
+}
+
+// Create a mock socket that immediately errors
+function createMockSocket() {
+  const socket = new EventEmitter();
+
+  // Add socket methods that return 'this'
+  ['connect', 'setEncoding', 'write', 'end', 'destroy', 'pause', 'resume', 'setTimeout', 'setKeepAlive', 'on', 'once'].forEach(method => {
+    socket[method] = function(...args) {
+      if (method === 'on' || method === 'once') {
+        const event = args[0];
+        const handler = args[1];
+
+        if (event === 'error') {
+          // Schedule the error handler to be called
+          process.nextTick(() => handler(createError('connect', 'unknown', 'unknown')));
+        }
+      }
+      return socket;
+    };
+  });
+
+  return socket;
+}
+
+// Secure version of Socket
+class SecureSocket extends EventEmitter {
+  constructor(options) {
+    super();
+    this.options = options || {};
+  }
+
+  connect(...args) {
+    let host = 'unknown';
+    let port = 'unknown';
+
+    // Extract connection info based on various call signatures
+    if (args.length >= 2 && typeof args[0] === 'number') {
+      port = args[0];
+      host = args[1] || 'localhost';
+    } else if (args.length >= 1 && typeof args[0] === 'object') {
+      port = args[0].port;
+      host = args[0].host || 'localhost';
+    }
+
+    // Check if connection is allowed
+    const url = `http://${host}:${port}`;
+    const allowed = isUrlAllowed(url);
+
+    if (allowed) {
+      // Use the original Socket implementation
+      const realSocket = new originalModule.Socket(this.options);
+
+      // Copy all event handlers to real socket
+      this.eventNames().forEach(eventName => {
+        const listeners = this.listeners(eventName);
+        listeners.forEach(listener => {
+          realSocket.on(eventName, listener);
+        });
+      });
+
+      // Connect using the real socket
+      return realSocket.connect(...args);
+    }
+
+    // Emit error on next tick
+    process.nextTick(() => {
+      this.emit('error', createError('connect', host, port));
+    });
+
+    return this;
+  }
+
+  // Implement other Socket methods to return this
+  setEncoding(encoding) { return this; }
+  write(data, encoding, callback) {
+    if (typeof callback === 'function') {
+      process.nextTick(() => callback(createError('write', 'unknown', 'unknown')));
+    }
+    return this;
+  }
+  end(data, encoding, callback) {
+    if (typeof callback === 'function') {
+      process.nextTick(() => callback(createError('end', 'unknown', 'unknown')));
+    }
+    return this;
+  }
+  destroy() { return this; }
+  pause() { return this; }
+  resume() { return this; }
+  setTimeout(timeout, callback) { return this; }
+  setKeepAlive(enable, initialDelay) { return this; }
+}
+
+// Create secure module that blocks connections
+const secureModule = {
+  ...originalModule,
+
+  // Override Socket constructor
+  Socket: SecureSocket,
+
+  // Override server creation
+  createServer: function(...args) {
+    const server = originalModule.createServer(...args);
+    // Block listen by overriding it
+    const originalListen = server.listen;
+    server.listen = function(...listenArgs) {
+      // Just return the server without actually listening
+      return server;
+    };
+    return server;
+  },
+
+  // Override connection methods
+  connect: function(...args) {
+    const socket = createMockSocket();
+    process.nextTick(() => {
+      socket.emit('error', createError('connect', 'unknown', 'unknown'));
+    });
+    return socket;
+  }
+};
+
+// Make sure connect and createConnection are the same reference
+secureModule.createConnection = secureModule.connect;
+
+// Export the secure module
+module.exports = secureModule;

@@ -1,0 +1,90 @@
+{
+  "riskScore": 25,
+  "findings": [
+    {
+      "category": "injection_vulnerabilities",
+      "riskLevel": "medium",
+      "description": "Potential command injection vulnerability in azure_cert_auth.ts when executing PowerShell commands with user-provided certificate thumbprint and password",
+      "codeSnippet": "const psCommand = `$cert = Get-ChildItem -Path Cert:\\CurrentUser\\My | Where-Object{$_.Thumbprint -eq '${thumbprint}'}; if($cert){$password = ConvertTo-SecureString -String '${password}' -Force -AsPlainText; Export-PfxCertificate -Cert $cert -FilePath '${tempCertPath}' -Password $password; Write-Output 'Certificate exported successfully'} else {Write-Error 'Certificate not found in store'; exit 1}`;\nconst result = require('child_process').execSync(`powershell -Command \"${psCommand}\"`,{stdio:'pipe',encoding:'utf8'});",
+      "recommendation": "Use parameter validation to ensure thumbprint only contains valid hexadecimal characters and implement proper escaping of special characters in PowerShell commands. Consider using a dedicated PowerShell module or library instead of direct command execution.",
+      "confidence": 80
+    },
+    {
+      "category": "injection_vulnerabilities",
+      "riskLevel": "low",
+      "description": "Potential template injection in multiple SharePoint API URL construction where user input is directly concatenated into URLs",
+      "codeSnippet": "const getItemUrl = `${url}/_api/web/lists/getByTitle('${encodeURIComponent(listTitle)}')/items(${itemId})`",
+      "recommendation": "While encodeURIComponent is used for list titles, ensure all user inputs are properly validated and sanitized before being used in URL construction. Consider using a URL builder library that handles proper escaping.",
+      "confidence": 70
+    },
+    {
+      "category": "insecure_data_handling",
+      "riskLevel": "low",
+      "description": "Temporary certificate files are created on disk during certificate authentication but may not be properly cleaned up in all error scenarios",
+      "codeSnippet": "const tempCertPath = path.resolve(process.cwd(),`${thumbprint}_temp.pfx`);\nif(fs.existsSync(tempCertPath)){fs.unlinkSync(tempCertPath);}",
+      "recommendation": "Implement proper cleanup in a finally block to ensure temporary files are always removed, even when errors occur. Consider using secure temporary file handling libraries.",
+      "confidence": 75
+    },
+    {
+      "category": "security_misconfigurations",
+      "riskLevel": "low",
+      "description": "Certificate password is passed as plain text in PowerShell command which could be visible in process listings or logs",
+      "codeSnippet": "$password = ConvertTo-SecureString -String '${password}' -Force -AsPlainText",
+      "recommendation": "Consider alternative approaches for certificate handling that don't require exposing the password in command line arguments. If possible, use Windows credential store or other secure methods for handling certificate passwords.",
+      "confidence": 65
+    },
+    {
+      "category": "network_security_issues",
+      "riskLevel": "low",
+      "description": "The code doesn't explicitly verify that SharePoint URLs use HTTPS, potentially allowing HTTP connections",
+      "codeSnippet": "server.tool(\"getSite\",\"Get the title of a SharePoint website\",{url:z.string().url().describe(\"URL of the SharePoint website\")},async(params:GetSiteParams)=>{return await getSite(params,config);});",
+      "recommendation": "Add validation to ensure that all SharePoint URLs use HTTPS. Modify the URL schema validation to require HTTPS protocol.",
+      "confidence": 60
+    }
+  ],
+  "summary": "The SharePoint MCP server implementation has a moderate security posture with a few areas of concern. The most significant issue is a potential command injection vulnerability in the certificate handling code, where user-provided inputs are directly incorporated into PowerShell commands. There are also minor concerns around URL construction, temporary file handling, and certificate password exposure. The code generally follows secure practices for authentication and API interactions, with proper use of request digests and tokens for SharePoint operations. No evidence of malicious code, backdoors, or data exfiltration attempts was found. The server appears to be a legitimate SharePoint integration tool with some security improvements needed in specific areas.",
+  "securityCategories": {
+    "injection_vulnerabilities": {
+      "riskLevel": "medium",
+      "score": 50
+    },
+    "insecure_data_handling": {
+      "riskLevel": "low",
+      "score": 25
+    },
+    "access_control_issues": {
+      "riskLevel": "none",
+      "score": 0
+    },
+    "malicious_code_patterns": {
+      "riskLevel": "none",
+      "score": 0
+    },
+    "supply_chain_risks": {
+      "riskLevel": "none",
+      "score": 0
+    },
+    "security_misconfigurations": {
+      "riskLevel": "low",
+      "score": 20
+    },
+    "prompt_injection_vectors": {
+      "riskLevel": "none",
+      "score": 0
+    },
+    "model_extraction_risks": {
+      "riskLevel": "none",
+      "score": 0
+    },
+    "network_security_issues": {
+      "riskLevel": "low",
+      "score": 15
+    },
+    "data_leakage_risks": {
+      "riskLevel": "none",
+      "score": 0
+    }
+  },
+  "mcpName": "sharepoint",
+  "scanTime": "2025-08-08T15:51:36.218Z"
+}

@@ -1,0 +1,13 @@
+name: chrome-devtools-mcp
+description: chrome-devtools-mcp lets your coding agent (such as Gemini, Claude, Cursor or Copilot) control and inspect a live Chrome browser. It acts as a Model-Context-Protocol (MCP) server, giving your AI coding assistant access to the full power of Chrome DevTools for reliable automation, in-depth debugging, and performance analysis.
+
+source:
+  repository: https://github.com/ChromeDevTools/chrome-devtools-mcp
+  ref: chrome-devtools-mcp-v0.12.1
+  entrypoint: build/src/index.js
+
+build:
+  enabled: true
+  command: npm run build
+  external:
+    - "/bundled/*"

@@ -1,0 +1,67 @@
+flowchart TD
+    %% Main flow style
+    classDef main fill:#f9f9f9,stroke:#333,stroke-width:2px
+    classDef process fill:#e1f5fe,stroke:#01579b,stroke-width:1px,color:#01579b
+    classDef important fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32,font-weight:bold
+    classDef subprocess fill:#f3e5f5,stroke:#6a1b9a,stroke-width:1px,color:#6a1b9a
+    classDef error fill:#ffebee,stroke:#c62828,stroke-width:1px,color:#c62828
+    classDef extract fill:#fff3e0,stroke:#e65100,stroke-width:1px,color:#333
+    classDef init fill:#e8f5e9,stroke:#2e7d32,stroke-width:1px,color:#2e7d32
+    classDef exec fill:#e3f2fd,stroke:#0d47a1,stroke-width:1px,color:#0d47a1
+    classDef life fill:#f3e5f5,stroke:#6a1b9a,stroke-width:1px,color:#6a1b9a
+
+    %% Start point and main flow
+    A([Start]):::main --> B{MCP Requested}:::important
+
+    %% Extraction Phase (Row 1)
+    subgraph Extraction["MCP Extraction"]
+        C[Check Cache Version]:::extract --> D{Cache Valid?}:::important
+        D -- No --> E[Extract TAR Archive]:::extract
+        D -- Yes --> F[Load from Cache]:::extract
+        E --> F
+        F --> G[Get MCP Path]:::extract
+    end
+
+    B --> C
+
+    %% Initialization Phase (Row 2)
+    subgraph Init["MCP Initialization"]
+        H[Create Subprocess]:::init --> I[Filter Environment Variables]:::init
+        I --> J[Setup Communication]:::init
+        J --> K[Initialize MCP Protocol]:::init
+        K --> L[Discover Tools]:::init
+    end
+
+    G --> H
+
+    %% Tool Execution Phase (Row 3)
+    subgraph Execution["Tool Execution"]
+        M[Receive Tool Request]:::exec --> N[Validate Parameters]:::exec
+        N --> O[Form JSON-RPC Request]:::exec
+        O --> P[Send to MCP Process]:::exec
+        P --> Q{Response Received?}:::important
+        Q -- Yes --> R[Return Result]:::exec
+        Q -- No --> S[Handle Timeout]:::error
+        S -.-> M
+    end
+
+    L --> M
+
+    %% Lifecycle Management (Row 4)
+    subgraph Lifecycle["Lifecycle Management"]
+        T[Cache Runner]:::life --> U{Process Healthy?}:::important
+        U -- No --> V[Restart Process]:::life
+        U -- Yes --> W[Reuse Process]:::life
+        V --> W
+        W --> X[Close on Shutdown]:::life
+    end
+
+    R --> T
+
+    X --> Z([End]):::main
+
+    %% Style the subgraphs
+    style Extraction fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#333
+    style Init fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32
+    style Execution fill:#e3f2fd,stroke:#0d47a1,stroke-width:2px,color:#0d47a1
+    style Lifecycle fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#6a1b9a

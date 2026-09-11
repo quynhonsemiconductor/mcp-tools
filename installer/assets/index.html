@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
+  <title>QNSC-MCP Installer</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .logo h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .logo p {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .path-input {
+      display: flex;
+      gap: 10px;
+    }
+
+    .path-input input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffffff;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .path-input input:focus {
+      border-color: #4f8cff;
+    }
+
+    .path-input button {
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .path-input button:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #4f8cff;
+    }
+
+    .checkbox-group label {
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .hint-text {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 4px;
+      margin-left: 28px;
+    }
+
+    .info-box {
+      background: rgba(79, 140, 255, 0.1);
+      border: 1px solid rgba(79, 140, 255, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .info-box strong {
+      color: #4f8cff;
+    }
+
+    .warning-box {
+      background: rgba(255, 152, 0, 0.1);
+      border: 1px solid rgba(255, 152, 0, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .warning-box strong {
+      color: #ff9800;
+    }
+
+    .install-warning {
+      background: rgba(255, 152, 0, 0.1);
+      border: 1px solid rgba(255, 152, 0, 0.3);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #ff9800;
+    }
+
+    .install-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #4f8cff 0%, #3b6fd4 100%);
+      border: none;
+      border-radius: 8px;
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .install-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(79, 140, 255, 0.4);
+    }
+
+    .install-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+      min-height: 24px;
+    }
+
+    .status.success {
+      color: #4caf50;
+    }
+
+    .status.error {
+      color: #f44336;
+    }
+
+    .status.progress {
+      color: #4f8cff;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #4f8cff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .progress-container {
+      margin-top: 16px;
+      display: none;
+    }
+
+    .progress-container.visible {
+      display: block;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4f8cff 0%, #3b6fd4 100%);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .progress-text {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      text-align: center;
+    }
+
+    .success-actions {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .success-actions p {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 16px;
+    }
+
+    .success-actions code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+
+    .close-btn {
+      padding: 12px 32px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .close-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .checkbox-group.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .checkbox-group.disabled input,
+    .checkbox-group.disabled label {
+      cursor: not-allowed;
+    }
+
+    .tooltip-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip-text {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 4px;
+      margin-left: 28px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <h1>QNSC-MCP Installer</h1>
+      <p>QNSC MCP Tools</p>
+    </div>
+
+    <div id="install-form">
+      <div id="token-warning" class="warning-box hidden">
+        <strong>Development Mode</strong><br>
+        No embedded authentication token found. You may need to set a GITHUB_TOKEN environment variable to download releases.
+      </div>
+
+      <div class="info-box">
+        <strong>Detected:</strong> <span id="platform-info">Loading...</span><br>
+        <strong>Binary:</strong> <span id="binary-info">Loading...</span><br>
+        <strong>Version:</strong> <span id="version-info">Loading...</span>
+      </div>
+
+      <div class="form-group">
+        <label for="install-path">Installation Directory</label>
+        <div class="path-input">
+          <input type="text" id="install-path" readonly>
+          <button type="button" id="browse-btn">Browse</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="checkbox-group">
+          <input type="checkbox" id="add-to-path" checked>
+          <label for="add-to-path">Add to system PATH</label>
+        </div>
+        <div class="hint-text">Will NOT duplicate if already in PATH</div>
+      </div>
+
+      <div class="form-group" id="beta-group">
+        <div class="checkbox-group" id="beta-checkbox-group">
+          <input type="checkbox" id="install-beta">
+          <label for="install-beta">Install beta version</label>
+        </div>
+        <div class="hint-text" id="beta-hint">Include prereleases when finding the latest version</div>
+      </div>
+
+      <button type="button" id="install-btn" class="install-btn">
+        Install QNSC-MCP
+      </button>
+
+      <div id="status" class="status"></div>
+
+      <div id="progress-container" class="progress-container">
+        <div class="progress-bar">
+          <div id="progress-bar-fill" class="progress-bar-fill"></div>
+        </div>
+        <div id="progress-text" class="progress-text"></div>
+      </div>
+
+      <div id="install-warnings" class="hidden"></div>
+    </div>
+
+    <div id="success-view" class="hidden">
+      <div class="info-box" style="background: rgba(76, 175, 80, 0.1); border-color: rgba(76, 175, 80, 0.3);">
+        <strong style="color: #4caf50;">Installation Complete!</strong><br><br>
+        QNSC-MCP has been installed successfully.
+      </div>
+
+      <div class="success-actions">
+        <p>Open a new terminal and run:</p>
+        <p><code>qnsc-mcp --version</code></p>
+        <p style="margin-top: 16px;">Configure VS Code with:</p>
+        <p><code>qnsc-mcp web</code></p>
+        <br>
+        <button type="button" id="close-btn" class="close-btn">Close Installer</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // The 'installer' API is exposed globally by the preload script via contextBridge
+
+    const platformInfo = document.getElementById('platform-info');
+    const binaryInfo = document.getElementById('binary-info');
+    const versionInfo = document.getElementById('version-info');
+    const tokenWarning = document.getElementById('token-warning');
+    const installPath = document.getElementById('install-path');
+    const browseBtn = document.getElementById('browse-btn');
+    const addToPath = document.getElementById('add-to-path');
+    const installBeta = document.getElementById('install-beta');
+    const betaCheckboxGroup = document.getElementById('beta-checkbox-group');
+    const betaHint = document.getElementById('beta-hint');
+    const installBtn = document.getElementById('install-btn');
+    const status = document.getElementById('status');
+    const installForm = document.getElementById('install-form');
+    const successView = document.getElementById('success-view');
+    const closeBtn = document.getElementById('close-btn');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBarFill = document.getElementById('progress-bar-fill');
+    const progressText = document.getElementById('progress-text');
+    const installWarnings = document.getElementById('install-warnings');
+
+    // Initialize
+    async function init() {
+      try {
+        // Get platform info immediately (no network required)
+        const info = await installer.getInstallInfo();
+
+        const platformNames = {
+          win32: 'Windows',
+          darwin: 'macOS',
+          linux: 'Linux'
+        };
+
+        const archNames = {
+          x64: '64-bit',
+          arm64: 'ARM64'
+        };
+
+        platformInfo.textContent = `${platformNames[info.platform] || info.platform} (${archNames[info.arch] || info.arch})`;
+        binaryInfo.textContent = info.binaryName;
+        installPath.value = info.defaultInstallPath;
+
+        // Show warning if no embedded token (development mode)
+        if (!info.hasToken) {
+          tokenWarning.classList.remove('hidden');
+        }
+
+        // Disable beta toggle in artifact mode (PR builds)
+        if (info.isArtifactMode) {
+          installBeta.disabled = true;
+          installBeta.checked = false;
+          betaCheckboxGroup.classList.add('disabled');
+          betaHint.textContent = 'Not available for PR builds (installer is locked to run ' + info.workflowRunId + ')';
+          betaHint.classList.add('tooltip-text');
+        }
+
+        // Default to adding to PATH on all platforms
+        // The installer already checks for duplicates before adding
+        addToPath.checked = true;
+
+        // Store default path and platform for later comparison
+        window.defaultInstallPath = info.defaultInstallPath;
+        window.currentPlatform = info.platform;
+
+        // Fetch version separately (requires network)
+        versionInfo.textContent = 'Loading...';
+        fetchLatestVersion();
+      } catch (error) {
+        showStatus('Failed to initialize: ' + error.message, 'error');
+      }
+    }
+
+    // Fetch latest version asynchronously
+    async function fetchLatestVersion(beta = false) {
+      try {
+        versionInfo.textContent = 'Loading...';
+        const result = await installer.getLatestVersion(beta);
+        if (result.version) {
+          versionInfo.textContent = result.version + (result.isBeta ? ' (beta)' : '');
+        } else {
+          versionInfo.textContent = 'unavailable';
+          if (result.error) {
+            console.warn('Failed to fetch version:', result.error);
+          }
+        }
+      } catch (error) {
+        versionInfo.textContent = 'unavailable';
+        console.warn('Failed to fetch version:', error);
+      }
+    }
+
+    // Refresh version when beta checkbox changes (only if not disabled)
+    installBeta.addEventListener('change', () => {
+      if (!installBeta.disabled) {
+        fetchLatestVersion(installBeta.checked);
+      }
+    });
+
+    // Browse for directory
+    browseBtn.addEventListener('click', async () => {
+      const path = await installer.selectInstallPath();
+      if (path) {
+        installPath.value = path;
+        // If user selects a non-default path on Unix, suggest adding to PATH
+        if (window.currentPlatform !== 'win32' && path !== window.defaultInstallPath) {
+          addToPath.checked = true;
+        }
+      }
+    });
+
+    // Install
+    installBtn.addEventListener('click', async () => {
+      const path = installPath.value;
+      const shouldAddToPath = addToPath.checked;
+      const beta = installBeta.checked;
+
+      if (!path) {
+        showStatus('Please select an installation directory', 'error');
+        return;
+      }
+
+      installBtn.disabled = true;
+      browseBtn.disabled = true;
+      showStatus('', 'progress');
+      showProgress(true);
+      updateProgress('Starting installation...', 0);
+
+      // Listen for progress updates
+      installer.onProgress((data) => {
+        updateProgress(data.message, data.percent);
+      });
+
+      // Listen for warnings
+      installer.onWarning((message) => {
+        addWarning(message);
+      });
+
+      try {
+        const result = await installer.install(path, shouldAddToPath, beta);
+
+        // Clean up listeners
+        installer.removeListeners();
+
+        if (result.success) {
+          showProgress(false);
+          installForm.classList.add('hidden');
+          successView.classList.remove('hidden');
+        } else {
+          showProgress(false);
+          showStatus('Installation failed: ' + result.error, 'error');
+          installBtn.disabled = false;
+          browseBtn.disabled = false;
+        }
+      } catch (error) {
+        installer.removeListeners();
+        showProgress(false);
+        showStatus('Installation failed: ' + error.message, 'error');
+        installBtn.disabled = false;
+        browseBtn.disabled = false;
+      }
+    });
+
+    // Close button
+    closeBtn.addEventListener('click', () => {
+      window.close();
+    });
+
+    function showStatus(message, type) {
+      status.textContent = message;
+      status.className = 'status ' + type;
+    }
+
+    function showProgress(visible) {
+      if (visible) {
+        progressContainer.classList.add('visible');
+      } else {
+        progressContainer.classList.remove('visible');
+      }
+    }
+
+    function updateProgress(message, percent) {
+      progressBarFill.style.width = percent + '%';
+      progressText.textContent = message;
+    }
+
+    function addWarning(message) {
+      const warningDiv = document.createElement('div');
+      warningDiv.className = 'install-warning';
+      warningDiv.textContent = '⚠️ ' + message;
+      installWarnings.appendChild(warningDiv);
+      installWarnings.classList.remove('hidden');
+    }
+
+    // Start
+    console.log('[DEBUG] Starting init, installer object:', typeof installer, installer);
+    init().then(() => {
+      console.log('[DEBUG] init completed');
+    }).catch(err => {
+      console.error('[DEBUG] init failed:', err);
+    });
+  </script>
+</body>
+</html>

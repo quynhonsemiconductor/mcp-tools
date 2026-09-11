@@ -1,0 +1,131 @@
+{{!--
+  security-analysis-prompt.js.tmpl
+
+  Template for MCP security analysis prompt
+
+  Variables:
+  - mcpName: The name of the MCP being analyzed
+  - code: The code being analyzed
+  - metadata: The metadata of the MCP (already stringified JSON)
+  - glamaApiInfo: Optional Glama API information (already stringified JSON)
+--}}
+You are a security expert performing a security audit on a Model Context Protocol (MCP) server implementation written in JavaScript/TypeScript.
+
+# CONTEXT
+- MCP servers are NodeJS services that expose tools for AI assistants to use
+- They follow the Model Context Protocol standard
+- This specific MCP is called "{{mcpName}}"
+- MCPs can be exploited if they contain malicious code, backdoors, or vulnerabilities
+- This analysis focuses on the application code only (third-party dependencies have been excluded)
+
+# CODE TO ANALYZE
+```javascript
+{{{code}}}
+```
+
+{{#if glamaApiInfo}}
+# GLAMA API INFO
+```json
+{{{glamaApiInfo}}}
+```
+{{/if}}
+
+# TASK
+Perform a comprehensive security analysis of this MCP code to identify any potential security risks, malicious code, or exploitable vulnerabilities. Sensitive information
+stored in environment variables is an acceptable practice in MCP servers.
+
+Focus on these security risk categories:
+1. Injection Vulnerabilities: Code injection, command injection, SQL injection, etc.
+2. Insecure Data Handling: Insecure deserialization, unsafe parsing, etc.
+3. Access Control Issues: Unauthorized access, privilege escalation, etc.
+4. Malicious Code Patterns: Backdoors, code obfuscation techniques, etc.
+5. Supply Chain Risks: Suspicious dependencies, unexpected network calls, etc.
+6. Security Misconfigurations: Insecure defaults, exposed credentials, etc.
+7. Prompt Injection Vectors: Ways an MCP could manipulate AI models through prompt injection
+8. Model Extraction Risks: Code that attempts to extract knowledge from AI models
+9. Network Security Issues: Insecure connections, unexpected outbound requests, etc.
+10. Data Leakage Risks: Exfiltration of sensitive data, logging issues, etc.
+
+Areas to avoid any risk analysis on:
+- Do not focus on JSON parsing or validation issues unless they lead to security risks.
+- This runs isolated on developer machines, so logging should not be considered a security risk.
+- As long as some form of auth is used when making remote http calls (ie API keys) the API should be considered fairly safe. But these calls MUST use HTTPS.
+- This code has been minified, so you may see obfuscated variable names and structures. Focus on the logic and patterns rather than specific variable names.
+- Due to minification you may encounter syntax errors or truncated code. Focus on the overall logic and patterns rather than specific syntax.
+- Exclude certificate validation issues
+- Exclude limiting or throttling issues
+- Exclude performance or optimization issues
+- Exclude user interface or user experience issues
+- Exclude code style or formatting issues
+- Exclude third-party dependencies, as they have been excluded from this analysis.
+- Exclude web issues like CORS, CSRF, XSS, etc. This is a NodeJS service, not a web application.
+
+# OUTPUT FORMAT
+Provide your analysis as a JSON object with the following structure:
+
+```json
+{
+  "riskScore": 0-100,
+  "findings": [
+    {
+      "category": "injection_vulnerabilities|insecure_data_handling|access_control_issues|malicious_code_patterns|supply_chain_risks|security_misconfigurations|prompt_injection_vectors|model_extraction_risks|network_security_issues|data_leakage_risks",
+      "riskLevel": "none|low|medium|high|critical",
+      "description": "Description of the issue",
+      "codeSnippet": "Relevant code snippet",
+      "recommendation": "How to fix or mitigate",
+      "confidence": 0-100
+    }
+  ],
+  "summary": "Overall security assessment",
+  "securityCategories": {
+    "injection_vulnerabilities": {
+      "riskLevel": "none|low|medium|high|critical",
+      "score": 0-100
+    },
+    "insecure_data_handling": {
+      "riskLevel": "none|low|medium|high|critical",
+      "score": 0-100
+    },
+    "access_control_issues": {
+      "riskLevel": "none|low|medium|high|critical",
+      "score": 0-100
+    },
+    "malicious_code_patterns": {
+      "riskLevel": "none|low|medium|high|critical",
+      "score": 0-100
+    },
+    "supply_chain_risks": {
+      "riskLevel": "none|low|medium|high|critical",
+      "score": 0-100
+    },
+    "security_misconfigurations": {
+      "riskLevel": "none|low|medium|high|critical",
+      "score": 0-100
+    },
+    "prompt_injection_vectors": {
+      "riskLevel": "none|low|medium|high|critical",
+      "score": 0-100
+    },
+    "model_extraction_risks": {
+      "riskLevel": "none|low|medium|high|critical",
+      "score": 0-100
+    },
+    "network_security_issues": {
+      "riskLevel": "none|low|medium|high|critical",
+      "score": 0-100
+    },
+    "data_leakage_risks": {
+      "riskLevel": "none|low|medium|high|critical",
+      "score": 0-100
+    }
+  }
+}
+```
+
+Ensure your analysis is:
+1. Thorough - Examine all aspects of the code for potential issues
+2. Evidence-based - Reference specific parts of the code for each finding
+3. Accurate - Only report issues that are clearly present in the code
+4. Complete - Cover all security categories mentioned above
+
+IMPORTANT: Return ONLY the JSON output with no additional explanations or text. Ensure the JSON is valid and properly formatted.

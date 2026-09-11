@@ -1,0 +1,131 @@
+site_name: QNSC MCP Toolkit
+site_description: Model Context Protocol tools for QNSC
+site_url: https://quynhonsemiconductor.github.io/mcp-tools/
+
+repo_name: quynhonsemiconductor/mcp-tools
+repo_url: https://github.com/quynhonsemiconductor/mcp-tools
+
+docs_dir: src
+
+theme:
+  name: material
+  logo: images/qnsc-icon.png
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.indexes
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.copy
+    - content.code.annotate
+  palette:
+    # Palette toggle for automatic mode
+    - media: '(prefers-color-scheme)'
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - gen-files:
+      scripts:
+        - scripts/gen_tools.py
+        - scripts/gen_remotes.py
+        - scripts/gen_prompts.py
+        - scripts/gen_resources.py
+  - search
+  - tags
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - admonition
+  - tables
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Quickstart:
+      - Getting Started: quickstart/getting-started.md
+      - macOS: quickstart/macOS.md
+      - Windows: quickstart/windows.md
+      - Linux / WSL: quickstart/linux.md
+      - API Key Setup: quickstart/api-keys.md
+      - Unified Setup (All Clients): quickstart/unified-setup.md
+      - IDE Setup:
+          - VS Code: quickstart/clients/vs-code.md
+          - JetBrains IDEs: quickstart/clients/jetbrains.md
+          - Claude Desktop & Claude Code: quickstart/clients/claude.md
+  - Configuration: configuration.md
+  - Troubleshooting: troubleshooting.md
+  - Knowledge Base:
+      - Overview: kb/index.md
+      - Known Issues: kb/known-issues.md
+      - How-To Guides: kb/how-to-guides.md
+  - Reference:
+      - Tools: 
+         - reference/tools/index.md
+      - Prompts: 
+         - reference/prompts/index.md
+      - Resources: 
+         - reference/resources/index.md
+      - Remote MCPs:
+         - reference/remotes/index.md
+  - Development:
+      - Local MCP Server Support: development/Local-MCP-Server-Support.md
+      - MCP Bundling Process: development/MCP-Bundling-Process.md
+      - MCP Execution Process: development/MCP-Execution-Process.md
+      - Validation System: development/VALIDATION_SYSTEM.md
+      - Release Process: development/RELEASE-PROCESS.md
+      - Release Testing Guide: development/Release-Testing-Guide.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/quynhonsemiconductor/mcp-tools
+    - icon: fontawesome/brands/slack
+      link: https://github.com/quynhonsemiconductor/mcp-tools/discussions

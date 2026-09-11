@@ -1,0 +1,68 @@
+flowchart LR
+    %% Main flow style
+    classDef main fill:#f9f9f9,stroke:#333,stroke-width:2px
+    classDef process fill:#e1f5fe,stroke:#01579b,stroke-width:1px,color:#01579b
+    classDef important fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32,font-weight:bold
+    classDef binary fill:#f3e5f5,stroke:#6a1b9a,stroke-width:1px,color:#6a1b9a
+
+    %% Start and end points
+    A([Start]):::main --> H[Load MCP<br/>Config Files]:::process
+    H --> I{For Each<br/>MCP Config}:::important
+
+    subgraph IndividualMCP ["Individual MCP Processing"]
+        direction TB
+
+        subgraph SourcePrep ["Source Prep & Bundling"]
+            K[Bundle MCP]:::process --> RepoClone[Clone Repository]:::process
+            RepoClone --> BuildProj[Build Project]:::process
+            BuildProj --> AnalyzeDeps[Analyze Dependencies]:::process
+            AnalyzeDeps --> BunBuild[Build with Bun]:::process
+            BunBuild --> WriteBundle[Write Bundle]:::process
+            WriteBundle --> ExtractMeta[Extract Metadata]:::process
+        end
+
+        SourcePrep --> ToolDiscovery
+
+        subgraph ToolDiscovery ["Tool Discovery"]
+            L[Extract Tool<br/>Information]:::process --> L1[Create<br/>Runner]:::process
+            L1 --> L2[Initialize<br/>MCP]:::process
+            L2 --> L4[Map Tool<br/>Schemas]:::process
+        end
+
+        ToolDiscovery --> Security
+
+        subgraph Security ["Security Scanning"]
+            M[Write<br/>Metadata]:::process --> O[Scan Original<br/>Source Code]:::process
+            O --> O1[Minify &<br/>Process Code]:::process
+            O1 --> O2[Calculate<br/>Token Usage]:::process
+            O2 --> O3[Analyze<br/>Security Risks]:::process
+            O3 --> O5[Save Security<br/>Results]:::process
+        end
+    end
+
+    %% Apply styling to subgraphs - same width for all three processes
+    style IndividualMCP fill:#f5f5f5,stroke:#333,stroke-width:3px,color:#333,stroke-dasharray: 5 5
+    style SourcePrep fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#333
+    style ToolDiscovery fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#2e7d32
+    style Security fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#c2185b
+
+    %% Connect For Each loop with entire processing block
+    I --> IndividualMCP
+    IndividualMCP --> I
+
+    %% Final process after loop
+    I -- All MCPs<br/>Processed --> BinaryBuild
+
+    subgraph BinaryBuild ["Binary Build Process"]
+        S1[Prepare<br/>Assets]:::process --> S2[Generate<br/>Loaders]:::process
+        S2 --> T[Create TAR<br/>Archive]:::process
+        T --> T2[Add Bundles<br/>to TAR]:::process
+        T2 --> T3[Create<br/>mcp-manifest.json]:::process
+        T3 --> S4[Build Binary<br/>with Bun]:::process
+    end
+
+    %% Style binary build
+    style BinaryBuild fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#6a1b9a
+
+    %% End point
+    BinaryBuild --> Z([End]):::main

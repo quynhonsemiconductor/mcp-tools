@@ -1,0 +1,31 @@
+# {{ name }}
+
+{{ description }}
+
+**Category:** {{ category }}
+
+## Arguments
+
+{{#if arguments}}
+| Argument | Required | Description |
+|----------|----------|-------------|
+{{#each arguments}}
+| `{{ name }}` | {{#if required}}Yes{{else}}No{{/if}} | {{ description }} |
+{{/each}}
+
+{{else}}
+This resource does not require any arguments.
+{{/if}}
+
+## Usage
+
+```json
+{
+  "name": "{{ id }}",
+  "arguments": {
+{{#each arguments}}
+    "{{ name }}": "<{{ name }}>"{{#unless @last}},{{/unless}}
+{{/each}}
+  }
+}
+```

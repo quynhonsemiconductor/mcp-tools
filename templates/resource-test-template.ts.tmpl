@@ -1,0 +1,15 @@
+import { describe, expect, it, beforeEach } from 'bun:test';
+import { {{RESOURCE_CLASS_NAME}} } from './';
+
+describe('{{RESOURCE_CLASS_NAME}}', () => {
+  let resource: {{RESOURCE_CLASS_NAME}};
+
+  beforeEach(() => {
+    resource = new {{RESOURCE_CLASS_NAME}}();
+  });
+
+  it('should load resource content successfully', async () => {
+    const result = await resource.load({ id: 'test-id' });
+    expect(result).toContain('Resource content for test-id');
+  });
+});

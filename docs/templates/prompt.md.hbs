@@ -1,0 +1,56 @@
+# {{ name }}
+
+{{ description }}
+
+**Category:** {{ category }}
+{{#if sourceType}}
+**Source:** {{ sourceType }}{{#if sourcePath}} (`{{ sourcePath }}`){{/if}}
+{{/if}}
+
+## Arguments
+
+{{#if arguments}}
+| Argument | Required | Description |
+|----------|----------|-------------|
+{{#each arguments}}
+| `{{ name }}` | {{#if required}}Yes{{else}}No{{/if}} | {{ description }} |
+{{/each}}
+
+{{#each arguments}}
+{{#if enum}}
+### `{{ name }}` Values
+
+| Value |
+|-------|
+{{#each enum}}
+| `{{ this }}` |
+{{/each}}
+
+{{/if}}
+{{/each}}
+{{else}}
+This prompt does not require any arguments.
+{{/if}}
+
+{{#if requiredTools}}
+## Required Tools
+
+This prompt requires the following tools to be available:
+
+{{#each requiredTools}}
+- `{{ this }}`
+{{/each}}
+
+{{/if}}
+## Usage
+
+```json
+{
+  "name": "{{ id }}",
+  "arguments": {
+{{#each arguments}}
+    "{{ name }}": "<{{ name }}>"{{#unless @last}},{{/unless}}
+{{/each}}
+  }
+}
+```

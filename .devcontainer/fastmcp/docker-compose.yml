@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  fastmcp:
+    build:
+      context: ../..
+      dockerfile: .devcontainer/fastmcp/Dockerfile
+    volumes:
+      - ../..:/workspace:cached
+      - node_modules:/workspace/node_modules
+      - root:/root
+      # Uncomment the following lines to mount your SSH keys and git config
+      # - $USERPROFILE/.ssh:/root/.ssh
+      # - $USERPROFILE/.gitconfig:/root/.gitconfig
+    ports:
+      - 3000:3000
+      # Other ports are automatically forwarded by the devcontainer extension
+    command: sleep infinity
+volumes:
+  node_modules:
+  root:

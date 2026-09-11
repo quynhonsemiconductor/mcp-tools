@@ -1,0 +1,73 @@
+name: browsertools
+description: Securely interact with your Confluence spaces, pages, and content.
+
+source:
+  repository: https://github.com/AgentDeskAI/browser-tools-mcp
+  ref: v1.2.0
+  workingDir: browser-tools-mcp
+  entrypoint: dist/mcp-server.js
+
+build:
+  enabled: false
+  command: bun run build
+
+companions:
+  - name: browsertools-server
+    description: Companion for Browser Tools.
+    workingDir: browser-tools-server
+    entrypoint: ./dist/browser-connector.js
+    build:
+      enabled: true
+      command: bun run build
+      startFunction: main
+    staticFiles:
+      - node_modules/lighthouse/shared/localization/locales/ar-XB.json:dist/locales/ar-XB.json
+      - node_modules/lighthouse/shared/localization/locales/ar.json:dist/locales/ar.json
+      - node_modules/lighthouse/shared/localization/locales/bg.json:dist/locales/bg.json
+      - node_modules/lighthouse/shared/localization/locales/ca.json:dist/locales/ca.json
+      - node_modules/lighthouse/shared/localization/locales/cs.json:dist/locales/cs.json
+      - node_modules/lighthouse/shared/localization/locales/da.json:dist/locales/da.json
+      - node_modules/lighthouse/shared/localization/locales/de.json:dist/locales/de.json
+      - node_modules/lighthouse/shared/localization/locales/el.json:dist/locales/el.json
+      - node_modules/lighthouse/shared/localization/locales/en-GB.json:dist/locales/en-GB.json
+      - node_modules/lighthouse/shared/localization/locales/en-US.json:dist/locales/en-US.json
+      - node_modules/lighthouse/shared/localization/locales/en-XA.json:dist/locales/en-XA.json
+      - node_modules/lighthouse/shared/localization/locales/en-XL.json:dist/locales/en-XL.json
+      - node_modules/lighthouse/shared/localization/locales/es-419.json:dist/locales/es-419.json
+      - node_modules/lighthouse/shared/localization/locales/es.json:dist/locales/es.json
+      - node_modules/lighthouse/shared/localization/locales/fi.json:dist/locales/fi.json
+      - node_modules/lighthouse/shared/localization/locales/fil.json:dist/locales/fil.json
+      - node_modules/lighthouse/shared/localization/locales/fr.json:dist/locales/fr.json
+      - node_modules/lighthouse/shared/localization/locales/he.json:dist/locales/he.json
+      - node_modules/lighthouse/shared/localization/locales/hi.json:dist/locales/hi.json
+      - node_modules/lighthouse/shared/localization/locales/hr.json:dist/locales/hr.json
+      - node_modules/lighthouse/shared/localization/locales/hu.json:dist/locales/hu.json
+      - node_modules/lighthouse/shared/localization/locales/id.json:dist/locales/id.json
+      - node_modules/lighthouse/shared/localization/locales/it.json:dist/locales/it.json
+      - node_modules/lighthouse/shared/localization/locales/ja.json:dist/locales/ja.json
+      - node_modules/lighthouse/shared/localization/locales/ko.json:dist/locales/ko.json
+      - node_modules/lighthouse/shared/localization/locales/lt.json:dist/locales/lt.json
+      - node_modules/lighthouse/shared/localization/locales/lv.json:dist/locales/lv.json
+      - node_modules/lighthouse/shared/localization/locales/nl.json:dist/locales/nl.json
+      - node_modules/lighthouse/shared/localization/locales/no.json:dist/locales/no.json
+      - node_modules/lighthouse/shared/localization/locales/pl.json:dist/locales/pl.json
+      - node_modules/lighthouse/shared/localization/locales/pt-PT.json:dist/locales/pt-PT.json
+      - node_modules/lighthouse/shared/localization/locales/pt.json:dist/locales/pt.json
+      - node_modules/lighthouse/shared/localization/locales/ro.json:dist/locales/ro.json
+      - node_modules/lighthouse/shared/localization/locales/ru.json:dist/locales/ru.json
+      - node_modules/lighthouse/shared/localization/locales/sk.json:dist/locales/sk.json
+      - node_modules/lighthouse/shared/localization/locales/sl.json:dist/locales/sl.json
+      - node_modules/lighthouse/shared/localization/locales/sr-Latn.json:dist/locales/sr-Latn.json
+      - node_modules/lighthouse/shared/localization/locales/sr.json:dist/locales/sr.json
+      - node_modules/lighthouse/shared/localization/locales/sv.json:dist/locales/sv.json
+      - node_modules/lighthouse/shared/localization/locales/ta.json:dist/locales/ta.json
+      - node_modules/lighthouse/shared/localization/locales/te.json:dist/locales/te.json
+      - node_modules/lighthouse/shared/localization/locales/th.json:dist/locales/th.json
+      - node_modules/lighthouse/shared/localization/locales/tr.json:dist/locales/tr.json
+      - node_modules/lighthouse/shared/localization/locales/uk.json:dist/locales/uk.json
+      - node_modules/lighthouse/shared/localization/locales/vi.json:dist/locales/vi.json
+      - node_modules/lighthouse/shared/localization/locales/zh-HK.json:dist/locales/zh-HK.json
+      - node_modules/lighthouse/shared/localization/locales/zh-TW.json:dist/locales/zh-TW.json
+      - node_modules/lighthouse/shared/localization/locales/zh.json:dist/locales/zh.json
+      - node_modules/lighthouse/flow-report/assets/standalone-flow-template.html:flow-report/assets/standalone-flow-template.html
+      - node_modules/lighthouse/flow-report/assets/standalone-flow-template.html:dist/flow-report/assets/standalone-flow-template.html

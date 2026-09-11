@@ -1,0 +1,14 @@
+import { describe, expect, it } from 'bun:test';
+import { CodeSmell } from './code-smell-prompt';
+import { {{PROMPT_CLASS_NAME}} } from './index';
+
+// Import the prompt class
+describe('{{PROMPT_CLASS_NAME}}', () => {
+  it('should build prompt template with file content placeholder', async () => {
+    const prompt = new {{PROMPT_CLASS_NAME}}();
+    const result = await prompt.load({ text: 'foo' });
+
+    // Check that file content was inserted into the template
+    expect(result).toContain('foo');
+  });
+});

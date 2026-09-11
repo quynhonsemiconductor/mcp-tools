@@ -1,0 +1,122 @@
+{
+  "riskScore": 65,
+  "findings": [
+    {
+      "category": "network_security_issues",
+      "riskLevel": "critical",
+      "description": "The application uses unencrypted HTTP connections for all communication between the browser extension and the server, exposing sensitive data to potential interception.",
+      "codeSnippet": "const response = await fetch(`http:${settings.serverHost}:${settings.serverPort}/.identity`, {",
+      "recommendation": "Use HTTPS for all communications between the browser extension and the server. This requires setting up proper TLS certificates and updating all fetch/request URLs to use the https:// protocol.",
+      "confidence": 100
+    },
+    {
+      "category": "access_control_issues",
+      "riskLevel": "high",
+      "description": "The server lacks proper authentication mechanisms. Any client that can connect to the server port can access all functionality without authentication.",
+      "codeSnippet": "app.use(cors()); app.use(bodyParser.json({limit:\"50mb\"})); app.use(bodyParser.urlencoded({limit:\"50mb\",extended:true}));",
+      "recommendation": "Implement proper authentication for all API endpoints. Consider using API keys, OAuth, or another authentication mechanism appropriate for the application's context.",
+      "confidence": 95
+    },
+    {
+      "category": "injection_vulnerabilities",
+      "riskLevel": "high",
+      "description": "The application executes AppleScript on macOS systems with user-provided input without proper sanitization, potentially allowing command injection.",
+      "codeSnippet": "const appleScript = ` -- Set path to the screenshot set imagePath to \"${fullPath}\"...`; exec(`osascript -e '${appleScript}'`,(error,stdout,stderr)=>{",
+      "recommendation": "Sanitize user input before including it in shell commands. Consider using a library designed for safe command execution or implement proper escaping of special characters.",
+      "confidence": 90
+    },
+    {
+      "category": "insecure_data_handling",
+      "riskLevel": "medium",
+      "description": "The application accepts and processes large JSON payloads (up to 50MB) without proper validation, which could lead to denial of service or memory exhaustion attacks.",
+      "codeSnippet": "app.use(bodyParser.json({limit:\"50mb\"})); app.use(bodyParser.urlencoded({limit:\"50mb\",extended:true}));",
+      "recommendation": "Implement stricter size limits for JSON payloads and add validation for request bodies to ensure they match expected schemas before processing.",
+      "confidence": 85
+    },
+    {
+      "category": "security_misconfigurations",
+      "riskLevel": "medium",
+      "description": "The server binds to all network interfaces (0.0.0.0) by default, potentially exposing it to external networks when it should only be accessible locally.",
+      "codeSnippet": "let currentSettings = { serverHost: process.env.SERVER_HOST || \"0.0.0.0\", }",
+      "recommendation": "Change the default binding to localhost (127.0.0.1) to restrict access to the local machine only, unless external access is specifically required.",
+      "confidence": 90
+    },
+    {
+      "category": "access_control_issues",
+      "riskLevel": "medium",
+      "description": "The server allows unrestricted CORS access, which could enable malicious websites to make requests to the server if a user visits them while the server is running.",
+      "codeSnippet": "app.use(cors());",
+      "recommendation": "Configure CORS to only allow requests from trusted origins, especially if the server is intended to be accessed only by the local browser extension.",
+      "confidence": 85
+    },
+    {
+      "category": "data_leakage_risks",
+      "riskLevel": "medium",
+      "description": "The application captures and stores screenshots without proper access controls, potentially exposing sensitive information visible in the browser.",
+      "codeSnippet": "chrome.tabs.captureVisibleTab(targetWindow.id, {format:\"png\"}, (dataUrl)=>{",
+      "recommendation": "Implement proper access controls for stored screenshots and consider adding options for users to control what content can be captured.",
+      "confidence": 80
+    },
+    {
+      "category": "malicious_code_patterns",
+      "riskLevel": "low",
+      "description": "The browser extension has capabilities to monitor all network requests, console logs, and capture screenshots, which could be misused if the extension is compromised.",
+      "codeSnippet": "chrome.devtools.network.onRequestFinished.addListener((request)=>{",
+      "recommendation": "Ensure users are clearly informed about the extension's capabilities and implement additional safeguards to prevent misuse of sensitive data collection features.",
+      "confidence": 75
+    },
+    {
+      "category": "prompt_injection_vectors",
+      "riskLevel": "low",
+      "description": "The runNextJSAudit tool contains a large amount of hardcoded text that could potentially be used for prompt injection if the MCP server is compromised.",
+      "codeSnippet": "server.tool(\"runNextJSAudit\", {}, async()=>({content:[{type:\"text\",text:` You are an expert in SEO and web development with NextJS...`}]}));",
+      "recommendation": "Review and minimize hardcoded instructions in tool definitions. Consider moving complex instructions to a separate, validated configuration file.",
+      "confidence": 70
+    }
+  ],
+  "summary": "The Browser Tools MCP server has several significant security issues, primarily related to network security, access control, and injection vulnerabilities. The most critical issue is the use of unencrypted HTTP for all communications, which exposes sensitive data to interception. The server also lacks proper authentication mechanisms, allowing anyone who can connect to the server port to access all functionality. Additionally, there are potential command injection vulnerabilities in the AppleScript execution code. The application handles large amounts of sensitive data including network requests, console logs, and screenshots, but lacks proper access controls and data protection mechanisms. While the application is designed to run locally, these security issues could still pose risks, especially if the server is exposed to untrusted networks or if malicious code is executed in the browser being monitored.",
+  "securityCategories": {
+    "injection_vulnerabilities": {
+      "riskLevel": "high",
+      "score": 70
+    },
+    "insecure_data_handling": {
+      "riskLevel": "medium",
+      "score": 60
+    },
+    "access_control_issues": {
+      "riskLevel": "high",
+      "score": 80
+    },
+    "malicious_code_patterns": {
+      "riskLevel": "low",
+      "score": 30
+    },
+    "supply_chain_risks": {
+      "riskLevel": "low",
+      "score": 20
+    },
+    "security_misconfigurations": {
+      "riskLevel": "medium",
+      "score": 60
+    },
+    "prompt_injection_vectors": {
+      "riskLevel": "low",
+      "score": 30
+    },
+    "model_extraction_risks": {
+      "riskLevel": "none",
+      "score": 0
+    },
+    "network_security_issues": {
+      "riskLevel": "critical",
+      "score": 90
+    },
+    "data_leakage_risks": {
+      "riskLevel": "medium",
+      "score": 60
+    }
+  },
+  "mcpName": "browsertools",
+  "scanTime": "2025-08-05T02:35:09.242Z"
+}

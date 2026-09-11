@@ -1,0 +1,63 @@
+# =============================================================================
+# Security · Scan — thin caller of the shared reusable suite (qnsc-ci).
+#
+# Org-wide standard: Semgrep (SAST, replaces CodeQL — no
+# GHAS needed on the free plan), Gitleaks (secrets), osv-scanner (dependency
+# CVEs, replaces dependency-review). Trivy container scanning is skipped
+# (scan_container: false) — mcp-tools ships binaries, not a Docker image.
+# =============================================================================
+name: Security · Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 4 * * 1' # weekly Monday 04:00 UTC — catch new CVEs between pushes
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  # These two are CEILINGS for the called workflow's jobs, not grants this file uses.
+  # A reusable workflow's job permissions can only be REDUCED below the caller's
+  # top-level grant, never elevated — and GitHub validates every called job's ceiling
+  # at STARTUP, before any `if:` is evaluated. So the reusable's `trivy` job needing
+  # `packages: read` fails the whole run with startup_failure even though
+  # `scan_container: false` means it never executes. startup_failure produces zero
+  # jobs and therefore NO checks at all, which reads as "the scan has not run yet"
+  # rather than as a failure.
+  security-events: write # zizmor: ignore[excessive-permissions]
+  packages: read # zizmor: ignore[excessive-permissions]
+
+jobs:
+  # Replaces Code Scanning Default Setup's `Analyze (actions)` — that managed
+  # check doesn't reliably report on bot-authored PRs (Dependabot/Renovate),
+  # leaving a required check stuck "Expected" forever.
+  actions-security:
+    permissions:
+      contents: read
+      security-events: write
+    uses: quynhonsemiconductor/ci/.github/workflows/actions-security.yml@v1
+    with:
+      blocking: true
+
+  security:
+    # NO job-level `permissions:` block, deliberately — this job inherits the
+    # top-level ceiling above, which is what app-platform and qnsc-landing do.
+    #
+    # A job-level block here is a CEILING for the CALLED workflow's jobs, not a grant
+    # for this one. Listing `contents: read` + `security-events: write` looked
+    # tighter, but it capped below the reusable's `trivy` job, which declares
+    # `packages: read` — and GitHub validates every called job's ceiling at STARTUP,
+    # before `if:`, so `scan_container: false` does not spare it. The run then dies as
+    # startup_failure: zero jobs, no checks at all, which reads as "not started yet"
+    # rather than as a failure.
+    uses: quynhonsemiconductor/ci/.github/workflows/security.yml@v1
+    with:
+      product: mcp-tools
+      scan_container: false
+      osv_blocking: true

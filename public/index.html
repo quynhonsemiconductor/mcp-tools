@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP Tools</title>
+  <!-- Theme manager loaded early to prevent FOUC -->
+  <script src="js/theme-manager.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/config-editor.css">
+  <link rel="stylesheet" href="css/logs-viewer.css">
+  <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/yaml.min.js"></script>
+
+  <!-- Markdown rendering and sanitization for setup documentation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/16.3.0/lib/marked.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.7/purify.min.js"></script>
+
+  <script>document.addEventListener('DOMContentLoaded', () => hljs.highlightAll());</script>
+</head>
+<body>
+  <header>
+    <div class="logo-container">
+<pre>
+ ██████  █████  ██     ███    ███  ██████ ██████
+██      ██   ██ ██     ████  ████ ██      ██   ██
+██      ███████ ██     ██ ████ ██ ██      ██████
+██      ██   ██ ██     ██  ██  ██ ██      ██
+ ██████ ██   ██ ██     ██      ██  ██████ ██
+</pre>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="/" class="active" id="nav-home">🏠 Home</a></li>
+        <li><a href="/tools" id="nav-tools">🔧 Tools</a></li>
+        <li><a href="/history" id="nav-history">📜 History</a></li>
+        <li><a href="/config" id="nav-config">⚙️ Config Editor</a></li>
+        <li><a href="/logs" id="nav-logs">📋 Logs</a></li>
+        <li><button id="theme-toggle" class="theme-toggle" title="Toggle theme (Light/Auto/Dark)">
+          <span id="theme-icon">🌓</span>
+        </button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="app">
+    <!-- Content will be loaded here -->
+    <div id="home-view" class="view">
+      <div class="page-header">
+        <h2>Recent Tool Calls</h2>
+      </div>
+      <div id="recent-calls">
+        <p>Loading recent calls...</p>
+      </div>
+    </div>
+
+    <div id="tools-view" class="view hidden">
+      <div class="page-header">
+        <h2>Available Tools</h2>
+        <div class="search-container">
+          <input type="text" id="tools-search" placeholder="Search tools by name or description..." />
+        </div>
+      </div>
+      <div id="tools-list">
+        <p>Loading tools...</p>
+      </div>
+    </div>
+
+    <div id="history-view" class="view hidden">
+      <div class="history-controls">
+        <h2>Tool Usage History</h2>
+        <div class="history-search">
+          <input type="text" id="history-search" placeholder="Search for a tool by name or category..." />
+          <div id="tool-list-container" class="tool-list-container">
+            <div id="tool-list" class="tool-list">
+              <p class="empty-message">Start typing to search for tools...</p>
+            </div>
+          </div>
+        </div>
+        <div id="selected-tool" class="selected-tool">
+          <p>No tool selected</p>
+        </div>
+      </div>
+      <div id="tool-history">
+        <p>Select a tool to view its history</p>
+      </div>
+    </div>
+<div id="config-view" class="view hidden">
+  <h2>MCP Tools Configuration Editor</h2>
+
+  <div class="config-container">
+    <div class="config-sidebar">
+      <div class="config-controls">
+        <div class="upload-container">
+          <h3>Upload Configuration</h3>
+          <div class="file-upload-area">
+            <input type="file" id="config-file" accept=".yml,.yaml" />
+            <label for="config-file" class="file-upload-label">Choose YAML file</label>
+            <span id="file-name"></span>
+          </div>
+          <div class="file-info">File will load automatically when selected</div>
+        </div>
+
+        <div class="actions-container">
+          <h3>Actions</h3>
+          <div class="action-buttons">
+            <button id="copy-config" class="action-btn" title="Copy the configuration to your clipboard">Copy</button>
+            <button id="download-config" class="action-btn" title="Download the configuration as a YAML file">Download</button>
+            <button id="reset-config" class="action-btn" title="Discard unsaved changes and revert to the last saved configuration">Reset</button>
+            <button id="save-config" class="action-btn" title="Save the configuration to your config file">Save</button>
+          </div>
+          <div id="pending-changes-message" class="pending-changes hidden">Pending changes — click Save to apply</div>
+        </div>
+      </div>
+
+      <div class="sidebar-tabs-container">
+        <div class="tabs-nav">
+          <button class="tab-btn tab-btn-slim active" data-tab="categories-tab">QNSC<br />Tools</button>
+          <button class="tab-btn tab-btn-slim" data-tab="mcps-tab">Bundled<br />MCPs</button>
+          <button class="tab-btn tab-btn-slim" data-tab="remote-mcps-tab">Remote<br />MCPs</button>
+          <button class="tab-btn tab-btn-slim" data-tab="local-mcps-tab">Local<br />MCPs</button>
+        </div>
+
+        <div class="tab-content">
+          <div id="categories-tab" class="tab-pane active">
+            <div class="categories-container">
+              <div id="categories-list">
+                <p>Loading categories...</p>
+              </div>
+              </div>
+          </div>
+
+          <div id="mcps-tab" class="tab-pane">
+            <div class="mcp-servers-container">
+              <div id="mcps-list">
+                <p>Loading bundled MCP servers...</p>
+              </div>
+              </div>
+              </div>
+
+          <div id="remote-mcps-tab" class="tab-pane">
+            <div class="remote-mcp-servers-container">
+              <div id="remote-mcps-list">
+                <p>Loading remote MCP servers...</p>
+              </div>
+              </div>
+              </div>
+
+          <div id="local-mcps-tab" class="tab-pane">
+            <div class="local-mcp-servers-container">
+              <div id="local-mcps-list">
+                <p>Loading local MCP servers...</p>
+              </div>
+              </div>
+              </div>
+        </div>
+        </div>
+        </div>
+
+    <div class="config-main">
+
+      <div class="main-tabs-container">
+        <div class="tabs-nav">
+          <button class="tab-btn active" data-tab="preview-tab">Configuration Preview</button>
+          <button class="tab-btn" data-tab="mcp-config-tab">MCP Configuration</button>
+          <button class="tab-btn" data-tab="logging-tab">Logging</button>
+        </div>
+
+        <div class="tab-content">
+          <div id="preview-tab" class="tab-pane active">
+            <div class="config-preview">
+              <h3>Configuration Preview</h3>
+              <pre id="yaml-preview" class="yaml-preview">Loading configuration...</pre>
+            </div>
+          </div>
+
+          <div id="mcp-config-tab" class="tab-pane">
+            <div class="mcp-config-preview">
+              <h3>MCP Configuration Preview</h3>
+              <div class="mcp-config-controls">
+                <label for="mcp-format-select">Configuration Format:</label>
+                <select id="mcp-format-select" class="mcp-format-select">
+                  <option value="claude-code">Claude Code</option>
+                  <option value="visual-studio-code">Visual Studio Code</option>
+                  <option value="copilot-cli">GitHub Copilot CLI</option>
+                  <option value="intellij-ides">IntelliJ IDEs</option>
+                  <option value="xcode">Xcode</option>
+                </select>
+              </div>
+              <pre id="mcp-config-preview" class="mcp-config-preview-content">Loading MCP configuration...</pre>
+            </div>
+
+            <div class="mcp-config-instructions">
+              <h3>Configuration Instructions</h3>
+              <div id="config-instructions-content" class="config-instructions-content">
+                <!-- Instructions will be populated by JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <div id="logging-tab" class="tab-pane">
+            <div class="config-controls">
+              <h3>Logging Configuration</h3>
+              <div class="logging-options">
+                <div class="logging-option">
+                  <span>Logging Enabled</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="logging-enabled" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="logging-option">
+                  <label for="logging-level">Log Level</label>
+                  <select id="logging-level" class="logging-select">
+                    <option value="debug">debug</option>
+                    <option value="info" selected>info</option>
+                    <option value="warn">warn</option>
+                    <option value="error">error</option>
+                  </select>
+                </div>
+                <div class="logging-option">
+                  <label for="logging-max-size">Max Size (MB)</label>
+                  <input type="number" id="logging-max-size" class="logging-input" value="10" min="1" max="100">
+                </div>
+                <div class="logging-option">
+                  <label for="logging-max-files">Max Files</label>
+                  <input type="number" id="logging-max-files" class="logging-input" value="5" min="1" max="20">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tools-tabs-container">
+        <div class="tabs-nav">
+          <button class="tab-btn" data-tab="setup-tab" id="setup-tab-btn" style="display: none;">📚 Setup Instructions</button>
+          <button class="tab-btn" data-tab="secrets-tab">Secrets</button>
+          <button class="tab-btn" data-tab="tools-tab">Tools</button>
+        </div>
+
+        <div class="tab-content">
+
+          <div id="setup-tab" class="tab-pane">
+            <div class="setup-instructions-container">
+              <div id="setup-header">
+                <h3>Setup Instructions</h3>
+                <p class="setup-subtitle" id="setup-subtitle">Configuration guide for <span id="setup-tool-name"></span></p>
+              </div>
+              <div id="setup-content" class="setup-content">
+                <p>Loading setup instructions...</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="secrets-tab" class="tab-pane">
+            <div class="secrets-container">
+              <div id="secrets-header">
+                <h3>Environment Variables</h3>
+              </div>
+              <div id="secrets-content">
+                <div id="secrets-config-list">
+                  <p>Select a category to view required environment variables</p>
+                </div>
+                <div id="mcp-secrets-list" style="display: none;">
+                  <p>Select an MCP server to view its required environment variables</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="tools-tab" class="tab-pane">
+            <div class="tools-container">
+              <div id="tools-header">
+                <h3>Tools Configuration</h3>
+              </div>
+              <div id="tools-content">
+                <div id="tools-config-list">
+                  <p>Select a category to view tools</p>
+                </div>
+                <div id="mcp-tools-list" style="display: none;">
+                  <p>Select an MCP server to view its tools</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="logs-view" class="view hidden">
+  <div class="page-header">
+    <h2>MCP Tools Logs</h2>
+  </div>
+
+  <div class="logs-toolbar">
+    <div class="logs-toolbar-left">
+      <button id="refresh-logs">Refresh Now</button>
+      <button id="auto-refresh">Pause Auto-Refresh</button>
+      <button id="clear-view">Clear View</button>
+      <div class="log-level-filters">
+        <button class="log-filter-btn active" data-level="DEBUG">Debug</button>
+        <button class="log-filter-btn active" data-level="INFO">Info</button>
+        <button class="log-filter-btn active" data-level="WARN">Warn</button>
+        <button class="log-filter-btn active" data-level="ERROR">Error</button>
+      </div>
+    </div>
+    <div class="logs-toolbar-right">
+      <span id="log-line-count" class="log-line-count"></span>
+      <button id="auto-scroll-toggle" class="auto-scroll-btn active" title="Pin to bottom — auto-scroll to newest logs">Auto-scroll</button>
+      <span class="status-message">Auto-refreshing every 30 seconds</span>
+    </div>
+  </div>
+
+  <div class="logs-container">
+    <pre id="log-content">Loading logs...</pre>
+  </div>
+</div>
+  </main>
+
+  <footer>
+    <p>Built by a <a href="https://github.com/quynhonsemiconductor/mcp-tools/graphs/contributors"
+        target="_blank">Community</a> of AI Enthusiasts 🧑‍🤝‍🧑</a></p>
+  </footer>
+
+  <div id="modal-container"></div>
+
+  <script src="js/app.js"></script>
+  <script type="module" src="js/config-editor.js"></script>
+  <script src="js/logs-viewer.js"></script>
+</body>
+</html>
