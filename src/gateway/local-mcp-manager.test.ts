@@ -14,7 +14,10 @@ import type {
   LocalMCPServerConfig,
   LocalMCPTool,
 } from './local-mcp-client';
-import type { LocalMCPManager as LocalMCPManagerClass } from './local-mcp-manager';
+import type {
+  LocalMcpCatalogue,
+  LocalMCPManager as LocalMCPManagerClass,
+} from './local-mcp-manager';
 import type { StdioServerParameters } from '@modelcontextprotocol/sdk/client/stdio.js';
 import type {
   CallToolResult,
@@ -60,7 +63,25 @@ interface MockLocalMCPClient {
   disconnect: Mock<() => void>;
 }
 
+/**
+ * Build a catalogue the manager can be constructed with.
+ *
+ * Preferred over `mock.module('../local-mcps/available-local-servers', ...)`:
+ * that module is imported by the config validation checks too, and a Bun module
+ * mock cannot be withdrawn once evaluated, so re-registering it here leaked a
+ * canned validator into later files and failed them depending on run order.
+ */
+const catalogueOf = (servers: LocalMCPServerDefinition[]): LocalMcpCatalogue => ({
+  servers,
+  validateIds: (ids: string[]) => ({
+    valid: ids.filter((id) => servers.some((s) => s.id === id)),
+    invalid: ids.filter((id) => !servers.some((s) => s.id === id)),
+  }),
+});
+
 describe('LocalMCPManager', () => {
+  /** Servers these tests enable from; assigned per test in beforeEach. */
+  let allServers: LocalMCPServerDefinition[];
   let LocalMCPManager: typeof LocalMCPManagerClass;
   let manager: LocalMCPManagerClass;
   let mockConfig: QnscMcpConfig;
@@ -124,19 +145,8 @@ describe('LocalMCPManager', () => {
       spawn: mockSpawn,
     }));
 
-    // Mock available servers - include real servers plus test server
-    const allServers = [...REAL_SERVERS, testServerDef];
-    await mock.module('../local-mcps/available-local-servers', () => ({
-      AVAILABLE_LOCAL_MCP_SERVERS: allServers,
-      getLocalMCPServer: (id: string) => allServers.find((server) => server.id === id),
-      getAvailableLocalMCPServerIds: () => allServers.map((server) => server.id),
-      getLocalMCPServersByCategory: (category: string) =>
-        allServers.filter((server) => server.category === category),
-      validateLocalMCPServerIds: (ids: string[]) => ({
-        valid: ids.filter((id) => allServers.some((s) => s.id === id)),
-        invalid: ids.filter((id) => !allServers.some((s) => s.id === id)),
-      }),
-    }));
+    // The servers these tests enable from: the real ones plus a fixture.
+    allServers = [...REAL_SERVERS, testServerDef];
 
     // Create mock client instance
     mockClient = {
@@ -191,7 +201,7 @@ describe('LocalMCPManager', () => {
     // above for this test (the module cache is busted in afterEach).
     const module = await import('./local-mcp-manager');
     LocalMCPManager = module.LocalMCPManager;
-    manager = new LocalMCPManager(mockConfig);
+    manager = new LocalMCPManager(mockConfig, catalogueOf(allServers));
   });
 
   afterEach(() => {
@@ -239,7 +249,7 @@ describe('LocalMCPManager', () => {
 
     it('should skip initialization if no local MCP config', async () => {
       const emptyConfig = {} as QnscMcpConfig;
-      const emptyManager = new LocalMCPManager(emptyConfig);
+      const emptyManager = new LocalMCPManager(emptyConfig, catalogueOf(allServers));
 
       await emptyManager.initialize();
 
@@ -252,7 +262,7 @@ describe('LocalMCPManager', () => {
           includeLocalMCPs: [],
         },
       } as QnscMcpConfig;
-      const noServersManager = new LocalMCPManager(noServersConfig);
+      const noServersManager = new LocalMCPManager(noServersConfig, catalogueOf(allServers));
 
       await noServersManager.initialize();
 
@@ -265,7 +275,7 @@ describe('LocalMCPManager', () => {
           includeLocalMCPs: ['test-server', 'invalid-server'],
         },
       } as QnscMcpConfig;
-      const invalidManager = new LocalMCPManager(invalidConfig);
+      const invalidManager = new LocalMCPManager(invalidConfig, catalogueOf(allServers));
 
       await invalidManager.initialize();
 
@@ -319,22 +329,9 @@ describe('LocalMCPManager', () => {
         env: { CUSTOM_VAR: 'value' },
       };
 
-      await mock.module('../local-mcps/available-local-servers', () => ({
-        AVAILABLE_LOCAL_MCP_SERVERS: [serverWithEnv],
-        getLocalMCPServer: mock((id: string) => [serverWithEnv].find((server) => server.id === id)),
-        getAvailableLocalMCPServerIds: mock(() => [serverWithEnv].map((server) => server.id)),
-        getLocalMCPServersByCategory: mock((category: string) =>
-          [serverWithEnv].filter((server) => server.category === category),
-        ),
-        validateLocalMCPServerIds: mock(() => ({
-          valid: ['test-server'],
-          invalid: [],
-        })),
-      }));
-
       process.env.TEST_VAR = 'test-value';
 
-      const envManager = new LocalMCPManager(mockConfig);
+      const envManager = new LocalMCPManager(mockConfig, catalogueOf([serverWithEnv]));
       await envManager.initialize();
 
       const connectCall = mockClient.connectToServer.mock.calls[0][0];
@@ -351,30 +348,16 @@ describe('LocalMCPManager', () => {
         launch: 'npx server-2',
       };
 
-      await mock.module('../local-mcps/available-local-servers', () => ({
-        AVAILABLE_LOCAL_MCP_SERVERS: [testServerDef, server2],
-        getLocalMCPServer: mock((id: string) =>
-          [testServerDef, server2].find((server) => server.id === id),
-        ),
-        getAvailableLocalMCPServerIds: mock(() =>
-          [testServerDef, server2].map((server) => server.id),
-        ),
-        getLocalMCPServersByCategory: mock((category: string) =>
-          [testServerDef, server2].filter((server) => server.category === category),
-        ),
-        validateLocalMCPServerIds: mock(() => ({
-          valid: ['test-server', 'server-2'],
-          invalid: [],
-        })),
-      }));
-
       const multiConfig = {
         tools: {
           includeLocalMCPs: ['test-server', 'server-2'],
         },
       } as QnscMcpConfig;
 
-      const multiManager = new LocalMCPManager(multiConfig);
+      const multiManager = new LocalMCPManager(
+        multiConfig,
+        catalogueOf([testServerDef, server2]),
+      );
       await multiManager.initialize();
 
       // Both servers should be connected
@@ -393,7 +376,7 @@ describe('LocalMCPManager', () => {
         },
       } as QnscMcpConfig;
 
-      const argsManager = new LocalMCPManager(configWithArgs);
+      const argsManager = new LocalMCPManager(configWithArgs, catalogueOf(allServers));
       await argsManager.initialize();
 
       const connectCall = mockClient.connectToServer.mock.calls[0][0];
@@ -411,7 +394,7 @@ describe('LocalMCPManager', () => {
         },
       } as QnscMcpConfig;
 
-      const spaceArgsManager = new LocalMCPManager(configWithSpaceArgs);
+      const spaceArgsManager = new LocalMCPManager(configWithSpaceArgs, catalogueOf(allServers));
       await spaceArgsManager.initialize();
 
       const connectCall = mockClient.connectToServer.mock.calls[0][0];
@@ -428,7 +411,7 @@ describe('LocalMCPManager', () => {
         },
       } as QnscMcpConfig;
 
-      const simpleArgsManager = new LocalMCPManager(configWithSimpleArgs);
+      const simpleArgsManager = new LocalMCPManager(configWithSimpleArgs, catalogueOf(allServers));
       await simpleArgsManager.initialize();
 
       const connectCall = mockClient.connectToServer.mock.calls[0][0];
@@ -895,30 +878,16 @@ describe('LocalMCPManager', () => {
         launch: 'npx server-2',
       };
 
-      await mock.module('../local-mcps/available-local-servers', () => ({
-        AVAILABLE_LOCAL_MCP_SERVERS: [testServerDef, server2],
-        getLocalMCPServer: mock((id: string) =>
-          [testServerDef, server2].find((server) => server.id === id),
-        ),
-        getAvailableLocalMCPServerIds: mock(() =>
-          [testServerDef, server2].map((server) => server.id),
-        ),
-        getLocalMCPServersByCategory: mock((category: string) =>
-          [testServerDef, server2].filter((server) => server.category === category),
-        ),
-        validateLocalMCPServerIds: mock(() => ({
-          valid: ['test-server'],
-          invalid: [],
-        })),
-      }));
-
       const filteredConfig = {
         tools: {
           includeLocalMCPs: ['test-server'],
         },
       } as QnscMcpConfig;
 
-      const filteredManager = new LocalMCPManager(filteredConfig);
+      const filteredManager = new LocalMCPManager(
+        filteredConfig,
+        catalogueOf([testServerDef, server2]),
+      );
       await filteredManager.initialize();
 
       // Should only connect to test-server, not server-2

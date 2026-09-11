@@ -40,15 +40,45 @@ const ALLOWED_INSTALLATION_TOOLS = [
 /**
  * Manager for local MCP servers
  */
+/**
+ * The catalogue of installable local MCP servers, as this manager consumes it.
+ *
+ * Injectable so a test can supply its own servers by passing a value instead of
+ * re-registering the `available-local-servers` module. A `mock.module` call
+ * cannot be undone in Bun once the binding has been evaluated, so mocking a
+ * module this widely imported leaks into every later file in the run — which is
+ * exactly what happened here: a canned `validateIds` that ignored its argument
+ * escaped into the config validation checks and made them fail depending on
+ * which file Bun happened to run last.
+ */
+export interface LocalMcpCatalogue {
+  /** Every server that can be enabled. */
+  readonly servers: readonly LocalMCPServerDefinition[];
+  /** Partition the given ids into those this catalogue knows and those it does not. */
+  validateIds(ids: string[]): { valid: string[]; invalid: string[] };
+}
+
+/** The real catalogue, backed by the shipped server definitions. */
+export const defaultLocalMcpCatalogue: LocalMcpCatalogue = {
+  servers: AVAILABLE_LOCAL_MCP_SERVERS,
+  validateIds: (ids) => validateLocalMCPServerIds(ids),
+};
+
 export class LocalMCPManager {
   private client: LocalMCPClient;
   private config: QnscMcpConfig;
+  private catalogue: LocalMcpCatalogue;
   private installationPromises: Map<string, Promise<void>> = new Map();
   private registeredToolIds: Set<string> = new Set();
 
-  constructor(config: QnscMcpConfig) {
+  /**
+   * @param config - Resolved toolkit configuration
+   * @param catalogue - Server catalogue to enable from; defaults to the shipped one
+   */
+  constructor(config: QnscMcpConfig, catalogue: LocalMcpCatalogue = defaultLocalMcpCatalogue) {
     this.config = config;
     this.client = new LocalMCPClient();
+    this.catalogue = catalogue;
   }
 
   /**
@@ -74,10 +104,12 @@ export class LocalMCPManager {
 
     // Validate server IDs and warn about invalid ones
     if (includedLocalMCPs.length > 0) {
-      const { invalid } = validateLocalMCPServerIds(includedLocalMCPs);
+      const { invalid } = this.catalogue.validateIds(includedLocalMCPs);
       if (invalid.length > 0) {
         logWarn(`Invalid local MCP server IDs found in configuration: ${invalid.join(', ')}`);
-        logInfo(`Available server IDs: ${AVAILABLE_LOCAL_MCP_SERVERS.map((s) => s.id).join(', ')}`);
+        logInfo(
+          `Available server IDs: ${this.catalogue.servers.map((s) => s.id).join(', ')}`,
+        );
       }
     }
 
@@ -143,7 +175,7 @@ export class LocalMCPManager {
     }
 
     // Filter available servers by included IDs
-    return AVAILABLE_LOCAL_MCP_SERVERS.filter((server) => includedIds.includes(server.id));
+    return this.catalogue.servers.filter((server) => includedIds.includes(server.id));
   }
 
   /**
@@ -442,7 +474,7 @@ export class LocalMCPManager {
     const totalTools = allLocalTools.reduce((sum, info) => sum + info.tools.length, 0);
 
     return {
-      totalServers: AVAILABLE_LOCAL_MCP_SERVERS.length || 0,
+      totalServers: this.catalogue.servers.length || 0,
       connectedServers,
       totalTools,
       registeredTools: this.registeredToolIds.size,
