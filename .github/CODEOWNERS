@@ -1,0 +1,33 @@
+# Code owners for this repository.
+#
+# Owned by `ai-platform`, which owns the org's LLM agent and MCP tooling
+# (this repo and agent-forge). It has no `-devs`/`-maintainers` split because
+# that split only expresses something once the people who push and the people
+# who approve are different groups.
+#
+# A review from an owner is required on every pull request that touches the
+# paths below (enforced by the `main-protection` ruleset). Ownership is listed
+# most general first; the LAST matching pattern wins, so the specific entries
+# further down take precedence.
+
+# Default owner for anything not matched below.
+*                                   @quynhonsemiconductor/ai-platform
+
+# Authentication and credential handling. Changes here decide whose token is
+# used and what gets written to a user's keyring or printed to a log.
+/src/services/auth/                 @quynhonsemiconductor/ai-platform
+/src/tools/github/auth/             @quynhonsemiconductor/ai-platform
+/src/env/                           @quynhonsemiconductor/ai-platform
+
+# Anything that reaches a network endpoint on a user's behalf, or decides which
+# endpoint that is.
+/src/gateway/                       @quynhonsemiconductor/ai-platform
+/src/remote-mcps/                   @quynhonsemiconductor/ai-platform
+
+# Supply chain and release. A change to these can alter what ends up inside a
+# binary that teammates install.
+/.github/workflows/                 @quynhonsemiconductor/ai-platform
+/scripts/build.ts                   @quynhonsemiconductor/ai-platform
+/package.json                       @quynhonsemiconductor/ai-platform
+/bun.lock                           @quynhonsemiconductor/ai-platform
+/.gitleaks.toml                     @quynhonsemiconductor/ai-platform
