@@ -10,7 +10,11 @@ BUILD_ENVIRONMENT_TIER = '"non-prod"'
 
 [test]
 coverage = true
-coverageThreshold = 0.78
+# No coverageThreshold here on purpose. On Bun 1.4.0 the scalar form fails the run
+# at every value tried, including 0.70 against 76% coverage, and prints nothing to
+# say why; the object form is ignored, passing even at 0.99. CI pins 1.3.11, so the
+# behaviour is not consistent across the versions in use. The gate lives in
+# scripts/check-coverage.ts, which reads the lcov report below and states its number.
 coverageReporter = ["text", "lcov"]
 coverageDir = "coverage"
 coverageExclude = []

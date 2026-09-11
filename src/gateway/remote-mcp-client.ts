@@ -19,6 +19,7 @@ import { Tool, ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import open from 'open';
 import { REMOTE_CATEGORY, ToolCategories, ToolConfig } from '../registry/types';
 import { SERVICE_AUTH_MAP } from '../services/auth/entra-id/config';
+import type { ServiceAuthConfig } from '../services/auth/entra-id/types';
 import { logDebug, logError, logInfo, logWarn } from '../services/logger';
 import { CALLBACK_TIMEOUT_MESSAGE, OAuthCallbackServer } from '../services/oauth/callback-server';
 import { createToolId, getToolDelimiter } from '../services/tool-id-utils';
@@ -229,17 +230,18 @@ export function createEntraIdFetch(
  *   - Does NOT retry on 401 (no OAuth refresh path; a 401 here means the user's
  *     key is invalid and should surface directly).
  *
- * Uses the optional `valueTemplate` on the SERVICE_AUTH_MAP entry to format the
+ * Uses the optional `valueTemplate` on the service entry to format the
  * header value (e.g. `'Bearer ${value}'`). Defaults to the raw env var value.
  *
- * @param serviceId - SERVICE_AUTH_MAP key (e.g. 'smartsheet')
+ * @param serviceId - Key into `authMap`, matching the server id
  * @returns FetchLike suitable for StreamableHTTPClientTransportOptions.fetch
- * @throws if `serviceId` is not present in SERVICE_AUTH_MAP
+ * @throws if `serviceId` is not present in `authMap`
  */
 export function createStaticBearerFetch(
   serviceId: string,
+  authMap: Record<string, ServiceAuthConfig> = SERVICE_AUTH_MAP,
 ): (url: string | URL, init?: RequestInit) => Promise<Response> {
-  const serviceConfig = SERVICE_AUTH_MAP[serviceId];
+  const serviceConfig = authMap[serviceId];
   if (!serviceConfig) {
     throw new Error(`No SERVICE_AUTH_MAP entry for serviceId '${serviceId}'`);
   }
@@ -493,10 +495,26 @@ export interface RemoteToolResult {
  * Client for connecting to and managing remote MCP servers using HTTP streaming
  */
 export class RemoteMCPClient {
+  /**
+   * Static-bearer services, keyed by server id.
+   *
+   * Injectable because the shipped map is empty: the one service that used it
+   * was removed with the gateway-routed servers. Passing a map keeps the
+   * mechanism testable without re-registering the config module, which would
+   * leak across test files.
+   */
+  private readonly authMap: Record<string, ServiceAuthConfig>;
   private connections: Map<string, MCPClientConnection> = new Map();
   private tools: Map<string, RemoteMCPTool[]> = new Map();
   private connectionStatus: Map<string, 'connected' | 'disconnected' | 'error'> = new Map();
   private reconnectPromises: Map<string, Promise<void>> = new Map();
+
+  /**
+   * @param authMap - Static-bearer service definitions; defaults to the shipped map
+   */
+  constructor(authMap: Record<string, ServiceAuthConfig> = SERVICE_AUTH_MAP) {
+    this.authMap = authMap;
+  }
   private disposed = false;
 
   /**
@@ -556,10 +574,10 @@ export class RemoteMCPClient {
     // missing so we don't send a broken Authorization placeholder that would
     // trigger an OAuth DCR fallback on the partner side. See issue #1148.
     if (config.authType === 'static-bearer') {
-      const serviceConfig = SERVICE_AUTH_MAP[config.id];
+      const serviceConfig = this.authMap[config.id];
       if (!serviceConfig) {
         throw new Error(
-          `Server ${config.id} has authType 'static-bearer' but no SERVICE_AUTH_MAP entry`,
+          `Server ${config.id} has authType 'static-bearer' but no static-bearer service entry`,
         );
       }
       const apiKey = process.env[serviceConfig.envVar]?.trim();
@@ -617,7 +635,7 @@ export class RemoteMCPClient {
     // Authorization header from SERVICE_AUTH_MAP. No platform JWT, no 401 retry.
     if (config.authType === 'static-bearer') {
       logDebug(`Setting up static-bearer auth fetch for ${config.name}`);
-      transportOptions.fetch = createStaticBearerFetch(config.id);
+      transportOptions.fetch = createStaticBearerFetch(config.id, this.authMap);
     }
 
     // Entra ID SSO: use a custom fetch wrapper for per-request token refresh (T021, T039).

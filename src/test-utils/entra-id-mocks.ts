@@ -19,10 +19,11 @@ const DEFAULT_TEST_CONFIG: EntraIdConfig = {
   scopes: ['openid'],
 };
 
-// Synthetic `example-*` entries so the auth suite anchors on stable fixtures, not
-// real services that come and go as they migrate to connectors. splunk/smartsheet
-// mirror the real SERVICE_AUTH_MAP: this mock leaks globally (mock.module in Bun),
-// so it must stay a superset for tests that read the real map (e.g. remote-mcp-client).
+// Synthetic `example-*` entries so the auth suite anchors on stable fixtures rather
+// than real services. This used to also mirror two real SERVICE_AUTH_MAP entries,
+// because the mock leaks globally (mock.module in Bun) and remote-mcp-client's tests
+// read whatever map leaked in. Those tests now take the map as a constructor
+// argument, so this no longer has to be a superset of anything.
 export const DEFAULT_SERVICE_AUTH_MAP: Record<string, ServiceAuthConfig> = {
   'example-service': {
     headerName: 'x-example-token',
@@ -31,15 +32,6 @@ export const DEFAULT_SERVICE_AUTH_MAP: Record<string, ServiceAuthConfig> = {
   'example-bearer-service': {
     headerName: 'Authorization',
     envVar: 'EXAMPLE_BEARER_KEY',
-    valueTemplate: 'Bearer ${value}',
-  },
-  splunk: {
-    headerName: 'x-splunk-token',
-    envVar: 'SPLUNK_TOKEN',
-  },
-  smartsheet: {
-    headerName: 'Authorization',
-    envVar: 'SMARTSHEET_API_KEY',
     valueTemplate: 'Bearer ${value}',
   },
 };

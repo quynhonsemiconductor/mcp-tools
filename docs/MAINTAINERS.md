@@ -201,7 +201,7 @@ for this org.
     x64/arm64, windows x64) + `.mcpb` bundles and attaches them, with SHA-256 checksums, as
     GitHub Release assets. **Binaries are unsigned/ad-hoc-signed** — there is no macOS Developer
     ID cert for QNSC yet, so first-run needs a Gatekeeper right-click-Open.
-  - `pr-title.yml`, `agent-forge-guard.yml` — PR-title lint and an agent guard.
+  - `pr-title.yml` — conventional-commit lint on the PR title.
 - **Release model:** Release Please (Conventional Commits). `fix`/`refactor`/`style` → patch,
   `feat` → minor, `BREAKING CHANGE` → major. **There are currently no releases and no tags on
   this repository**, so the binary workflow has not fired and no binaries are published. Install
