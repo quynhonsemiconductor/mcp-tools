@@ -86,6 +86,13 @@ no new commits on the base branch when that is true; a title field cannot be cle
 only custom project fields can be deleted; and dispatching a workflow in a repository
 that has none returns not found.
 
+### Retired GitHub API
+
+Four tools wrapped GitHub's team discussion reaction endpoints. Those endpoints
+closed down on 2023-11-28 in favour of GitHub Discussions, and the API returns 404
+for a team that plainly exists and is readable. They could not have worked for
+anyone, so they have been removed rather than left in the inventory as capability.
+
 **Review status:** `[ ]` not checked, `[x]` verified working, `[!]` broken/needs work, `[-]` not applicable to us.
 
 ---
@@ -98,8 +105,8 @@ that has none returns not found.
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-actions-cancel-workflow-run` | `cancelGithubWorkflowRun` | Cancels a workflow run |
-| [ ] | ○ | `github-actions-create-dispatch` | `createGithubWorkflowDispatch` | Manually trigger a GitHub Actions workflow run |
+| [x] | ○ | `github-actions-cancel-workflow-run` | `cancelGithubWorkflowRun` | Cancels a workflow run |
+| [x] | ○ | `github-actions-create-dispatch` | `createGithubWorkflowDispatch` | Manually trigger a GitHub Actions workflow run |
 | [x] | ○ | `github-actions-get-workflow` | `getGithubWorkflow` | Gets a specific workflow in a repository by ID or file name |
 | [x] | ○ | `github-actions-get-workflow-run` | `getGithubWorkflowRun` | Gets a specific workflow run by ID |
 | [x] | ○ | `github-actions-get-workflow-run-job` | `getGithubWorkflowRunJob` | Gets a specific job in a workflow run by ID |
@@ -107,7 +114,7 @@ that has none returns not found.
 | [x] | ○ | `github-actions-list-workflow-run-jobs` | `listGithubWorkflowRunJobs` | Lists jobs for a workflow run |
 | [x] | ○ | `github-actions-list-workflow-runs` | `listGithubWorkflowRuns` | Lists all workflow runs for a repository |
 | [x] | ○ | `github-actions-list-workflows` | `listGithubWorkflows` | Lists the workflows in a repository |
-| [ ] | ○ | `github-actions-rerun-workflow` | `rerunGithubWorkflow` | Re-runs a workflow by run ID |
+| [x] | ○ | `github-actions-rerun-workflow` | `rerunGithubWorkflow` | Re-runs a workflow by run ID |
 
 #### Github: Branches (6)
 
@@ -132,15 +139,11 @@ that has none returns not found.
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-create-team-discussion-comment-reaction` | `createGithubTeamDiscussionCommentReaction` | Creates a reaction to a team discussion comment |
-| [ ] | ○ | `github-create-team-discussion-reaction` | `createGithubTeamDiscussionReaction` | Creates a reaction to a team discussion |
-| [ ] | ○ | `github-delete-commit-comment-reaction` | `deleteGithubCommitCommentReaction` | Deletes a reaction to a commit comment |
+| [x] | ○ | `github-delete-commit-comment-reaction` | `deleteGithubCommitCommentReaction` | Deletes a reaction to a commit comment |
 | [x] | ○ | `github-delete-issue-comment-reaction` | `deleteGithubIssueCommentReaction` | Deletes a reaction to an issue comment |
-| [ ] | ○ | `github-delete-issue-reaction` | `deleteGithubIssueReaction` | Deletes a reaction to an issue |
-| [ ] | ○ | `github-delete-pull-request-comment-reaction` | `deleteGithubPullRequestCommentReaction` | Deletes a reaction to a pull request review comment |
-| [ ] | ○ | `github-delete-release-reaction` | `deleteGithubReleaseReaction` | Deletes a reaction to a release |
-| [ ] | ○ | `github-delete-team-discussion-comment-reaction` | `deleteGithubTeamDiscussionCommentReaction` | Deletes a reaction to a team discussion comment |
-| [ ] | ○ | `github-delete-team-discussion-reaction` | `deleteGithubTeamDiscussionReaction` | Deletes a reaction to a team discussion |
+| [x] | ○ | `github-delete-issue-reaction` | `deleteGithubIssueReaction` | Deletes a reaction to an issue |
+| [x] | ○ | `github-delete-pull-request-comment-reaction` | `deleteGithubPullRequestCommentReaction` | Deletes a reaction to a pull request review comment |
+| [x] | ○ | `github-delete-release-reaction` | `deleteGithubReleaseReaction` | Deletes a reaction to a release |
 
 #### Github: Gists (5)
 
@@ -182,8 +185,8 @@ that has none returns not found.
 | [x] | ○ | `github-projects-add-draft-issue` | `addGithubProjectDraftIssue` | Creates a draft issue directly in a GitHub Project V2. Draft issues exist only within the project and are not linked to a repository. |
 | [x] | ○ | `github-projects-add-item` | `addGithubProjectItem` | Adds an existing issue or pull request to a GitHub Project V2. Requires the project node ID and the content node ID (issue or PR). |
 | [x] | ○ | `github-projects-archive-item` | `archiveGithubProjectItem` | Archives an item in a GitHub Project V2. Archived items are hidden from default views but can be restored with unarchiveGithubProjectItem. |
-| [ ] | ○ | `github-projects-clear-item-field` | `clearGithubProjectItemField` | Clears/resets a field value on a GitHub Project V2 item. Supports text, number, date, single-select, iteration, assignees, labels, and milestone fields. |
-| [ ] | ○ | `github-projects-convert-draft-to-issue` | `convertGithubProjectDraftToIssue` | Converts a draft issue in a GitHub Project V2 into a real GitHub issue in the specified repository. The item remains in the project but is now linked to the created issue. |
+| [x] | ○ | `github-projects-clear-item-field` | `clearGithubProjectItemField` | Clears/resets a field value on a GitHub Project V2 item. Supports text, number, date, single-select, iteration, assignees, labels, and milestone fields. |
+| [x] | ○ | `github-projects-convert-draft-to-issue` | `convertGithubProjectDraftToIssue` | Converts a draft issue in a GitHub Project V2 into a real GitHub issue in the specified repository. The item remains in the project but is now linked to the created issue. |
 | [x] | ○ | `github-projects-create` | `createGithubProject` | Creates a new GitHub Project V2 for an organization or user. Requires the owner node ID (use getGithubOrganization for orgs, or the GraphQL viewer query for users). |
 | [x] | ○ | `github-projects-create-field` | `createGithubProjectField` | Creates a new custom field in a GitHub Project V2. Supports TEXT, NUMBER, DATE, SINGLE_SELECT, and ITERATION field types. For SINGLE_SELECT, provide single_select_options with name and optional color/description. |
 | [x] | ○ | `github-projects-delete-field` | `deleteGithubProjectField` | Deletes a custom field from a GitHub Project V2. This permanently removes the field and all its values from all items in the project. |
@@ -214,10 +217,10 @@ that has none returns not found.
 | [x] | ● | `github-pulls-get-status` | `getGithubPullRequestStatus` | Gets the combined status of all status checks for a pull request |
 | [x] | ● | `github-pulls-list` | `listGithubPullRequests` | Lists and filters repository pull requests |
 | [x] | ○ | `github-pulls-mark-ready` | `markGithubPullRequestReady` | Marks a draft pull request as ready for review |
-| [ ] | ○ | `github-pulls-merge` | `mergeGithubPullRequest` | Merges a pull request |
+| [x] | ○ | `github-pulls-merge` | `mergeGithubPullRequest` | Merges a pull request |
 | [x] | ● | `github-pulls-remove-reviewers` | `removeGithubPullRequestReviewers` | Removes reviewers from a pull request |
 | [ ] | ○ | `github-pulls-update-branch` | `updateGithubPullRequestBranch` | Updates a pull request branch with the latest changes from the base branch |
-| [ ] | ○ | `github-set-pr-review-thread-resolution` | `setGithubPullRequestReviewThreadResolution` | Sets the resolution status of a review thread on a pull request. Use resolved=true to mark feedback as addressed, or resolved=false to reopen for further discussion. |
+| [x] | ○ | `github-set-pr-review-thread-resolution` | `setGithubPullRequestReviewThreadResolution` | Sets the resolution status of a review thread on a pull request. Use resolved=true to mark feedback as addressed, or resolved=false to reopen for further discussion. |
 
 #### Github: Releases (2)
 
@@ -266,12 +269,12 @@ that has none returns not found.
 
 | ✓ | On | Tool ID | Function | Description | Requires |
 |---|---|---|---|---|---|
-| [ ] | ○ | `add-observations` | `addObservations` | Add new observations to existing entities in the knowledge graph | – |
+| [x] | ○ | `add-observations` | `addObservations` | Add new observations to existing entities in the knowledge graph | – |
 | [x] | ○ | `create-entities` | `createEntities` | Create multiple new entities in the knowledge graph | – |
-| [ ] | ○ | `create-relations` | `createRelations` | Create multiple new relations between entities in the knowledge graph. Relations should be in active voice | – |
-| [ ] | ○ | `delete-entities` | `deleteEntities` | Delete multiple entities and their associated relations from the knowledge graph | – |
-| [ ] | ○ | `delete-observations` | `deleteObservations` | Delete specific observations from entities in the knowledge graph | – |
-| [ ] | ○ | `delete-relations` | `deleteRelations` | Delete multiple relations from the knowledge graph | – |
+| [x] | ○ | `create-relations` | `createRelations` | Create multiple new relations between entities in the knowledge graph. Relations should be in active voice | – |
+| [x] | ○ | `delete-entities` | `deleteEntities` | Delete multiple entities and their associated relations from the knowledge graph | – |
+| [x] | ○ | `delete-observations` | `deleteObservations` | Delete specific observations from entities in the knowledge graph | – |
+| [x] | ○ | `delete-relations` | `deleteRelations` | Delete multiple relations from the knowledge graph | – |
 | [x] | ○ | `open-nodes` | `openNodes` | Open/expand specific nodes in the knowledge graph to show their connections and related entities | – |
 | [x] | ○ | `read-graph` | `readGraph` | Read and query the knowledge graph structure, entities, and relations | – |
 | [x] | ○ | `search-nodes` | `searchNodes` | Search for entities/nodes in the knowledge graph by content, name, or other fields | – |
@@ -290,11 +293,11 @@ that has none returns not found.
 
 | ✓ | On | Tool ID | Function | Description | Requires |
 |---|---|---|---|---|---|
-| [ ] | ○ | `npm-build-order` | `npmBuildOrder` | Compute the layered build order for an npm package in a flat sibling-folders workspace. | – |
-| [ ] | ○ | `npm-dag` | `npmDag` | Show the flattened directed acyclic graph of owned (intra-workspace) packages reachable from a package. | – |
+| [x] | ○ | `npm-build-order` | `npmBuildOrder` | Compute the layered build order for an npm package in a flat sibling-folders workspace. | – |
+| [x] | ○ | `npm-dag` | `npmDag` | Show the flattened directed acyclic graph of owned (intra-workspace) packages reachable from a package. | – |
 | [x] | ○ | `npm-doctor` | `npmDoctor` | Report issues in the workspace: version drift between declared and on-disk versions, | – |
 | [x] | ○ | `npm-list` | `npmList` | List every package in the workspace with its name, folder, version, and projen status. | – |
-| [ ] | ○ | `npm-tree` | `npmTree` | Print the full recursive dependency tree of a package showing the path through dependencies. | – |
+| [x] | ○ | `npm-tree` | `npmTree` | Print the full recursive dependency tree of a package showing the path through dependencies. | – |
 
 #### PostgreSQL (4)
 
@@ -320,16 +323,16 @@ that has none returns not found.
 | [x] | ● | `clipboard` | `getClipboardContent` | Fetch the contents of the clipboard (text, images, or binary data). Used to see what is on the clipboard. | – |
 | [x] | ○ | `convert-unix-timestamp` | `convertUnixTimestamp` | Convert unix timestamps to human readable time representations | – |
 | [x] | ● | `doctor` | `doctor` | Diagnose MCP configuration issues when tools fail with authentication, connection, or permission errors. Checks for missing environment variables (API keys, tokens), invalid paths, and configuration problems. Use this when Splunk, Slack, GitHub, or other external service tools report errors. | – |
-| [ ] | ○ | `execute-task` | `executeTask` | Get next pending task and mark tasks as completed in a unified execution workflow. Enforces one task in progress at a time per list. | – |
+| [x] | ○ | `execute-task` | `executeTask` | Get next pending task and mark tasks as completed in a unified execution workflow. Enforces one task in progress at a time per list. | – |
 | [x] | ○ | `get-converted-time` | `convertTime` | Convert time between timezones. | – |
 | [x] | ○ | `get-current-time` | `getCurrentTime` | Get current time in a specific timezone. | – |
 | [x] | ○ | `get-task-statistics` | `getTaskStatistics` | Get task completion statistics and history with comprehensive analytics | – |
 | [ ] | ○ | `location-to-coords` | `getCoordinatesFromLocation` | Convert a location or POI to latitude and longitude coordinates | `GEOCODE_MAPS_API_KEY` |
 | [ ] | ○ | `logout` | `logout` | Log out of a single remote MCP server. Clears the locally-stored session token and opens the gateway credential manager (behind SSO) to revoke your saved credential for that server. | – |
 | [x] | ○ | `manage-task-lists` | `manageTaskLists` | Create, view, delete, and list task lists with comprehensive management capabilities | – |
-| [ ] | ○ | `manage-tasks` | `manageTasks` | Add, edit, delete, and insert tasks within task lists with full CRUD capabilities | – |
+| [x] | ○ | `manage-tasks` | `manageTasks` | Add, edit, delete, and insert tasks within task lists with full CRUD capabilities | – |
 | [ ] | ○ | `reauth` | `reauth` | Force re-authentication for a given service. Clears stored tokens and triggers a fresh login flow. | – |
-| [ ] | ○ | `reorder-tasks` | `reorderTasks` | Reorder tasks within a task list by updating their positions | – |
+| [x] | ○ | `reorder-tasks` | `reorderTasks` | Reorder tasks within a task list by updating their positions | – |
 | [-] | ○ | `weather` | `getWeatherForecast` | Get the weather forecast for a given latitude and longitude | – |
 
 #### k6 (6)
