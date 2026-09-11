@@ -52,6 +52,30 @@ call for every user. It now takes `before`/`after` and returns real alerts.
 To see all 92 GitHub tools rather than the 15 enabled by default, list with
 `--all`, or add the `Github: *` categories to `tools.includeCategories`.
 
+### GitHub, write paths (verified against a scratch repository)
+
+Write operations were exercised against `quynhonsemiconductor/mcp-tools-verify`, a
+throwaway repository, so nothing was created in a real one. 14 verified so far.
+
+Three more real defects were found and fixed:
+
+- `github-create-branch` and `github-create-update-file-content` required the
+  organisation **twice**, as `org` and again as `owner`, because they declared their
+  own `owner` on top of the base schema — and the call failed unless both were given,
+  even though the parameter transform already maps `org` to the API's `owner`.
+- `github-create-update-file-content` required `sha`, `committer` and `author`.
+  GitHub needs `sha` only when replacing an existing file, so a tool named "create"
+  could not create one, and it forced callers to invent identity details GitHub
+  defaults from the token. All three are now optional; creating a file was verified
+  with none of them.
+- The OAuth App requested seven scopes but not `gist`, while five gist tools ship.
+  Gist writes returned "Not Found" for every OAuth user. Anyone who signed in before
+  this change has to re-authorise, because scopes are fixed at authorisation time.
+
+Two apparent failures are correct GitHub behaviour, not defects: a review cannot be
+requested from the pull request's own author, and `pulls-update-branch` reports there
+are no new commits on the base branch when that is true.
+
 **Review status:** `[ ]` not checked, `[x]` verified working, `[!]` broken/needs work, `[-]` not applicable to us.
 
 ---
@@ -79,12 +103,12 @@ To see all 92 GitHub tools rather than the 15 enabled by default, list with
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-create-branch` | `createGithubBranch` | Creates a new branch in github repo |
-| [ ] | ○ | `github-create-update-file-content` | `createOrUpdateGithubFileContent` | Creates or updates a file in a branch. Accepts plain text via content or a local file path via filePath. Do NOT base64-encode anything — the tool handles all encoding internally. |
+| [x] | ○ | `github-create-branch` | `createGithubBranch` | Creates a new branch in github repo |
+| [x] | ○ | `github-create-update-file-content` | `createOrUpdateGithubFileContent` | Creates or updates a file in a branch. Accepts plain text via content or a local file path via filePath. Do NOT base64-encode anything — the tool handles all encoding internally. |
 | [x] | ● | `github-get-branch` | `getGithubBranch` | Gets a branch in a GitHub repository |
 | [x] | ● | `github-list-branches` | `listGithubBranches` | Lists branches for a GitHub repository |
-| [ ] | ● | `github-merge-branch` | `mergeGithubBranch` | Merges a branch in a GitHub repository |
-| [ ] | ○ | `github-rename-branch` | `renameGithubBranch` | Renames a branch in a GitHub repository |
+| [x] | ● | `github-merge-branch` | `mergeGithubBranch` | Merges a branch in a GitHub repository |
+| [x] | ○ | `github-rename-branch` | `renameGithubBranch` | Renames a branch in a GitHub repository |
 
 #### Github: Dependabot (3)
 
@@ -122,16 +146,16 @@ To see all 92 GitHub tools rather than the 15 enabled by default, list with
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-issues-add-comment` | `addGithubIssueComment` | Adds a comment to an issue in a GitHub repository |
-| [ ] | ● | `github-issues-add-sub-issue` | `addGithubSubIssue` | Adds an existing issue as a sub-issue of a parent issue, creating a formal parent-child relationship visible in the Sub-issues section of the parent |
-| [ ] | ● | `github-issues-create` | `createGithubIssue` | Creates a new issue in a GitHub repository |
+| [x] | ○ | `github-issues-add-comment` | `addGithubIssueComment` | Adds a comment to an issue in a GitHub repository |
+| [x] | ● | `github-issues-add-sub-issue` | `addGithubSubIssue` | Adds an existing issue as a sub-issue of a parent issue, creating a formal parent-child relationship visible in the Sub-issues section of the parent |
+| [x] | ● | `github-issues-create` | `createGithubIssue` | Creates a new issue in a GitHub repository |
 | [x] | ● | `github-issues-get` | `getGithubIssue` | Gets the contents of an issue within a repository |
 | [x] | ○ | `github-issues-get-comments` | `getGithubIssueComments` | Gets the comments of an issue within a repository |
 | [x] | ● | `github-issues-list` | `listGithubIssues` | Lists and filters repository issues |
 | [x] | ● | `github-issues-list-sub-issues` | `listGithubSubIssues` | Lists all sub-issues of a parent issue, showing the formal parent-child relationships established via addGithubSubIssue |
-| [ ] | ● | `github-issues-remove-sub-issue` | `removeGithubSubIssue` | Removes a sub-issue from a parent issue, dissolving the parent-child relationship without deleting either issue |
+| [x] | ● | `github-issues-remove-sub-issue` | `removeGithubSubIssue` | Removes a sub-issue from a parent issue, dissolving the parent-child relationship without deleting either issue |
 | [x] | ○ | `github-issues-search` | `searchGithubIssues` | Searches for issues and pull requests across GitHub |
-| [ ] | ○ | `github-issues-update` | `updateGithubIssue` | Updates an existing issue in a GitHub repository |
+| [x] | ○ | `github-issues-update` | `updateGithubIssue` | Updates an existing issue in a GitHub repository |
 
 #### Github: Orgs (3)
 
@@ -170,8 +194,8 @@ To see all 92 GitHub tools rather than the 15 enabled by default, list with
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
 | [ ] | ● | `github-pulls-add-reviewers` | `addGithubPullRequestReviewers` | Adds reviewers to a pull request |
-| [ ] | ● | `github-pulls-create` | `createGithubPullRequest` | Creates a new pull request in a repository |
-| [ ] | ○ | `github-pulls-create-review` | `createGithubPullRequestReview` | Creates a review on a pull request |
+| [x] | ● | `github-pulls-create` | `createGithubPullRequest` | Creates a new pull request in a repository |
+| [x] | ○ | `github-pulls-create-review` | `createGithubPullRequestReview` | Creates a review on a pull request |
 | [x] | ● | `github-pulls-get` | `getGithubPullRequest` | Gets the details of a specific pull request within a repository |
 | [x] | ○ | `github-pulls-get-comments` | `getGithubPullRequestComments` | Gets the comments on a pull request |
 | [x] | ○ | `github-pulls-get-files` | `getGithubPullRequestFiles` | Gets the list of files changed in a pull request |
@@ -179,9 +203,9 @@ To see all 92 GitHub tools rather than the 15 enabled by default, list with
 | [x] | ○ | `github-pulls-get-reviews` | `getGithubPullRequestReviews` | Gets the reviews on a pull request |
 | [x] | ● | `github-pulls-get-status` | `getGithubPullRequestStatus` | Gets the combined status of all status checks for a pull request |
 | [x] | ● | `github-pulls-list` | `listGithubPullRequests` | Lists and filters repository pull requests |
-| [ ] | ○ | `github-pulls-mark-ready` | `markGithubPullRequestReady` | Marks a draft pull request as ready for review |
+| [x] | ○ | `github-pulls-mark-ready` | `markGithubPullRequestReady` | Marks a draft pull request as ready for review |
 | [ ] | ○ | `github-pulls-merge` | `mergeGithubPullRequest` | Merges a pull request |
-| [ ] | ● | `github-pulls-remove-reviewers` | `removeGithubPullRequestReviewers` | Removes reviewers from a pull request |
+| [x] | ● | `github-pulls-remove-reviewers` | `removeGithubPullRequestReviewers` | Removes reviewers from a pull request |
 | [ ] | ○ | `github-pulls-update-branch` | `updateGithubPullRequestBranch` | Updates a pull request branch with the latest changes from the base branch |
 | [ ] | ○ | `github-set-pr-review-thread-resolution` | `setGithubPullRequestReviewThreadResolution` | Sets the resolution status of a review thread on a pull request. Use resolved=true to mark feedback as addressed, or resolved=false to reopen for further discussion. |
 
@@ -200,7 +224,7 @@ To see all 92 GitHub tools rather than the 15 enabled by default, list with
 | [x] | ○ | `github-repository-get` | `getGithubRepository` | Gets details for a specific repository |
 | [x] | ○ | `github-repository-get-content` | `getGithubRepositoryContent` | Gets the contents of a file or directory in a repository |
 | [x] | ○ | `github-repository-topics-get` | `getGithubRepositoryTopics` | Gets topics for a specific repository |
-| [ ] | ○ | `github-repository-topics-update` | `updateGithubRepositoryTopics` | Updates topics for a repository (add/remove/replace) |
+| [x] | ○ | `github-repository-topics-update` | `updateGithubRepositoryTopics` | Updates topics for a repository (add/remove/replace) |
 | [x] | ○ | `github-user-repos-list` | `listUserGithubRepositories` | Lists public repositories for the specified user |
 
 #### Github: Search (3)

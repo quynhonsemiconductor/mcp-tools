@@ -66,7 +66,6 @@ describe('GithubCreateUpdateFileContentTool', () => {
   const validParams: GithubCreateUpdateFileContentToolParams = {
     org: 'testorg',
     repo: 'test-repo',
-    owner: 'testowner',
     path: '.qnsc/catalog.yaml',
     message: 'Add catalog.yaml file',
     content: 'component:\n  qnsc:\n    ci-id: CI0652708',
@@ -86,7 +85,6 @@ describe('GithubCreateUpdateFileContentTool', () => {
   const validFilePathParams: GithubCreateUpdateFileContentToolParams = {
     org: 'testorg',
     repo: 'test-repo',
-    owner: 'testowner',
     path: '.qnsc/catalog.yaml',
     message: 'Add catalog.yaml file',
     filePath: '/tmp/catalog.yaml',
@@ -121,7 +119,7 @@ describe('GithubCreateUpdateFileContentTool', () => {
     // Use the base schema for .shape access (ZodEffects from .refine() does not expose .shape)
     const schemaShape = GithubCreateUpdateFileContentToolBaseSchema.shape;
     expect(Object.keys(schemaShape)).toContain('org');
-    expect(Object.keys(schemaShape)).toContain('owner');
+    expect(Object.keys(schemaShape)).toContain('org');
     expect(Object.keys(schemaShape)).toContain('repo');
     expect(Object.keys(schemaShape)).toContain('path');
     expect(Object.keys(schemaShape)).toContain('message');
@@ -140,7 +138,7 @@ describe('GithubCreateUpdateFileContentTool', () => {
     // Check that parameters were properly transformed (org to owner)
     const apiParams = (mocks.repos.createOrUpdateFileContents as any).mock.calls[0][0];
     expect(apiParams).toEqual({
-      owner: 'testowner', // When both org and owner are provided, owner takes precedence
+      owner: 'testorg',
       repo: 'test-repo',
       path: '.qnsc/catalog.yaml',
       message: 'Add catalog.yaml file',
@@ -215,7 +213,6 @@ describe('GithubCreateUpdateFileContentTool', () => {
     try {
       await tool.execute({
         org: 'testorg',
-        owner: 'testowner',
         repo: 'test-repo',
         path: '.qnsc/catalog.yaml',
         message: 'Add catalog.yaml file',
@@ -326,7 +323,6 @@ describe('GithubCreateUpdateFileContentTool', () => {
       const invalidParams = {
         org: 'testorg',
         repo: 'test-repo',
-        owner: 'testowner',
         path: 'test.txt',
         message: 'Test message',
         content: 'test content',
@@ -423,9 +419,17 @@ component:
   });
 
   describe('API parameter transformation', () => {
-    it('should transform org parameter to owner for GitHub API', () => {
-      expect(validParams.org).toBe('testorg');
-      expect(validParams.owner).toBe('testowner');
+    it('should send org as the API owner, and not require it twice', async () => {
+      // parseAndTransformGitHubParams maps org to the owner the REST client wants.
+      // A separate `owner` in the schema made the organisation a required argument
+      // twice under two names, and the call failed unless both were given.
+      await tool.execute(validParams);
+
+      const apiParams = (
+        mocks.repos.createOrUpdateFileContents as unknown as { mock: { calls: unknown[][] } }
+      ).mock.calls[0][0] as Record<string, unknown>;
+      expect(apiParams.owner).toBe(validParams.org);
+      expect(validParams).not.toHaveProperty('owner');
     });
 
     it('should not send filePath to the GitHub API', async () => {
