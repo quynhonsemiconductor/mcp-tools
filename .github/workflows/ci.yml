@@ -71,3 +71,6 @@ jobs:
         run: bun run scripts/collect-setup-docs.ts
 
       - run: mkdir -p reports && bun test
+
+      - name: Coverage gate
+        run: bun run scripts/check-coverage.ts
