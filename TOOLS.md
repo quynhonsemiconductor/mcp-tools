@@ -36,6 +36,22 @@ Findings so far:
   Ho Chi Minh City. Marked `[-]` rather than `[!]` — it is not broken, just
   US-only, and would need a different provider to be useful.
 
+### GitHub, read paths (verified against quynhonsemiconductor)
+
+All 43 read-only GitHub tools were exercised against the real organisation. 40 pass.
+Two return a correct "not found" because the resource does not exist here — there
+are no gists and the wiki has no pages — so they are marked verified on the strength
+of their error handling. Three Projects tools could not be reached at all because the
+organisation has no project yet; they need a project created first.
+
+One real defect was found and fixed: `github-list-dependabot-alerts` sent a `page`
+parameter, which that endpoint rejects outright ("Pagination using the `page`
+parameter is not supported") because it pages by cursor. The tool failed on every
+call for every user. It now takes `before`/`after` and returns real alerts.
+
+To see all 92 GitHub tools rather than the 15 enabled by default, list with
+`--all`, or add the `Github: *` categories to `tools.includeCategories`.
+
 **Review status:** `[ ]` not checked, `[x]` verified working, `[!]` broken/needs work, `[-]` not applicable to us.
 
 ---
@@ -50,13 +66,13 @@ Findings so far:
 |---|---|---|---|---|
 | [ ] | ○ | `github-actions-cancel-workflow-run` | `cancelGithubWorkflowRun` | Cancels a workflow run |
 | [ ] | ○ | `github-actions-create-dispatch` | `createGithubWorkflowDispatch` | Manually trigger a GitHub Actions workflow run |
-| [ ] | ○ | `github-actions-get-workflow` | `getGithubWorkflow` | Gets a specific workflow in a repository by ID or file name |
-| [ ] | ○ | `github-actions-get-workflow-run` | `getGithubWorkflowRun` | Gets a specific workflow run by ID |
-| [ ] | ○ | `github-actions-get-workflow-run-job` | `getGithubWorkflowRunJob` | Gets a specific job in a workflow run by ID |
-| [ ] | ○ | `github-actions-get-workflow-run-logs` | `getGithubWorkflowRunLogs` | Gets a log for a workflow run by ID |
-| [ ] | ○ | `github-actions-list-workflow-run-jobs` | `listGithubWorkflowRunJobs` | Lists jobs for a workflow run |
-| [ ] | ○ | `github-actions-list-workflow-runs` | `listGithubWorkflowRuns` | Lists all workflow runs for a repository |
-| [ ] | ○ | `github-actions-list-workflows` | `listGithubWorkflows` | Lists the workflows in a repository |
+| [x] | ○ | `github-actions-get-workflow` | `getGithubWorkflow` | Gets a specific workflow in a repository by ID or file name |
+| [x] | ○ | `github-actions-get-workflow-run` | `getGithubWorkflowRun` | Gets a specific workflow run by ID |
+| [x] | ○ | `github-actions-get-workflow-run-job` | `getGithubWorkflowRunJob` | Gets a specific job in a workflow run by ID |
+| [x] | ○ | `github-actions-get-workflow-run-logs` | `getGithubWorkflowRunLogs` | Gets a log for a workflow run by ID |
+| [x] | ○ | `github-actions-list-workflow-run-jobs` | `listGithubWorkflowRunJobs` | Lists jobs for a workflow run |
+| [x] | ○ | `github-actions-list-workflow-runs` | `listGithubWorkflowRuns` | Lists all workflow runs for a repository |
+| [x] | ○ | `github-actions-list-workflows` | `listGithubWorkflows` | Lists the workflows in a repository |
 | [ ] | ○ | `github-actions-rerun-workflow` | `rerunGithubWorkflow` | Re-runs a workflow by run ID |
 
 #### Github: Branches (6)
@@ -74,8 +90,8 @@ Findings so far:
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-get-dependabot-alert` | `getDependabotAlert` | Retrieves a Dependabot alert |
-| [ ] | ○ | `github-list-dependabot-alerts` | `listDependabotAlerts` | List Dependabot alerts for a repository |
+| [x] | ○ | `github-get-dependabot-alert` | `getDependabotAlert` | Retrieves a Dependabot alert |
+| [x] | ○ | `github-list-dependabot-alerts` | `listDependabotAlerts` | List Dependabot alerts for a repository |
 | [ ] | ○ | `github-update-dependabot-alert` | `updateDependabotAlert` | Updates a Dependabot alert |
 
 #### Github: Discussions (9)
@@ -98,8 +114,8 @@ Findings so far:
 |---|---|---|---|---|
 | [ ] | ○ | `github-gist-create` | `createGithubGist` | Creates a new gist |
 | [ ] | ○ | `github-gist-delete` | `deleteGithubGist` | Deletes a gist |
-| [ ] | ○ | `github-gist-get` | `getGithubGist` | Gets a specific gist by ID with full content |
-| [ ] | ○ | `github-gist-list` | `listGithubGists` | Lists gists for a user or authenticated user |
+| [x] | ○ | `github-gist-get` | `getGithubGist` | Gets a specific gist by ID with full content |
+| [x] | ○ | `github-gist-list` | `listGithubGists` | Lists gists for a user or authenticated user |
 | [ ] | ○ | `github-gist-update` | `updateGithubGist` | Updates an existing gist |
 
 #### Github: Issues (10)
@@ -109,21 +125,21 @@ Findings so far:
 | [ ] | ○ | `github-issues-add-comment` | `addGithubIssueComment` | Adds a comment to an issue in a GitHub repository |
 | [ ] | ● | `github-issues-add-sub-issue` | `addGithubSubIssue` | Adds an existing issue as a sub-issue of a parent issue, creating a formal parent-child relationship visible in the Sub-issues section of the parent |
 | [ ] | ● | `github-issues-create` | `createGithubIssue` | Creates a new issue in a GitHub repository |
-| [ ] | ● | `github-issues-get` | `getGithubIssue` | Gets the contents of an issue within a repository |
-| [ ] | ○ | `github-issues-get-comments` | `getGithubIssueComments` | Gets the comments of an issue within a repository |
+| [x] | ● | `github-issues-get` | `getGithubIssue` | Gets the contents of an issue within a repository |
+| [x] | ○ | `github-issues-get-comments` | `getGithubIssueComments` | Gets the comments of an issue within a repository |
 | [x] | ● | `github-issues-list` | `listGithubIssues` | Lists and filters repository issues |
 | [x] | ● | `github-issues-list-sub-issues` | `listGithubSubIssues` | Lists all sub-issues of a parent issue, showing the formal parent-child relationships established via addGithubSubIssue |
 | [ ] | ● | `github-issues-remove-sub-issue` | `removeGithubSubIssue` | Removes a sub-issue from a parent issue, dissolving the parent-child relationship without deleting either issue |
-| [ ] | ○ | `github-issues-search` | `searchGithubIssues` | Searches for issues and pull requests across GitHub |
+| [x] | ○ | `github-issues-search` | `searchGithubIssues` | Searches for issues and pull requests across GitHub |
 | [ ] | ○ | `github-issues-update` | `updateGithubIssue` | Updates an existing issue in a GitHub repository |
 
 #### Github: Orgs (3)
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-my-orgs-list` | `listMyGithubOrganizations` | Lists all organizations for the current user |
-| [ ] | ○ | `github-org-get` | `getGithubOrganization` | Gets details for a specific organization |
-| [ ] | ○ | `github-orgs-list` | `listGithubOrganizations` | Lists all organizations using cursor-based pagination |
+| [x] | ○ | `github-my-orgs-list` | `listMyGithubOrganizations` | Lists all organizations for the current user |
+| [x] | ○ | `github-org-get` | `getGithubOrganization` | Gets details for a specific organization |
+| [x] | ○ | `github-orgs-list` | `listGithubOrganizations` | Lists all organizations using cursor-based pagination |
 
 #### Github: Projects (19)
 
@@ -139,7 +155,7 @@ Findings so far:
 | [ ] | ○ | `github-projects-delete-field` | `deleteGithubProjectField` | Deletes a custom field from a GitHub Project V2. This permanently removes the field and all its values from all items in the project. |
 | [ ] | ○ | `github-projects-delete-item` | `deleteGithubProjectItem` | Removes an item from a GitHub Project V2. This does not delete the underlying issue or pull request, only removes it from the project. |
 | [ ] | ○ | `github-projects-get` | `getGithubProject` | Gets a single GitHub Project V2 by number for an organization or user. Provide either org or user parameter. Returns the project node ID needed by other project tools, along with full project details. |
-| [ ] | ○ | `github-projects-list` | `listGithubProjects` | Lists GitHub Projects V2 for an organization or user. Provide either org or user parameter. Returns project titles, IDs, and metadata with pagination support. |
+| [x] | ○ | `github-projects-list` | `listGithubProjects` | Lists GitHub Projects V2 for an organization or user. Provide either org or user parameter. Returns project titles, IDs, and metadata with pagination support. |
 | [ ] | ○ | `github-projects-list-fields` | `listGithubProjectFields` | Lists fields/columns defined on a GitHub Project V2. Returns field IDs, names, types, and options (for single-select and iteration fields). Use this to discover field IDs before updating item field values. |
 | [ ] | ○ | `github-projects-list-items` | `listGithubProjectItems` | Lists items (issues, pull requests, and draft issues) in a GitHub Project V2, including their field values. Use listGithubProjectFields first to understand the available fields. |
 | [ ] | ○ | `github-projects-unarchive-item` | `unarchiveGithubProjectItem` | Restores an archived item in a GitHub Project V2, making it visible in default views again. |
@@ -157,10 +173,10 @@ Findings so far:
 | [ ] | ● | `github-pulls-create` | `createGithubPullRequest` | Creates a new pull request in a repository |
 | [ ] | ○ | `github-pulls-create-review` | `createGithubPullRequestReview` | Creates a review on a pull request |
 | [x] | ● | `github-pulls-get` | `getGithubPullRequest` | Gets the details of a specific pull request within a repository |
-| [ ] | ○ | `github-pulls-get-comments` | `getGithubPullRequestComments` | Gets the comments on a pull request |
-| [ ] | ○ | `github-pulls-get-files` | `getGithubPullRequestFiles` | Gets the list of files changed in a pull request |
-| [ ] | ○ | `github-pulls-get-review-threads` | `getGithubPullRequestReviewThreads` | Lists review threads for a pull request, including resolution state and comment details. |
-| [ ] | ○ | `github-pulls-get-reviews` | `getGithubPullRequestReviews` | Gets the reviews on a pull request |
+| [x] | ○ | `github-pulls-get-comments` | `getGithubPullRequestComments` | Gets the comments on a pull request |
+| [x] | ○ | `github-pulls-get-files` | `getGithubPullRequestFiles` | Gets the list of files changed in a pull request |
+| [x] | ○ | `github-pulls-get-review-threads` | `getGithubPullRequestReviewThreads` | Lists review threads for a pull request, including resolution state and comment details. |
+| [x] | ○ | `github-pulls-get-reviews` | `getGithubPullRequestReviews` | Gets the reviews on a pull request |
 | [x] | ● | `github-pulls-get-status` | `getGithubPullRequestStatus` | Gets the combined status of all status checks for a pull request |
 | [x] | ● | `github-pulls-list` | `listGithubPullRequests` | Lists and filters repository pull requests |
 | [ ] | ○ | `github-pulls-mark-ready` | `markGithubPullRequestReady` | Marks a draft pull request as ready for review |
@@ -173,33 +189,33 @@ Findings so far:
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-get-latest-release` | `getLatestGithubRelease` | Gets the latest published release for a GitHub repository |
-| [ ] | ○ | `github-list-releases` | `listGithubReleases` | Gets a list of releases for a GitHub repository |
+| [x] | ○ | `github-get-latest-release` | `getLatestGithubRelease` | Gets the latest published release for a GitHub repository |
+| [x] | ○ | `github-list-releases` | `listGithubReleases` | Gets a list of releases for a GitHub repository |
 
 #### Github: Repos (6)
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-repos-list` | `listGithubRepositories` | Lists all repositories in an organization |
-| [ ] | ○ | `github-repository-get` | `getGithubRepository` | Gets details for a specific repository |
-| [ ] | ○ | `github-repository-get-content` | `getGithubRepositoryContent` | Gets the contents of a file or directory in a repository |
-| [ ] | ○ | `github-repository-topics-get` | `getGithubRepositoryTopics` | Gets topics for a specific repository |
+| [x] | ○ | `github-repos-list` | `listGithubRepositories` | Lists all repositories in an organization |
+| [x] | ○ | `github-repository-get` | `getGithubRepository` | Gets details for a specific repository |
+| [x] | ○ | `github-repository-get-content` | `getGithubRepositoryContent` | Gets the contents of a file or directory in a repository |
+| [x] | ○ | `github-repository-topics-get` | `getGithubRepositoryTopics` | Gets topics for a specific repository |
 | [ ] | ○ | `github-repository-topics-update` | `updateGithubRepositoryTopics` | Updates topics for a repository (add/remove/replace) |
-| [ ] | ○ | `github-user-repos-list` | `listUserGithubRepositories` | Lists public repositories for the specified user |
+| [x] | ○ | `github-user-repos-list` | `listUserGithubRepositories` | Lists public repositories for the specified user |
 
 #### Github: Search (3)
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-code-search` | `searchCode` | Searches for query terms inside of a file |
-| [ ] | ○ | `github-commits-search` | `searchCommits` | Find commits via various criteria on the default branch |
-| [ ] | ○ | `github-repos-search` | `searchRepos` | Find repositories via various criteria. |
+| [x] | ○ | `github-code-search` | `searchCode` | Searches for query terms inside of a file |
+| [x] | ○ | `github-commits-search` | `searchCommits` | Find commits via various criteria on the default branch |
+| [x] | ○ | `github-repos-search` | `searchRepos` | Find repositories via various criteria. |
 
 #### Github: Wiki (1)
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-wiki-get-content` | `getGithubWikiContent` | Gets the content of a specific page from a GitHub wiki repository |
+| [x] | ○ | `github-wiki-get-content` | `getGithubWikiContent` | Gets the content of a specific page from a GitHub wiki repository |
 
 ### Non-GitHub (50 tools)
 

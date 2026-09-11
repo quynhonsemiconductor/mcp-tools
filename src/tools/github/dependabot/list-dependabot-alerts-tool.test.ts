@@ -73,7 +73,6 @@ describe('ListDependabotAlertsTool', () => {
       owner: 'testorg',
       repo: 'test-repo',
       per_page: 10,
-      page: 1,
     });
   });
 
@@ -89,7 +88,6 @@ describe('ListDependabotAlertsTool', () => {
       epss_percentage: '>0.5',
       scope: 'runtime',
       per_page: 30,
-      page: 2,
     });
 
     expect(mocks.dependabot.listAlertsForRepo).toHaveBeenCalled();
@@ -107,7 +105,6 @@ describe('ListDependabotAlertsTool', () => {
       epss_percentage: '>0.5',
       scope: 'runtime',
       per_page: 30,
-      page: 2,
     });
   });
 
@@ -160,5 +157,15 @@ describe('ListDependabotAlertsTool', () => {
     expect(error).toBeDefined();
     expect(error.message).toContain('Tool execution error');
     expect(error.message).toContain('API error');
+  });
+
+  it('never sends a page parameter, which this endpoint rejects', async () => {
+    // GitHub answers "Pagination using the `page` parameter is not supported" for
+    // Dependabot alerts, so passing it made every call fail. It pages by cursor.
+    const tool = new ListDependabotAlertsTool();
+    await tool.execute({ org: 'testorg', repo: 'test-repo' });
+
+    const apiParams = mocks.dependabot.listAlertsForRepo.mock.calls[0][0];
+    expect(apiParams).not.toHaveProperty('page');
   });
 });

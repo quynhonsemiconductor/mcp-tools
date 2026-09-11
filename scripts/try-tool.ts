@@ -26,6 +26,9 @@ const argv = process.argv.slice(2);
 const wantBundled = argv.includes('--bundled');
 const wantRemote = argv.includes('--remote');
 const listMode = argv.includes('--list');
+// Verification needs every registered tool, not only those the local config
+// enables — a tool being switched off says nothing about whether it works.
+const wantAll = argv.includes('--all');
 const positional = argv.filter((a) => !a.startsWith('--'));
 
 await registry.initialize();
@@ -42,7 +45,7 @@ if (wantRemote) {
 if (listMode) {
   const filter = positional[0]?.toLowerCase();
   const ids = registry
-    .getAllTools(true)
+    .getAllTools(!wantAll)
     .map((t) => t.id)
     .filter((id) => !filter || id.toLowerCase().includes(filter))
     .sort();
