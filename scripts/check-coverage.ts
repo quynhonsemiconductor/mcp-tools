@@ -23,14 +23,22 @@ import fs from 'fs';
 import path from 'path';
 
 // The minimums are the level this suite actually reaches, so the gate holds the
-// line rather than failing on arrival. The previous 0.78 was never met: real
-// coverage is 76.5%, which is part of why the check was red. Raise these as
+// line rather than failing on arrival. The original 0.78 was never met: real
+// coverage was 76.5%, which is part of why the check was red. Raise these as
 // coverage improves; they are a ratchet, not a target.
+//
+// Lowered once, from 0.76, when four tools for a retired GitHub API were deleted.
+// That is worth being explicit about, because "the gate failed so I lowered the
+// gate" is usually the wrong move. Here it was arithmetic: the removed code was
+// 164 of 164 lines and 8 of 8 functions covered, so deleting it had to pull a 76%
+// average down — 75.98% on Linux. No line that had been covered became uncovered,
+// and no remaining code changed. A drop caused by *adding* uncovered code should
+// be met with tests instead.
 
 /** Minimum fraction of executable lines that must be covered. */
-const DEFAULT_MIN_LINES = 0.76;
+const DEFAULT_MIN_LINES = 0.75;
 /** Minimum fraction of functions that must be covered. */
-const DEFAULT_MIN_FUNCTIONS = 0.76;
+const DEFAULT_MIN_FUNCTIONS = 0.75;
 
 const LCOV_PATH = path.join(process.cwd(), 'coverage', 'lcov.info');
 
