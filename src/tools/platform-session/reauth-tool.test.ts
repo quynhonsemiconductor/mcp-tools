@@ -16,12 +16,10 @@ const mockGetToken = mock(() => Promise.resolve('mock-token'));
 const mockTokenManager = { getToken: mockGetToken };
 const mockGetEntraIdTokenManager = mock(() => Promise.resolve(mockTokenManager));
 
-// mock.module's factory here is synchronous, so the returned Promise|void is never pending; fire-and-forget by design
-void mock.module('../../services/auth/entra-id', () => ({
-  reauthenticate: mockReauthenticate,
-  getEntraIdTokenManager: mockGetEntraIdTokenManager,
-  resetEntraIdTokenManagerForTesting: mock(() => {}),
-}));
+// The sign-in call is injected into the tool rather than mocked at module level.
+// Three test files register competing factories for this module and Bun keeps
+// whichever ran last process-wide, so a module mock here was overwritten by one
+// that omits `reauthenticate` — passing 9 tests locally and failing them on Linux.
 
 import { ReauthSchema, ReauthTool, SERVICE_TO_PROVIDER, SUPPORTED_PROVIDERS } from './reauth-tool';
 
@@ -29,7 +27,7 @@ describe('ReauthTool', () => {
   let tool: ReauthTool;
 
   beforeEach(() => {
-    tool = new ReauthTool();
+    tool = new ReauthTool(mockReauthenticate);
     mockReauthenticate.mockClear();
     mockReauthenticate.mockResolvedValue('fresh-token-abc');
   });

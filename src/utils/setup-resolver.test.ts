@@ -88,34 +88,35 @@ describe('Setup Resolver', () => {
       expect(result.source).toBe('native');
     });
 
-    it('should get remote GitHub MCP setup content', () => {
+    it('should get remote setup content for a remote server', () => {
+      const result = getSetupContent('aws-knowledge-mcp-server', 'remote');
+
+      expect(result.exists).toBe(true);
+      expect(result.content.length).toBeGreaterThan(0);
+      expect(result.filePath).toBeDefined();
+      expect(result.source).toBe('remote');
+    });
+
+    it('should resolve native and remote docs from their own sources', () => {
+      // No id ships docs in both places any more: the servers that had a remote
+      // counterpart to a native tool were removed. So the two lookups are checked
+      // against the ids that actually have a doc, and each must report its own
+      // source rather than falling back to the other directory.
+      const native = getSetupContent('github', 'native');
+      const remote = getSetupContent('figma-dev', 'remote');
+
+      expect(native.exists).toBe(true);
+      expect(native.source).toBe('native');
+      expect(remote.exists).toBe(true);
+      expect(remote.source).toBe('remote');
+      expect(native.content).not.toBe(remote.content);
+    });
+
+    it('should not invent a remote doc for a native-only tool', () => {
       const result = getSetupContent('github', 'remote');
 
-      expect(result.exists).toBe(true);
-      expect(result.content).toContain('# GitHub Cloud Remote MCP Server');
-      expect(result.content).toContain('mcp-prod.ai.qnsc.vn');
-      expect(result.filePath).toBeDefined();
-      expect(result.source).toBe('remote');
-    });
-
-    it('should distinguish between native and remote GitHub content', () => {
-      const nativeResult = getSetupContent('github', 'native');
-      const remoteResult = getSetupContent('github', 'remote');
-
-      expect(nativeResult.exists).toBe(true);
-      expect(remoteResult.exists).toBe(true);
-      expect(nativeResult.content).not.toBe(remoteResult.content);
-      expect(nativeResult.content).toContain('GITHUB_TOKEN');
-      expect(remoteResult.content).toContain('mcp-prod.ai.qnsc.vn');
-    });
-
-    it('should get New Relic remote setup content', () => {
-      const result = getSetupContent('newrelic', 'remote');
-
-      expect(result.exists).toBe(true);
-      expect(result.content).toContain('# New Relic');
-      expect(result.filePath).toBeDefined();
-      expect(result.source).toBe('remote');
+      expect(result.exists).toBe(false);
+      expect(result.content).toBe('');
     });
 
     it('should return not found for non-existent tool', () => {
@@ -147,7 +148,7 @@ describe('Setup Resolver', () => {
       // Check for specific tools we know exist
       const toolIds = available.map((item) => item.toolId);
       expect(toolIds).toContain('github');
-      expect(toolIds).toContain('newrelic');
+      expect(toolIds).toContain('aws-knowledge-mcp-server');
     });
 
     it('should categorize tools by source', () => {

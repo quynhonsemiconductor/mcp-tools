@@ -63,4 +63,11 @@ jobs:
       # each partial result reads like a complete one. `reports/` is created first
       # because bun writes its JUnit report there and otherwise every run ends with
       # `JUnitReportFailed: ENOENT`, noise that looks like a test problem.
+      # src/generated/setup-docs.ts is a build artifact and is gitignored, so a
+      # fresh checkout does not have it. The setup resolver imports it, and its
+      # tests assert on real SETUP.md content, so generate it before testing
+      # rather than committing generated output.
+      - name: Generate embedded setup docs
+        run: bun run scripts/collect-setup-docs.ts
+
       - run: mkdir -p reports && bun test

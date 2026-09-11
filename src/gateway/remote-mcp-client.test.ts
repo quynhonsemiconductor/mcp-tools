@@ -110,7 +110,7 @@ describe('RemoteMCPClient', () => {
   };
 
   beforeEach(() => {
-    client = new RemoteMCPClient();
+    client = new RemoteMCPClient(TEST_AUTH_MAP);
     mockClientConnect.mockReset();
     mockClientGetServerVersion.mockReset();
     mockClientListTools.mockReset();
@@ -230,71 +230,71 @@ describe('RemoteMCPClient', () => {
       const savedEnv: Record<string, string | undefined> = {};
 
       beforeEach(() => {
-        savedEnv.SMARTSHEET_API_KEY = process.env.SMARTSHEET_API_KEY;
+        savedEnv.PARTNER_API_TOKEN = process.env.PARTNER_API_TOKEN;
       });
 
       afterEach(() => {
-        if (savedEnv.SMARTSHEET_API_KEY === undefined) {
-          delete process.env.SMARTSHEET_API_KEY;
+        if (savedEnv.PARTNER_API_TOKEN === undefined) {
+          delete process.env.PARTNER_API_TOKEN;
         } else {
-          process.env.SMARTSHEET_API_KEY = savedEnv.SMARTSHEET_API_KEY;
+          process.env.PARTNER_API_TOKEN = savedEnv.PARTNER_API_TOKEN;
         }
       });
 
-      const smartsheetConfig: RemoteMCPServerConfig = {
-        id: 'smartsheet',
-        name: 'Smartsheet MCP Server',
-        url: 'https://mcp.smartsheet.com',
+      const partnerConfig: RemoteMCPServerConfig = {
+        id: 'partner-api',
+        name: 'Partner API MCP Server',
+        url: 'https://mcp.partner.example.com',
         enabled: true,
         authType: 'static-bearer',
       };
 
       it('bails out with disconnected status when env var is unset', async () => {
-        delete process.env.SMARTSHEET_API_KEY;
+        delete process.env.PARTNER_API_TOKEN;
 
-        await client.connectToServer(smartsheetConfig);
+        await client.connectToServer(partnerConfig);
 
         expect(mockClientConnect).not.toHaveBeenCalled();
         const status = client.getConnectionStatus();
-        expect(status['smartsheet']).toBe('disconnected');
+        expect(status['partner-api']).toBe('disconnected');
 
         const { logWarn: mockLogWarn } = await getMockedLogger();
         const warnCalls = mockLogWarn.mock.calls;
         const matchingWarn = warnCalls.find(
           (args) =>
             typeof args[0] === 'string' &&
-            args[0].includes('Smartsheet') &&
-            args[0].includes('SMARTSHEET_API_KEY'),
+            args[0].includes('Partner API') &&
+            args[0].includes('PARTNER_API_TOKEN'),
         );
         expect(matchingWarn).toBeDefined();
       });
 
       it('bails out when env var is whitespace-only', async () => {
-        process.env.SMARTSHEET_API_KEY = '   ';
+        process.env.PARTNER_API_TOKEN = '   ';
 
-        await client.connectToServer(smartsheetConfig);
+        await client.connectToServer(partnerConfig);
 
         expect(mockClientConnect).not.toHaveBeenCalled();
         const status = client.getConnectionStatus();
-        expect(status['smartsheet']).toBe('disconnected');
+        expect(status['partner-api']).toBe('disconnected');
       });
 
       it('connects normally when env var is set', async () => {
-        process.env.SMARTSHEET_API_KEY = 'sk-test-456';
+        process.env.PARTNER_API_TOKEN = 'sk-test-456';
         mockClientConnect.mockResolvedValue(undefined);
 
-        await client.connectToServer(smartsheetConfig);
+        await client.connectToServer(partnerConfig);
 
         expect(mockClientConnect).toHaveBeenCalledTimes(1);
         const status = client.getConnectionStatus();
-        expect(status['smartsheet']).toBe('connected');
+        expect(status['partner-api']).toBe('connected');
       });
 
       it('does not install an OAuth authProvider on the transport (regression: DCR cascade)', async () => {
-        process.env.SMARTSHEET_API_KEY = 'sk-test-456';
+        process.env.PARTNER_API_TOKEN = 'sk-test-456';
         mockClientConnect.mockResolvedValue(undefined);
 
-        await client.connectToServer(smartsheetConfig);
+        await client.connectToServer(partnerConfig);
 
         // Transport constructor args: [url, options]. Assert options.authProvider is undefined
         // for static-bearer so the SDK won't parse 401 responses as OAuth errors and trigger DCR.
@@ -306,10 +306,10 @@ describe('RemoteMCPClient', () => {
       });
 
       it('installs createStaticBearerFetch as the transport fetch override', async () => {
-        process.env.SMARTSHEET_API_KEY = 'sk-test-456';
+        process.env.PARTNER_API_TOKEN = 'sk-test-456';
         mockClientConnect.mockResolvedValue(undefined);
 
-        await client.connectToServer(smartsheetConfig);
+        await client.connectToServer(partnerConfig);
 
         // Assert a fetch override is set (the static-bearer wrapper). We can't deep-equal
         // the function, but we can verify one was provided.
@@ -323,7 +323,7 @@ describe('RemoteMCPClient', () => {
       it('sets error status when authType is static-bearer but no SERVICE_AUTH_MAP entry exists', async () => {
         // Misconfigured server: declares static-bearer but the id is not in SERVICE_AUTH_MAP.
         // The guard in connectViaHttp throws so a misconfigured server is loud, not silent.
-        process.env.SMARTSHEET_API_KEY = 'sk-test-456';
+        process.env.PARTNER_API_TOKEN = 'sk-test-456';
         const orphanConfig: RemoteMCPServerConfig = {
           id: 'no-such-service-in-map',
           name: 'Orphan MCP Server',
@@ -658,7 +658,7 @@ describe('RemoteMCPClient', () => {
     });
 
     it('should NOT reconcile for static-bearer auth (no OAuth provider installed)', async () => {
-      process.env.SMARTSHEET_API_KEY = 'sk-test-789';
+      process.env.PARTNER_API_TOKEN = 'sk-test-789';
       const reconcileSpy = spyOn(
         RemoteMcpOauthProvider.prototype,
         'reconcileRegistration',
@@ -666,15 +666,15 @@ describe('RemoteMCPClient', () => {
       mockClientConnect.mockResolvedValue(undefined);
 
       await client.connectToServer({
-        id: 'smartsheet',
-        name: 'Smartsheet MCP Server',
-        url: 'https://mcp.smartsheet.com',
+        id: 'partner-api',
+        name: 'Partner API MCP Server',
+        url: 'https://mcp.partner.example.com',
         enabled: true,
         authType: 'static-bearer',
       });
 
       expect(reconcileSpy).not.toHaveBeenCalled();
-      delete process.env.SMARTSHEET_API_KEY;
+      delete process.env.PARTNER_API_TOKEN;
     });
 
     it('should re-register a dead registration before connecting, without a wasted browser redirect', async () => {
@@ -1448,27 +1448,42 @@ describe('RemoteMCPClient', () => {
   });
 });
 
+/**
+ * A static-bearer service definition owned by the tests.
+ *
+ * The shipped SERVICE_AUTH_MAP is empty — the only service that used it was
+ * removed along with the gateway-routed servers — so the mechanism is exercised
+ * against this synthetic entry, injected rather than mocked at module level.
+ */
+const TEST_AUTH_MAP = {
+  'partner-api': {
+    headerName: 'Authorization',
+    envVar: 'PARTNER_API_TOKEN',
+    valueTemplate: 'Bearer ${value}',
+  },
+};
+
 describe('createStaticBearerFetch', () => {
   setupStandardMocks();
 
   const savedEnv: Record<string, string | undefined> = {};
 
   beforeEach(() => {
-    savedEnv.SMARTSHEET_API_KEY = process.env.SMARTSHEET_API_KEY;
+    savedEnv.PARTNER_API_TOKEN = process.env.PARTNER_API_TOKEN;
   });
 
   afterEach(() => {
-    if (savedEnv.SMARTSHEET_API_KEY === undefined) {
-      delete process.env.SMARTSHEET_API_KEY;
+    if (savedEnv.PARTNER_API_TOKEN === undefined) {
+      delete process.env.PARTNER_API_TOKEN;
     } else {
-      process.env.SMARTSHEET_API_KEY = savedEnv.SMARTSHEET_API_KEY;
+      process.env.PARTNER_API_TOKEN = savedEnv.PARTNER_API_TOKEN;
     }
   });
 
   it('attaches templated header from SERVICE_AUTH_MAP value when env var is set', async () => {
-    process.env.SMARTSHEET_API_KEY = 'sk-test-123';
+    process.env.PARTNER_API_TOKEN = 'sk-test-123';
     const { createStaticBearerFetch } = await import('./remote-mcp-client');
-    const fetchFn = createStaticBearerFetch('smartsheet');
+    const fetchFn = createStaticBearerFetch('partner-api', TEST_AUTH_MAP);
 
     let observedHeaders: Record<string, string> | undefined;
     const realFetch = global.fetch;
@@ -1478,7 +1493,7 @@ describe('createStaticBearerFetch', () => {
     }) as unknown as typeof fetch;
 
     try {
-      await fetchFn('https://mcp.smartsheet.com/');
+      await fetchFn('https://mcp.partner.example.com/');
       expect(observedHeaders).toBeDefined();
       expect(observedHeaders!['Authorization']).toBe('Bearer sk-test-123');
     } finally {
@@ -1487,33 +1502,33 @@ describe('createStaticBearerFetch', () => {
   });
 
   it('throws when the env var is unset', async () => {
-    delete process.env.SMARTSHEET_API_KEY;
+    delete process.env.PARTNER_API_TOKEN;
     const { createStaticBearerFetch } = await import('./remote-mcp-client');
-    const fetchFn = createStaticBearerFetch('smartsheet');
+    const fetchFn = createStaticBearerFetch('partner-api', TEST_AUTH_MAP);
 
     let caught: Error | undefined;
     try {
-      await fetchFn('https://mcp.smartsheet.com/');
+      await fetchFn('https://mcp.partner.example.com/');
     } catch (err) {
       caught = err as Error;
     }
     expect(caught).toBeDefined();
-    expect(caught!.message).toContain('SMARTSHEET_API_KEY');
+    expect(caught!.message).toContain('PARTNER_API_TOKEN');
   });
 
   it('throws when the env var is whitespace-only', async () => {
-    process.env.SMARTSHEET_API_KEY = '   ';
+    process.env.PARTNER_API_TOKEN = '   ';
     const { createStaticBearerFetch } = await import('./remote-mcp-client');
-    const fetchFn = createStaticBearerFetch('smartsheet');
+    const fetchFn = createStaticBearerFetch('partner-api', TEST_AUTH_MAP);
 
     let caught: Error | undefined;
     try {
-      await fetchFn('https://mcp.smartsheet.com/');
+      await fetchFn('https://mcp.partner.example.com/');
     } catch (err) {
       caught = err as Error;
     }
     expect(caught).toBeDefined();
-    expect(caught!.message).toContain('SMARTSHEET_API_KEY');
+    expect(caught!.message).toContain('PARTNER_API_TOKEN');
   });
 
   it('throws at construction time when serviceId is not in SERVICE_AUTH_MAP', async () => {
@@ -1521,7 +1536,7 @@ describe('createStaticBearerFetch', () => {
 
     let caught: Error | undefined;
     try {
-      createStaticBearerFetch('not-a-real-service');
+      createStaticBearerFetch('not-a-real-service', TEST_AUTH_MAP);
     } catch (err) {
       caught = err as Error;
     }
@@ -1531,9 +1546,9 @@ describe('createStaticBearerFetch', () => {
   });
 
   it('does not attach x-gateway-auth (platform JWT must not leak to external partners)', async () => {
-    process.env.SMARTSHEET_API_KEY = 'sk-test-123';
+    process.env.PARTNER_API_TOKEN = 'sk-test-123';
     const { createStaticBearerFetch } = await import('./remote-mcp-client');
-    const fetchFn = createStaticBearerFetch('smartsheet');
+    const fetchFn = createStaticBearerFetch('partner-api', TEST_AUTH_MAP);
 
     let observedHeaders: Record<string, string> | undefined;
     const realFetch = global.fetch;
@@ -1543,7 +1558,7 @@ describe('createStaticBearerFetch', () => {
     }) as unknown as typeof fetch;
 
     try {
-      await fetchFn('https://mcp.smartsheet.com/');
+      await fetchFn('https://mcp.partner.example.com/');
       expect(observedHeaders).toBeDefined();
       expect(observedHeaders!['x-gateway-auth']).toBeUndefined();
     } finally {
@@ -1552,9 +1567,9 @@ describe('createStaticBearerFetch', () => {
   });
 
   it('strips SDK-injected lowercase authorization so the static header wins', async () => {
-    process.env.SMARTSHEET_API_KEY = 'sk-test-123';
+    process.env.PARTNER_API_TOKEN = 'sk-test-123';
     const { createStaticBearerFetch } = await import('./remote-mcp-client');
-    const fetchFn = createStaticBearerFetch('smartsheet');
+    const fetchFn = createStaticBearerFetch('partner-api', TEST_AUTH_MAP);
 
     let observedHeaders: Record<string, string> | undefined;
     const realFetch = global.fetch;
@@ -1564,7 +1579,7 @@ describe('createStaticBearerFetch', () => {
     }) as unknown as typeof fetch;
 
     try {
-      await fetchFn('https://mcp.smartsheet.com/', {
+      await fetchFn('https://mcp.partner.example.com/', {
         headers: { authorization: 'Bearer should-be-stripped' },
       });
       expect(observedHeaders).toBeDefined();

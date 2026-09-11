@@ -16,11 +16,8 @@ const mockGetToken = mock(() => Promise.resolve('mock-token'));
 const mockTokenManager = { getToken: mockGetToken };
 const mockGetEntraIdTokenManager = mock(() => Promise.resolve(mockTokenManager));
 
-void mock.module('../services/auth/entra-id', () => ({
-  reauthenticate: mockReauthenticate,
-  getEntraIdTokenManager: mockGetEntraIdTokenManager,
-  resetEntraIdTokenManagerForTesting: mock(() => {}),
-}));
+// The sign-in call is passed to `reauth` rather than mocked at module level; see
+// the note in reauth-tool.test.ts for why a module mock could not hold here.
 
 import { reauth, ReauthExitCode } from './reauth';
 
@@ -39,49 +36,49 @@ describe('reauth command', () => {
 
   describe('successful re-authentication', () => {
     it('should return SUCCESS for "Platform"', async () => {
-      const exitCode = await reauth('Platform');
+      const exitCode = await reauth('Platform', { reauthenticate: mockReauthenticate });
 
       expect(mockReauthenticate).toHaveBeenCalledTimes(1);
       expect(exitCode).toBe(ReauthExitCode.SUCCESS);
     });
 
     it('should return SUCCESS for "PLATFORM"', async () => {
-      const exitCode = await reauth('PLATFORM');
+      const exitCode = await reauth('PLATFORM', { reauthenticate: mockReauthenticate });
 
       expect(mockReauthenticate).toHaveBeenCalledTimes(1);
       expect(exitCode).toBe(ReauthExitCode.SUCCESS);
     });
 
     it('should return SUCCESS for "Entra"', async () => {
-      const exitCode = await reauth('Entra');
+      const exitCode = await reauth('Entra', { reauthenticate: mockReauthenticate });
 
       expect(mockReauthenticate).toHaveBeenCalledTimes(1);
       expect(exitCode).toBe(ReauthExitCode.SUCCESS);
     });
 
     it('should be case-insensitive ("platform" works)', async () => {
-      const exitCode = await reauth('platform');
+      const exitCode = await reauth('platform', { reauthenticate: mockReauthenticate });
 
       expect(mockReauthenticate).toHaveBeenCalledTimes(1);
       expect(exitCode).toBe(ReauthExitCode.SUCCESS);
     });
 
     it('should be case-insensitive ("ENTRA" works)', async () => {
-      const exitCode = await reauth('ENTRA');
+      const exitCode = await reauth('ENTRA', { reauthenticate: mockReauthenticate });
 
       expect(mockReauthenticate).toHaveBeenCalledTimes(1);
       expect(exitCode).toBe(ReauthExitCode.SUCCESS);
     });
 
     it('should trim whitespace from service name', async () => {
-      const exitCode = await reauth('  Platform  ');
+      const exitCode = await reauth('  Platform  ', { reauthenticate: mockReauthenticate });
 
       expect(mockReauthenticate).toHaveBeenCalledTimes(1);
       expect(exitCode).toBe(ReauthExitCode.SUCCESS);
     });
 
     it('should print success message with provider name', async () => {
-      await reauth('Platform');
+      await reauth('Platform', { reauthenticate: mockReauthenticate });
 
       const output = consoleLogSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
       expect(output).toContain('Re-authentication successful');
@@ -91,14 +88,14 @@ describe('reauth command', () => {
 
   describe('unknown service', () => {
     it('should return FAILURE for unknown service', async () => {
-      const exitCode = await reauth('FooBar');
+      const exitCode = await reauth('FooBar', { reauthenticate: mockReauthenticate });
 
       expect(mockReauthenticate).not.toHaveBeenCalled();
       expect(exitCode).toBe(ReauthExitCode.FAILURE);
     });
 
     it('should print error with known services list', async () => {
-      await reauth('FooBar');
+      await reauth('FooBar', { reauthenticate: mockReauthenticate });
 
       const output = consoleLogSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
       expect(output).toContain('Unknown service');
@@ -109,14 +106,14 @@ describe('reauth command', () => {
 
   describe('unsupported provider', () => {
     it('should return FAILURE for Slack (not yet supported)', async () => {
-      const exitCode = await reauth('Slack');
+      const exitCode = await reauth('Slack', { reauthenticate: mockReauthenticate });
 
       expect(mockReauthenticate).not.toHaveBeenCalled();
       expect(exitCode).toBe(ReauthExitCode.FAILURE);
     });
 
     it('should print an unknown-service message for Slack', async () => {
-      await reauth('Slack');
+      await reauth('Slack', { reauthenticate: mockReauthenticate });
 
       const output = consoleLogSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
       expect(output).toContain('Unknown service');
@@ -124,14 +121,14 @@ describe('reauth command', () => {
     });
 
     it('should return FAILURE for New Relic', async () => {
-      const exitCode = await reauth('New Relic');
+      const exitCode = await reauth('New Relic', { reauthenticate: mockReauthenticate });
 
       expect(mockReauthenticate).not.toHaveBeenCalled();
       expect(exitCode).toBe(ReauthExitCode.FAILURE);
     });
 
     it('should return FAILURE for Lucid', async () => {
-      const exitCode = await reauth('Lucid');
+      const exitCode = await reauth('Lucid', { reauthenticate: mockReauthenticate });
 
       expect(mockReauthenticate).not.toHaveBeenCalled();
       expect(exitCode).toBe(ReauthExitCode.FAILURE);
@@ -142,14 +139,14 @@ describe('reauth command', () => {
     it('should return FAILURE when reauthenticate throws', async () => {
       mockReauthenticate.mockRejectedValue(new Error('SSO login timed out'));
 
-      const exitCode = await reauth('Platform');
+      const exitCode = await reauth('Platform', { reauthenticate: mockReauthenticate });
       expect(exitCode).toBe(ReauthExitCode.FAILURE);
     });
 
     it('should print error message on failure', async () => {
       mockReauthenticate.mockRejectedValue(new Error('SSO login timed out'));
 
-      await reauth('Platform');
+      await reauth('Platform', { reauthenticate: mockReauthenticate });
 
       const output = consoleLogSpy.mock.calls.map((c: any[]) => c[0]).join('\n');
       expect(output).toContain('Re-authentication failed');
@@ -159,14 +156,14 @@ describe('reauth command', () => {
     it('should handle non-Error throwables', async () => {
       mockReauthenticate.mockRejectedValue('connection lost');
 
-      const exitCode = await reauth('Platform');
+      const exitCode = await reauth('Platform', { reauthenticate: mockReauthenticate });
       expect(exitCode).toBe(ReauthExitCode.FAILURE);
     });
 
     it('should warn when token is empty', async () => {
       mockReauthenticate.mockResolvedValue('');
 
-      const exitCode = await reauth('Platform');
+      const exitCode = await reauth('Platform', { reauthenticate: mockReauthenticate });
       expect(exitCode).toBe(ReauthExitCode.SUCCESS);
 
       const output = consoleLogSpy.mock.calls.map((c: any[]) => c[0]).join('\n');

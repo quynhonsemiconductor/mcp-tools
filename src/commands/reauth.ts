@@ -12,6 +12,7 @@ import {
   SERVICE_TO_PROVIDER,
   SUPPORTED_PROVIDERS,
   type AuthProvider,
+  type ReauthenticateFn,
 } from '../tools/platform-session/reauth-tool';
 
 /**
@@ -40,7 +41,10 @@ export enum ReauthExitCode {
  * @param service - Service name (case-insensitive), e.g. "Platform", "Entra"
  * @returns Exit code indicating success (0) or failure (1)
  */
-export async function reauth(service: string): Promise<ReauthExitCode> {
+export async function reauth(
+  service: string,
+  deps: { reauthenticate?: ReauthenticateFn } = {},
+): Promise<ReauthExitCode> {
   displayHeader();
 
   const normalised = service.trim().toLowerCase();
@@ -67,7 +71,7 @@ export async function reauth(service: string): Promise<ReauthExitCode> {
 
   try {
     const startTime = Date.now();
-    const token = await reauthProvider(provider);
+    const token = await reauthProvider(provider, deps.reauthenticate);
     const elapsedMs = Date.now() - startTime;
 
     if (token) {
@@ -96,9 +100,15 @@ export async function reauth(service: string): Promise<ReauthExitCode> {
  * @param provider - The resolved auth provider key
  * @returns The new access token
  */
-async function reauthProvider(provider: AuthProvider): Promise<string> {
+async function reauthProvider(
+  provider: AuthProvider,
+  injectedReauth?: ReauthenticateFn,
+): Promise<string> {
   switch (provider) {
     case 'entra': {
+      if (injectedReauth) {
+        return injectedReauth();
+      }
       const { reauthenticate } = await import('../services/auth/entra-id');
       return reauthenticate();
     }

@@ -38,6 +38,9 @@ const PROVIDER_LABELS: Record<AuthProvider, string> = {
   entra: 'Entra ID SSO',
 };
 
+/** Performs an interactive sign-in and resolves to the new access token. */
+export type ReauthenticateFn = () => Promise<string>;
+
 export const ReauthSchema = z.object({
   service: z
     .string()
@@ -64,6 +67,25 @@ export type ReauthParams = z.infer<typeof ReauthSchema>;
   },
 })
 export class ReauthTool implements ToolHandler {
+  /**
+   * Sign-in call, overridable in tests.
+   *
+   * Injected rather than reached through the module because three test files
+   * register competing `mock.module` factories for the auth module, and Bun keeps
+   * whichever ran last for the rest of the process. One of them omits this
+   * export, which removed it from the tool depending on file order — 9 failures
+   * here and 9 in the command, on Linux only, because Bun orders files per
+   * platform.
+   */
+  private readonly injectedReauth?: ReauthenticateFn;
+
+  /**
+   * @param injectedReauth - Sign-in implementation; the real module is used when omitted
+   */
+  constructor(injectedReauth?: ReauthenticateFn) {
+    this.injectedReauth = injectedReauth;
+  }
+
   /**
    * Resolve a user-supplied service name to an auth provider and execute
    * re-authentication against it.
@@ -114,6 +136,9 @@ export class ReauthTool implements ToolHandler {
   protected async reauthProvider(provider: AuthProvider): Promise<string> {
     switch (provider) {
       case 'entra': {
+        if (this.injectedReauth) {
+          return this.injectedReauth();
+        }
         const { reauthenticate } = await import('../../services/auth/entra-id');
         return reauthenticate();
       }
