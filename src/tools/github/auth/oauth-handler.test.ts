@@ -411,10 +411,21 @@ describe('GitHubOAuthHandler', () => {
     });
 
     it('should include all core scopes required by GitHub tools', () => {
-      for (const scope of ['repo', 'read:org', 'read:user', 'user:email', 'workflow', 'project']) {
+      // gist is included because five gist tools ship, and GitHub refuses gist
+      // writes without it — they returned "Not Found" for every OAuth user before.
+      for (const scope of [
+        'repo',
+        'read:org',
+        'read:user',
+        'user:email',
+        'workflow',
+        'project',
+        'security_events',
+        'gist',
+      ]) {
         expect(GITHUB_OAUTH_SCOPES).toContain(scope);
       }
-      expect(GITHUB_OAUTH_SCOPES).toHaveLength(7);
+      expect(GITHUB_OAUTH_SCOPES).toHaveLength(8);
     });
 
     it('should pass all scopes through to the OAuth authorization URL as space-separated values', () => {

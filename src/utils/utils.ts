@@ -16,19 +16,30 @@ import { createRequire } from 'module';
 const pkg = createRequire(import.meta.url)('../../package.json') as { version?: unknown };
 
 /**
+ * Output limit for `osascript`, well above Node's 1 MB default.
+ *
+ * The clipboard tool returns images as well as text, so anyone who has taken a
+ * screenshot has more than 1 MB on the clipboard, and the read failed with
+ * ENOBUFS — a routine action breaking the tool.
+ */
+export const OSASCRIPT_MAX_BUFFER = 64 * 1024 * 1024;
+
+/**
  * Executes an AppleScript command using the `osascript` command-line tool.
  *
  * @param input - The AppleScript code to execute as a string.
+ * @param maxBuffer - Largest output accepted, in bytes.
  * @returns The output of the executed AppleScript command as a string.
  *
  * @throws Will throw an error if the `osascript` command fails.
  *
  * Note: Standard error output is ignored by redirecting it to `/dev/null`.
  */
-export const executeOSAScript = (input: string): string =>
+export const executeOSAScript = (input: string, maxBuffer = OSASCRIPT_MAX_BUFFER): string =>
   execSync('osascript', {
     encoding: 'utf8',
     input,
+    maxBuffer,
     stdio: ['pipe', 'pipe', 'ignore'], // Redirect stderr to /dev/null
   });
 

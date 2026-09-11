@@ -36,8 +36,9 @@ function asFileSystemError(err: unknown): FileSystemError {
  * Exported separately so tests can access .shape (ZodEffects from .refine() does not expose .shape).
  */
 export const GithubCreateUpdateFileContentToolBaseSchema = createGithubBaseSchema({
-  owner: z.string().describe('Repository owner'),
-  repo: z.string().describe('Repository name'),
+  // `org` and `repo` already come from createGithubBaseSchema. Declaring an
+  // `owner` here as well made the organisation a required argument twice under
+  // two names, and the call failed unless both were supplied.
   path: z.string().describe('The file path in the repository'),
   message: z.string().describe('The commit message'),
   content: z
@@ -62,19 +63,26 @@ export const GithubCreateUpdateFileContentToolBaseSchema = createGithubBaseSchem
       'Absolute path to a local file to upload. Preferred for large files or binary content (images, archives, etc.) to avoid bloating the context. The tool reads and encodes the file automatically. Mutually exclusive with content.',
     ),
   branch: z.string().describe('The branch name'),
-  sha: z.string().describe('The blob SHA of the file being replaced.'),
+  // Required by GitHub only when replacing an existing file. Making it mandatory
+  // meant this tool could not create one, despite its name: a new path has no blob
+  // SHA to quote.
+  sha: z.string().optional().describe('Blob SHA of the file being replaced; omit when creating'),
+  // GitHub defaults both of these to the authenticated user, so demanding them
+  // forced callers to invent identity details for their own commit.
   committer: z
     .object({
       name: z.string().describe('The name of the committer'),
       email: z.string().email().describe('The email of the committer'),
     })
-    .describe('The committer information'),
+    .optional()
+    .describe('Committer information; defaults to the authenticated user'),
   author: z
     .object({
       name: z.string().describe('The name of the author'),
       email: z.string().email().describe('The email of the author'),
     })
-    .describe('The author information'),
+    .optional()
+    .describe('Author information; defaults to the authenticated user'),
 });
 
 /**

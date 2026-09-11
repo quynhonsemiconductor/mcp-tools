@@ -61,7 +61,17 @@ export class DeleteGithubProjectFieldTool extends GithubBaseTool {
       `mutation DeleteField($fieldId: ID!) {
         deleteProjectV2Field(input: { fieldId: $fieldId }) {
           projectV2Field {
-            id
+            # ProjectV2FieldConfiguration is a union, so id cannot be selected on it
+            # directly — GraphQL rejected the whole mutation.
+            ... on ProjectV2Field {
+              id
+            }
+            ... on ProjectV2SingleSelectField {
+              id
+            }
+            ... on ProjectV2IterationField {
+              id
+            }
           }
         }
       }`,

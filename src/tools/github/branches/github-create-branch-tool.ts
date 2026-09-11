@@ -8,8 +8,9 @@ import { createGithubBaseSchema, parseAndTransformGitHubParams } from '../schema
  * Schema definition for the createGithubBranch tool parameters
  */
 export const GithubCreateBranchToolSchema = createGithubBaseSchema({
-  owner: z.string().describe('Repository owner'),
-  repo: z.string().describe('Repository name'),
+  // `org` and `repo` already come from createGithubBaseSchema. Declaring an
+  // `owner` here as well made the organisation a required argument twice under
+  // two names, and the call failed unless both were supplied.
   ref: z.string().describe('The Git reference for the new branch (e.g., "refs/heads/branch-name")'),
   sha: z.string().describe('The commit SHA to create the branch from'),
 });

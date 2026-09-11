@@ -97,6 +97,11 @@ export const GITHUB_OAUTH_SCOPES = [
   'workflow', // Update GitHub Action workflows
   'project', // Full control of Projects V2 (read + write)
   'security_events', // Read/write code scanning and Dependabot alert endpoints
+  // Five gist tools ship in this build and GitHub refuses gist writes without
+  // this scope, so creating, updating or deleting a gist returned "Not Found" for
+  // every OAuth user. Anyone who signed in before this was added has to
+  // re-authorise, since scopes are fixed at authorisation time.
+  'gist',
 ];
 
 /** Standard error message for unconfigured OAuth - used across modules */
