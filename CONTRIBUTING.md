@@ -485,15 +485,32 @@ Two are worth knowing before they surprise you:
    - Ensure code follows the project's style guidelines
    - Document new tools or significant changes
 
-   > **Three tests fail in a full run and are not your fault.** The three
-   > `localMcpReferenceValidation` cases in
-   > `src/services/validation/checks/qnscmcp/local-mcps.test.ts` pass on their own but
-   > fail when the whole suite runs. `src/gateway/local-mcp-manager.test.ts` calls
-   > Bun's `mock.module()` on `available-local-servers`, and that replacement is
-   > process-global and cannot be undone by `mock.restore()`, so it leaks into any
-   > file that runs afterwards. Confirm your change with
-   > `bun test <your-file>` and compare a full run against `main` before assuming you
-   > broke something.
+   > **The suite passes in full, and a file that only passes in a full run is a
+   > problem.** Bun's `mock.module()` is process-global and cannot be undone by
+   > `mock.restore()`, so mocking a module that other files import leaks into
+   > everything that runs after it — in both directions. Three separate leaks were
+   > removed by giving the code an argument to pass instead: the local MCP
+   > catalogue, the static-bearer auth map, and the Entra sign-in call. One of them
+   > was hiding a real breakage, where the affected tests failed **alone** and
+   > passed in the full run.
+   >
+   > So check both: `bun test <your-file>` on its own, and a full `bun test`. If you
+   > need to replace a module for a test, prefer adding a parameter with a default
+   > over `mock.module()`.
+
+   > **Coverage is gated by `scripts/check-coverage.ts`, not by Bun.**
+   > `bun test` writes an lcov report and the script enforces a minimum against it,
+   > printing both figures. Bun's own `coverageThreshold` is not used: on 1.4.0 the
+   > scalar form fails at every value with no message, and the object form is
+   > ignored entirely. Run `bun run scripts/check-coverage.ts` locally to see where
+   > you stand, or `--report` to print the numbers without failing.
+
+   > **If a change reduces its own test's assertions, the `test-guard` check fails.**
+   > That is deliberate and applies to humans as well as agents. When the reduction
+   > is correct — for example when the fixtures asserted on something that no longer
+   > exists — put a line in the PR body beginning `agent-forge: test-edit-approved`
+   > and explain why. Note that re-running the check replays the original event, so
+   > it will not see a body you edited afterwards; push a commit to re-evaluate.
 
 2. **Creating a PR**
    - Create a PR against the `main` branch
