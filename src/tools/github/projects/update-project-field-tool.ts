@@ -86,10 +86,24 @@ export class UpdateGithubProjectFieldTool extends GithubBaseTool {
           singleSelectOptions: $singleSelectOptions
         }) {
           projectV2Field {
+            # Same union as createProjectV2Field: selecting on
+            # ProjectV2FieldConfiguration directly is rejected by GraphQL.
             __typename
-            id
-            name
-            dataType
+            ... on ProjectV2Field {
+              id
+              name
+              dataType
+            }
+            ... on ProjectV2SingleSelectField {
+              id
+              name
+              dataType
+            }
+            ... on ProjectV2IterationField {
+              id
+              name
+              dataType
+            }
           }
         }
       }`,

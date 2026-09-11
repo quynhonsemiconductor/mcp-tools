@@ -57,7 +57,7 @@ To see all 92 GitHub tools rather than the 15 enabled by default, list with
 Write operations were exercised against `quynhonsemiconductor/mcp-tools-verify`, a
 throwaway repository, so nothing was created in a real one. 14 verified so far.
 
-Three more real defects were found and fixed:
+Six more real defects were found and fixed:
 
 - `github-create-branch` and `github-create-update-file-content` required the
   organisation **twice**, as `org` and again as `owner`, because they declared their
@@ -72,9 +72,19 @@ Three more real defects were found and fixed:
   Gist writes returned "Not Found" for every OAuth user. Anyone who signed in before
   this change has to re-authorise, because scopes are fixed at authorisation time.
 
-Two apparent failures are correct GitHub behaviour, not defects: a review cannot be
-requested from the pull request's own author, and `pulls-update-branch` reports there
-are no new commits on the base branch when that is true.
+- Three Projects mutations selected fields directly on the union
+  `ProjectV2FieldConfiguration`, which GraphQL forbids, so creating, updating and
+  deleting a project field failed every time with "Selections can't be made directly
+  on unions". They now name the concrete types through inline fragments.
+- `github-projects-create-field` marked an option's `colour` and `description`
+  optional, but GitHub rejects nulls for both, so every SINGLE_SELECT field failed.
+  They now default, and the params type is `z.input` so callers may still omit them.
+
+Several apparent failures are correct GitHub behaviour, not defects: a review cannot be
+requested from the pull request's own author; `pulls-update-branch` reports there are
+no new commits on the base branch when that is true; a title field cannot be cleared;
+only custom project fields can be deleted; and dispatching a workflow in a repository
+that has none returns not found.
 
 **Review status:** `[ ]` not checked, `[x]` verified working, `[!]` broken/needs work, `[-]` not applicable to us.
 
@@ -116,7 +126,7 @@ are no new commits on the base branch when that is true.
 |---|---|---|---|---|
 | [x] | ○ | `github-get-dependabot-alert` | `getDependabotAlert` | Retrieves a Dependabot alert |
 | [x] | ○ | `github-list-dependabot-alerts` | `listDependabotAlerts` | List Dependabot alerts for a repository |
-| [ ] | ○ | `github-update-dependabot-alert` | `updateDependabotAlert` | Updates a Dependabot alert |
+| [x] | ○ | `github-update-dependabot-alert` | `updateDependabotAlert` | Updates a Dependabot alert |
 
 #### Github: Discussions (9)
 
@@ -125,7 +135,7 @@ are no new commits on the base branch when that is true.
 | [ ] | ○ | `github-create-team-discussion-comment-reaction` | `createGithubTeamDiscussionCommentReaction` | Creates a reaction to a team discussion comment |
 | [ ] | ○ | `github-create-team-discussion-reaction` | `createGithubTeamDiscussionReaction` | Creates a reaction to a team discussion |
 | [ ] | ○ | `github-delete-commit-comment-reaction` | `deleteGithubCommitCommentReaction` | Deletes a reaction to a commit comment |
-| [ ] | ○ | `github-delete-issue-comment-reaction` | `deleteGithubIssueCommentReaction` | Deletes a reaction to an issue comment |
+| [x] | ○ | `github-delete-issue-comment-reaction` | `deleteGithubIssueCommentReaction` | Deletes a reaction to an issue comment |
 | [ ] | ○ | `github-delete-issue-reaction` | `deleteGithubIssueReaction` | Deletes a reaction to an issue |
 | [ ] | ○ | `github-delete-pull-request-comment-reaction` | `deleteGithubPullRequestCommentReaction` | Deletes a reaction to a pull request review comment |
 | [ ] | ○ | `github-delete-release-reaction` | `deleteGithubReleaseReaction` | Deletes a reaction to a release |
@@ -169,25 +179,25 @@ are no new commits on the base branch when that is true.
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-projects-add-draft-issue` | `addGithubProjectDraftIssue` | Creates a draft issue directly in a GitHub Project V2. Draft issues exist only within the project and are not linked to a repository. |
-| [ ] | ○ | `github-projects-add-item` | `addGithubProjectItem` | Adds an existing issue or pull request to a GitHub Project V2. Requires the project node ID and the content node ID (issue or PR). |
-| [ ] | ○ | `github-projects-archive-item` | `archiveGithubProjectItem` | Archives an item in a GitHub Project V2. Archived items are hidden from default views but can be restored with unarchiveGithubProjectItem. |
+| [x] | ○ | `github-projects-add-draft-issue` | `addGithubProjectDraftIssue` | Creates a draft issue directly in a GitHub Project V2. Draft issues exist only within the project and are not linked to a repository. |
+| [x] | ○ | `github-projects-add-item` | `addGithubProjectItem` | Adds an existing issue or pull request to a GitHub Project V2. Requires the project node ID and the content node ID (issue or PR). |
+| [x] | ○ | `github-projects-archive-item` | `archiveGithubProjectItem` | Archives an item in a GitHub Project V2. Archived items are hidden from default views but can be restored with unarchiveGithubProjectItem. |
 | [ ] | ○ | `github-projects-clear-item-field` | `clearGithubProjectItemField` | Clears/resets a field value on a GitHub Project V2 item. Supports text, number, date, single-select, iteration, assignees, labels, and milestone fields. |
 | [ ] | ○ | `github-projects-convert-draft-to-issue` | `convertGithubProjectDraftToIssue` | Converts a draft issue in a GitHub Project V2 into a real GitHub issue in the specified repository. The item remains in the project but is now linked to the created issue. |
-| [ ] | ○ | `github-projects-create` | `createGithubProject` | Creates a new GitHub Project V2 for an organization or user. Requires the owner node ID (use getGithubOrganization for orgs, or the GraphQL viewer query for users). |
-| [ ] | ○ | `github-projects-create-field` | `createGithubProjectField` | Creates a new custom field in a GitHub Project V2. Supports TEXT, NUMBER, DATE, SINGLE_SELECT, and ITERATION field types. For SINGLE_SELECT, provide single_select_options with name and optional color/description. |
-| [ ] | ○ | `github-projects-delete-field` | `deleteGithubProjectField` | Deletes a custom field from a GitHub Project V2. This permanently removes the field and all its values from all items in the project. |
-| [ ] | ○ | `github-projects-delete-item` | `deleteGithubProjectItem` | Removes an item from a GitHub Project V2. This does not delete the underlying issue or pull request, only removes it from the project. |
-| [ ] | ○ | `github-projects-get` | `getGithubProject` | Gets a single GitHub Project V2 by number for an organization or user. Provide either org or user parameter. Returns the project node ID needed by other project tools, along with full project details. |
+| [x] | ○ | `github-projects-create` | `createGithubProject` | Creates a new GitHub Project V2 for an organization or user. Requires the owner node ID (use getGithubOrganization for orgs, or the GraphQL viewer query for users). |
+| [x] | ○ | `github-projects-create-field` | `createGithubProjectField` | Creates a new custom field in a GitHub Project V2. Supports TEXT, NUMBER, DATE, SINGLE_SELECT, and ITERATION field types. For SINGLE_SELECT, provide single_select_options with name and optional color/description. |
+| [x] | ○ | `github-projects-delete-field` | `deleteGithubProjectField` | Deletes a custom field from a GitHub Project V2. This permanently removes the field and all its values from all items in the project. |
+| [x] | ○ | `github-projects-delete-item` | `deleteGithubProjectItem` | Removes an item from a GitHub Project V2. This does not delete the underlying issue or pull request, only removes it from the project. |
+| [x] | ○ | `github-projects-get` | `getGithubProject` | Gets a single GitHub Project V2 by number for an organization or user. Provide either org or user parameter. Returns the project node ID needed by other project tools, along with full project details. |
 | [x] | ○ | `github-projects-list` | `listGithubProjects` | Lists GitHub Projects V2 for an organization or user. Provide either org or user parameter. Returns project titles, IDs, and metadata with pagination support. |
-| [ ] | ○ | `github-projects-list-fields` | `listGithubProjectFields` | Lists fields/columns defined on a GitHub Project V2. Returns field IDs, names, types, and options (for single-select and iteration fields). Use this to discover field IDs before updating item field values. |
-| [ ] | ○ | `github-projects-list-items` | `listGithubProjectItems` | Lists items (issues, pull requests, and draft issues) in a GitHub Project V2, including their field values. Use listGithubProjectFields first to understand the available fields. |
-| [ ] | ○ | `github-projects-unarchive-item` | `unarchiveGithubProjectItem` | Restores an archived item in a GitHub Project V2, making it visible in default views again. |
-| [ ] | ○ | `github-projects-update` | `updateGithubProject` | Updates a GitHub Project V2 settings including title, description, readme, visibility, and closed state. |
-| [ ] | ○ | `github-projects-update-draft-issue` | `updateGithubProjectDraftIssue` | Updates the title and/or body of a draft issue in a GitHub Project V2. |
-| [ ] | ○ | `github-projects-update-field` | `updateGithubProjectField` | Updates a custom field in a GitHub Project V2. Can rename the field or modify single-select options. For single-select fields, include the option id to update existing options or omit it to add new options. |
-| [ ] | ○ | `github-projects-update-item-field` | `updateGithubProjectItemField` | Sets a field value on a GitHub Project V2 item. Supports text, number, date, single-select, and iteration field types. Use listGithubProjectFields first to discover field IDs and available options. |
-| [ ] | ○ | `github-projects-update-item-position` | `updateGithubProjectItemPosition` | Updates the position of an item in a GitHub Project V2. Place the item after a specific item, or omit after_id to move it to the top. |
+| [x] | ○ | `github-projects-list-fields` | `listGithubProjectFields` | Lists fields/columns defined on a GitHub Project V2. Returns field IDs, names, types, and options (for single-select and iteration fields). Use this to discover field IDs before updating item field values. |
+| [x] | ○ | `github-projects-list-items` | `listGithubProjectItems` | Lists items (issues, pull requests, and draft issues) in a GitHub Project V2, including their field values. Use listGithubProjectFields first to understand the available fields. |
+| [x] | ○ | `github-projects-unarchive-item` | `unarchiveGithubProjectItem` | Restores an archived item in a GitHub Project V2, making it visible in default views again. |
+| [x] | ○ | `github-projects-update` | `updateGithubProject` | Updates a GitHub Project V2 settings including title, description, readme, visibility, and closed state. |
+| [x] | ○ | `github-projects-update-draft-issue` | `updateGithubProjectDraftIssue` | Updates the title and/or body of a draft issue in a GitHub Project V2. |
+| [x] | ○ | `github-projects-update-field` | `updateGithubProjectField` | Updates a custom field in a GitHub Project V2. Can rename the field or modify single-select options. For single-select fields, include the option id to update existing options or omit it to add new options. |
+| [x] | ○ | `github-projects-update-item-field` | `updateGithubProjectItemField` | Sets a field value on a GitHub Project V2 item. Supports text, number, date, single-select, and iteration field types. Use listGithubProjectFields first to discover field IDs and available options. |
+| [x] | ○ | `github-projects-update-item-position` | `updateGithubProjectItemPosition` | Updates the position of an item in a GitHub Project V2. Place the item after a specific item, or omit after_id to move it to the top. |
 
 #### Github: Pulls (15)
 
