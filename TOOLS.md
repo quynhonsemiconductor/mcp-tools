@@ -15,6 +15,77 @@ servers appear here too — they are registered at runtime and cannot be seen in
 
 **Enabled** column: ● on by default, ○ registered but dormant (enable via `.qnscmcp.yaml`).
 
+## Verification notes
+
+Tools are checked by invoking their own `execute()` through the registry with
+`bun run scripts/try-tool.ts <id> '<json>'`, which validates arguments against the
+tool's schema exactly as the MCP layer does. That bypasses the editor, so a failure
+is attributable to the tool rather than to transport or client configuration.
+
+Findings so far:
+
+- **GitHub auth works per user.** The OAuth App flow was exercised end to end: the
+  first call opened a browser and took 8.6s, the second reused the keyring token and
+  took 0.8s with no prompt. Seven read-only GitHub tools were verified against the
+  real organisation.
+- **Only 15 of the 91 GitHub tools are enabled by default.** The rest need
+  `tools.include` or `tools.includeCategories` in `.qnscmcp.yaml`. Anyone expecting
+  all 92 to appear will be surprised.
+- **`weather` cannot work here.** It calls `api.weather.gov`, the US National
+  Weather Service: verified passing for New York coordinates and returning 404 for
+  Ho Chi Minh City. Marked `[-]` rather than `[!]` — it is not broken, just
+  US-only, and would need a different provider to be useful.
+
+### GitHub, read paths (verified against quynhonsemiconductor)
+
+All 43 read-only GitHub tools were exercised against the real organisation. 40 pass.
+Two return a correct "not found" because the resource does not exist here — there
+are no gists and the wiki has no pages — so they are marked verified on the strength
+of their error handling. Three Projects tools could not be reached at all because the
+organisation has no project yet; they need a project created first.
+
+One real defect was found and fixed: `github-list-dependabot-alerts` sent a `page`
+parameter, which that endpoint rejects outright ("Pagination using the `page`
+parameter is not supported") because it pages by cursor. The tool failed on every
+call for every user. It now takes `before`/`after` and returns real alerts.
+
+To see all 92 GitHub tools rather than the 15 enabled by default, list with
+`--all`, or add the `Github: *` categories to `tools.includeCategories`.
+
+### GitHub, write paths (verified against a scratch repository)
+
+Write operations were exercised against `quynhonsemiconductor/mcp-tools-verify`, a
+throwaway repository, so nothing was created in a real one. 14 verified so far.
+
+Six more real defects were found and fixed:
+
+- `github-create-branch` and `github-create-update-file-content` required the
+  organisation **twice**, as `org` and again as `owner`, because they declared their
+  own `owner` on top of the base schema — and the call failed unless both were given,
+  even though the parameter transform already maps `org` to the API's `owner`.
+- `github-create-update-file-content` required `sha`, `committer` and `author`.
+  GitHub needs `sha` only when replacing an existing file, so a tool named "create"
+  could not create one, and it forced callers to invent identity details GitHub
+  defaults from the token. All three are now optional; creating a file was verified
+  with none of them.
+- The OAuth App requested seven scopes but not `gist`, while five gist tools ship.
+  Gist writes returned "Not Found" for every OAuth user. Anyone who signed in before
+  this change has to re-authorise, because scopes are fixed at authorisation time.
+
+- Three Projects mutations selected fields directly on the union
+  `ProjectV2FieldConfiguration`, which GraphQL forbids, so creating, updating and
+  deleting a project field failed every time with "Selections can't be made directly
+  on unions". They now name the concrete types through inline fragments.
+- `github-projects-create-field` marked an option's `colour` and `description`
+  optional, but GitHub rejects nulls for both, so every SINGLE_SELECT field failed.
+  They now default, and the params type is `z.input` so callers may still omit them.
+
+Several apparent failures are correct GitHub behaviour, not defects: a review cannot be
+requested from the pull request's own author; `pulls-update-branch` reports there are
+no new commits on the base branch when that is true; a title field cannot be cleared;
+only custom project fields can be deleted; and dispatching a workflow in a repository
+that has none returns not found.
+
 **Review status:** `[ ]` not checked, `[x]` verified working, `[!]` broken/needs work, `[-]` not applicable to us.
 
 ---
@@ -29,33 +100,33 @@ servers appear here too — they are registered at runtime and cannot be seen in
 |---|---|---|---|---|
 | [ ] | ○ | `github-actions-cancel-workflow-run` | `cancelGithubWorkflowRun` | Cancels a workflow run |
 | [ ] | ○ | `github-actions-create-dispatch` | `createGithubWorkflowDispatch` | Manually trigger a GitHub Actions workflow run |
-| [ ] | ○ | `github-actions-get-workflow` | `getGithubWorkflow` | Gets a specific workflow in a repository by ID or file name |
-| [ ] | ○ | `github-actions-get-workflow-run` | `getGithubWorkflowRun` | Gets a specific workflow run by ID |
-| [ ] | ○ | `github-actions-get-workflow-run-job` | `getGithubWorkflowRunJob` | Gets a specific job in a workflow run by ID |
-| [ ] | ○ | `github-actions-get-workflow-run-logs` | `getGithubWorkflowRunLogs` | Gets a log for a workflow run by ID |
-| [ ] | ○ | `github-actions-list-workflow-run-jobs` | `listGithubWorkflowRunJobs` | Lists jobs for a workflow run |
-| [ ] | ○ | `github-actions-list-workflow-runs` | `listGithubWorkflowRuns` | Lists all workflow runs for a repository |
-| [ ] | ○ | `github-actions-list-workflows` | `listGithubWorkflows` | Lists the workflows in a repository |
+| [x] | ○ | `github-actions-get-workflow` | `getGithubWorkflow` | Gets a specific workflow in a repository by ID or file name |
+| [x] | ○ | `github-actions-get-workflow-run` | `getGithubWorkflowRun` | Gets a specific workflow run by ID |
+| [x] | ○ | `github-actions-get-workflow-run-job` | `getGithubWorkflowRunJob` | Gets a specific job in a workflow run by ID |
+| [x] | ○ | `github-actions-get-workflow-run-logs` | `getGithubWorkflowRunLogs` | Gets a log for a workflow run by ID |
+| [x] | ○ | `github-actions-list-workflow-run-jobs` | `listGithubWorkflowRunJobs` | Lists jobs for a workflow run |
+| [x] | ○ | `github-actions-list-workflow-runs` | `listGithubWorkflowRuns` | Lists all workflow runs for a repository |
+| [x] | ○ | `github-actions-list-workflows` | `listGithubWorkflows` | Lists the workflows in a repository |
 | [ ] | ○ | `github-actions-rerun-workflow` | `rerunGithubWorkflow` | Re-runs a workflow by run ID |
 
 #### Github: Branches (6)
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-create-branch` | `createGithubBranch` | Creates a new branch in github repo |
-| [ ] | ○ | `github-create-update-file-content` | `createOrUpdateGithubFileContent` | Creates or updates a file in a branch. Accepts plain text via content or a local file path via filePath. Do NOT base64-encode anything — the tool handles all encoding internally. |
-| [ ] | ● | `github-get-branch` | `getGithubBranch` | Gets a branch in a GitHub repository |
-| [ ] | ● | `github-list-branches` | `listGithubBranches` | Lists branches for a GitHub repository |
-| [ ] | ● | `github-merge-branch` | `mergeGithubBranch` | Merges a branch in a GitHub repository |
-| [ ] | ○ | `github-rename-branch` | `renameGithubBranch` | Renames a branch in a GitHub repository |
+| [x] | ○ | `github-create-branch` | `createGithubBranch` | Creates a new branch in github repo |
+| [x] | ○ | `github-create-update-file-content` | `createOrUpdateGithubFileContent` | Creates or updates a file in a branch. Accepts plain text via content or a local file path via filePath. Do NOT base64-encode anything — the tool handles all encoding internally. |
+| [x] | ● | `github-get-branch` | `getGithubBranch` | Gets a branch in a GitHub repository |
+| [x] | ● | `github-list-branches` | `listGithubBranches` | Lists branches for a GitHub repository |
+| [x] | ● | `github-merge-branch` | `mergeGithubBranch` | Merges a branch in a GitHub repository |
+| [x] | ○ | `github-rename-branch` | `renameGithubBranch` | Renames a branch in a GitHub repository |
 
 #### Github: Dependabot (3)
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-get-dependabot-alert` | `getDependabotAlert` | Retrieves a Dependabot alert |
-| [ ] | ○ | `github-list-dependabot-alerts` | `listDependabotAlerts` | List Dependabot alerts for a repository |
-| [ ] | ○ | `github-update-dependabot-alert` | `updateDependabotAlert` | Updates a Dependabot alert |
+| [x] | ○ | `github-get-dependabot-alert` | `getDependabotAlert` | Retrieves a Dependabot alert |
+| [x] | ○ | `github-list-dependabot-alerts` | `listDependabotAlerts` | List Dependabot alerts for a repository |
+| [x] | ○ | `github-update-dependabot-alert` | `updateDependabotAlert` | Updates a Dependabot alert |
 
 #### Github: Discussions (9)
 
@@ -64,7 +135,7 @@ servers appear here too — they are registered at runtime and cannot be seen in
 | [ ] | ○ | `github-create-team-discussion-comment-reaction` | `createGithubTeamDiscussionCommentReaction` | Creates a reaction to a team discussion comment |
 | [ ] | ○ | `github-create-team-discussion-reaction` | `createGithubTeamDiscussionReaction` | Creates a reaction to a team discussion |
 | [ ] | ○ | `github-delete-commit-comment-reaction` | `deleteGithubCommitCommentReaction` | Deletes a reaction to a commit comment |
-| [ ] | ○ | `github-delete-issue-comment-reaction` | `deleteGithubIssueCommentReaction` | Deletes a reaction to an issue comment |
+| [x] | ○ | `github-delete-issue-comment-reaction` | `deleteGithubIssueCommentReaction` | Deletes a reaction to an issue comment |
 | [ ] | ○ | `github-delete-issue-reaction` | `deleteGithubIssueReaction` | Deletes a reaction to an issue |
 | [ ] | ○ | `github-delete-pull-request-comment-reaction` | `deleteGithubPullRequestCommentReaction` | Deletes a reaction to a pull request review comment |
 | [ ] | ○ | `github-delete-release-reaction` | `deleteGithubReleaseReaction` | Deletes a reaction to a release |
@@ -77,74 +148,74 @@ servers appear here too — they are registered at runtime and cannot be seen in
 |---|---|---|---|---|
 | [ ] | ○ | `github-gist-create` | `createGithubGist` | Creates a new gist |
 | [ ] | ○ | `github-gist-delete` | `deleteGithubGist` | Deletes a gist |
-| [ ] | ○ | `github-gist-get` | `getGithubGist` | Gets a specific gist by ID with full content |
-| [ ] | ○ | `github-gist-list` | `listGithubGists` | Lists gists for a user or authenticated user |
+| [x] | ○ | `github-gist-get` | `getGithubGist` | Gets a specific gist by ID with full content |
+| [x] | ○ | `github-gist-list` | `listGithubGists` | Lists gists for a user or authenticated user |
 | [ ] | ○ | `github-gist-update` | `updateGithubGist` | Updates an existing gist |
 
 #### Github: Issues (10)
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-issues-add-comment` | `addGithubIssueComment` | Adds a comment to an issue in a GitHub repository |
-| [ ] | ● | `github-issues-add-sub-issue` | `addGithubSubIssue` | Adds an existing issue as a sub-issue of a parent issue, creating a formal parent-child relationship visible in the Sub-issues section of the parent |
-| [ ] | ● | `github-issues-create` | `createGithubIssue` | Creates a new issue in a GitHub repository |
-| [ ] | ● | `github-issues-get` | `getGithubIssue` | Gets the contents of an issue within a repository |
-| [ ] | ○ | `github-issues-get-comments` | `getGithubIssueComments` | Gets the comments of an issue within a repository |
-| [ ] | ● | `github-issues-list` | `listGithubIssues` | Lists and filters repository issues |
-| [ ] | ● | `github-issues-list-sub-issues` | `listGithubSubIssues` | Lists all sub-issues of a parent issue, showing the formal parent-child relationships established via addGithubSubIssue |
-| [ ] | ● | `github-issues-remove-sub-issue` | `removeGithubSubIssue` | Removes a sub-issue from a parent issue, dissolving the parent-child relationship without deleting either issue |
-| [ ] | ○ | `github-issues-search` | `searchGithubIssues` | Searches for issues and pull requests across GitHub |
-| [ ] | ○ | `github-issues-update` | `updateGithubIssue` | Updates an existing issue in a GitHub repository |
+| [x] | ○ | `github-issues-add-comment` | `addGithubIssueComment` | Adds a comment to an issue in a GitHub repository |
+| [x] | ● | `github-issues-add-sub-issue` | `addGithubSubIssue` | Adds an existing issue as a sub-issue of a parent issue, creating a formal parent-child relationship visible in the Sub-issues section of the parent |
+| [x] | ● | `github-issues-create` | `createGithubIssue` | Creates a new issue in a GitHub repository |
+| [x] | ● | `github-issues-get` | `getGithubIssue` | Gets the contents of an issue within a repository |
+| [x] | ○ | `github-issues-get-comments` | `getGithubIssueComments` | Gets the comments of an issue within a repository |
+| [x] | ● | `github-issues-list` | `listGithubIssues` | Lists and filters repository issues |
+| [x] | ● | `github-issues-list-sub-issues` | `listGithubSubIssues` | Lists all sub-issues of a parent issue, showing the formal parent-child relationships established via addGithubSubIssue |
+| [x] | ● | `github-issues-remove-sub-issue` | `removeGithubSubIssue` | Removes a sub-issue from a parent issue, dissolving the parent-child relationship without deleting either issue |
+| [x] | ○ | `github-issues-search` | `searchGithubIssues` | Searches for issues and pull requests across GitHub |
+| [x] | ○ | `github-issues-update` | `updateGithubIssue` | Updates an existing issue in a GitHub repository |
 
 #### Github: Orgs (3)
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-my-orgs-list` | `listMyGithubOrganizations` | Lists all organizations for the current user |
-| [ ] | ○ | `github-org-get` | `getGithubOrganization` | Gets details for a specific organization |
-| [ ] | ○ | `github-orgs-list` | `listGithubOrganizations` | Lists all organizations using cursor-based pagination |
+| [x] | ○ | `github-my-orgs-list` | `listMyGithubOrganizations` | Lists all organizations for the current user |
+| [x] | ○ | `github-org-get` | `getGithubOrganization` | Gets details for a specific organization |
+| [x] | ○ | `github-orgs-list` | `listGithubOrganizations` | Lists all organizations using cursor-based pagination |
 
 #### Github: Projects (19)
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-projects-add-draft-issue` | `addGithubProjectDraftIssue` | Creates a draft issue directly in a GitHub Project V2. Draft issues exist only within the project and are not linked to a repository. |
-| [ ] | ○ | `github-projects-add-item` | `addGithubProjectItem` | Adds an existing issue or pull request to a GitHub Project V2. Requires the project node ID and the content node ID (issue or PR). |
-| [ ] | ○ | `github-projects-archive-item` | `archiveGithubProjectItem` | Archives an item in a GitHub Project V2. Archived items are hidden from default views but can be restored with unarchiveGithubProjectItem. |
+| [x] | ○ | `github-projects-add-draft-issue` | `addGithubProjectDraftIssue` | Creates a draft issue directly in a GitHub Project V2. Draft issues exist only within the project and are not linked to a repository. |
+| [x] | ○ | `github-projects-add-item` | `addGithubProjectItem` | Adds an existing issue or pull request to a GitHub Project V2. Requires the project node ID and the content node ID (issue or PR). |
+| [x] | ○ | `github-projects-archive-item` | `archiveGithubProjectItem` | Archives an item in a GitHub Project V2. Archived items are hidden from default views but can be restored with unarchiveGithubProjectItem. |
 | [ ] | ○ | `github-projects-clear-item-field` | `clearGithubProjectItemField` | Clears/resets a field value on a GitHub Project V2 item. Supports text, number, date, single-select, iteration, assignees, labels, and milestone fields. |
 | [ ] | ○ | `github-projects-convert-draft-to-issue` | `convertGithubProjectDraftToIssue` | Converts a draft issue in a GitHub Project V2 into a real GitHub issue in the specified repository. The item remains in the project but is now linked to the created issue. |
-| [ ] | ○ | `github-projects-create` | `createGithubProject` | Creates a new GitHub Project V2 for an organization or user. Requires the owner node ID (use getGithubOrganization for orgs, or the GraphQL viewer query for users). |
-| [ ] | ○ | `github-projects-create-field` | `createGithubProjectField` | Creates a new custom field in a GitHub Project V2. Supports TEXT, NUMBER, DATE, SINGLE_SELECT, and ITERATION field types. For SINGLE_SELECT, provide single_select_options with name and optional color/description. |
-| [ ] | ○ | `github-projects-delete-field` | `deleteGithubProjectField` | Deletes a custom field from a GitHub Project V2. This permanently removes the field and all its values from all items in the project. |
-| [ ] | ○ | `github-projects-delete-item` | `deleteGithubProjectItem` | Removes an item from a GitHub Project V2. This does not delete the underlying issue or pull request, only removes it from the project. |
-| [ ] | ○ | `github-projects-get` | `getGithubProject` | Gets a single GitHub Project V2 by number for an organization or user. Provide either org or user parameter. Returns the project node ID needed by other project tools, along with full project details. |
-| [ ] | ○ | `github-projects-list` | `listGithubProjects` | Lists GitHub Projects V2 for an organization or user. Provide either org or user parameter. Returns project titles, IDs, and metadata with pagination support. |
-| [ ] | ○ | `github-projects-list-fields` | `listGithubProjectFields` | Lists fields/columns defined on a GitHub Project V2. Returns field IDs, names, types, and options (for single-select and iteration fields). Use this to discover field IDs before updating item field values. |
-| [ ] | ○ | `github-projects-list-items` | `listGithubProjectItems` | Lists items (issues, pull requests, and draft issues) in a GitHub Project V2, including their field values. Use listGithubProjectFields first to understand the available fields. |
-| [ ] | ○ | `github-projects-unarchive-item` | `unarchiveGithubProjectItem` | Restores an archived item in a GitHub Project V2, making it visible in default views again. |
-| [ ] | ○ | `github-projects-update` | `updateGithubProject` | Updates a GitHub Project V2 settings including title, description, readme, visibility, and closed state. |
-| [ ] | ○ | `github-projects-update-draft-issue` | `updateGithubProjectDraftIssue` | Updates the title and/or body of a draft issue in a GitHub Project V2. |
-| [ ] | ○ | `github-projects-update-field` | `updateGithubProjectField` | Updates a custom field in a GitHub Project V2. Can rename the field or modify single-select options. For single-select fields, include the option id to update existing options or omit it to add new options. |
-| [ ] | ○ | `github-projects-update-item-field` | `updateGithubProjectItemField` | Sets a field value on a GitHub Project V2 item. Supports text, number, date, single-select, and iteration field types. Use listGithubProjectFields first to discover field IDs and available options. |
-| [ ] | ○ | `github-projects-update-item-position` | `updateGithubProjectItemPosition` | Updates the position of an item in a GitHub Project V2. Place the item after a specific item, or omit after_id to move it to the top. |
+| [x] | ○ | `github-projects-create` | `createGithubProject` | Creates a new GitHub Project V2 for an organization or user. Requires the owner node ID (use getGithubOrganization for orgs, or the GraphQL viewer query for users). |
+| [x] | ○ | `github-projects-create-field` | `createGithubProjectField` | Creates a new custom field in a GitHub Project V2. Supports TEXT, NUMBER, DATE, SINGLE_SELECT, and ITERATION field types. For SINGLE_SELECT, provide single_select_options with name and optional color/description. |
+| [x] | ○ | `github-projects-delete-field` | `deleteGithubProjectField` | Deletes a custom field from a GitHub Project V2. This permanently removes the field and all its values from all items in the project. |
+| [x] | ○ | `github-projects-delete-item` | `deleteGithubProjectItem` | Removes an item from a GitHub Project V2. This does not delete the underlying issue or pull request, only removes it from the project. |
+| [x] | ○ | `github-projects-get` | `getGithubProject` | Gets a single GitHub Project V2 by number for an organization or user. Provide either org or user parameter. Returns the project node ID needed by other project tools, along with full project details. |
+| [x] | ○ | `github-projects-list` | `listGithubProjects` | Lists GitHub Projects V2 for an organization or user. Provide either org or user parameter. Returns project titles, IDs, and metadata with pagination support. |
+| [x] | ○ | `github-projects-list-fields` | `listGithubProjectFields` | Lists fields/columns defined on a GitHub Project V2. Returns field IDs, names, types, and options (for single-select and iteration fields). Use this to discover field IDs before updating item field values. |
+| [x] | ○ | `github-projects-list-items` | `listGithubProjectItems` | Lists items (issues, pull requests, and draft issues) in a GitHub Project V2, including their field values. Use listGithubProjectFields first to understand the available fields. |
+| [x] | ○ | `github-projects-unarchive-item` | `unarchiveGithubProjectItem` | Restores an archived item in a GitHub Project V2, making it visible in default views again. |
+| [x] | ○ | `github-projects-update` | `updateGithubProject` | Updates a GitHub Project V2 settings including title, description, readme, visibility, and closed state. |
+| [x] | ○ | `github-projects-update-draft-issue` | `updateGithubProjectDraftIssue` | Updates the title and/or body of a draft issue in a GitHub Project V2. |
+| [x] | ○ | `github-projects-update-field` | `updateGithubProjectField` | Updates a custom field in a GitHub Project V2. Can rename the field or modify single-select options. For single-select fields, include the option id to update existing options or omit it to add new options. |
+| [x] | ○ | `github-projects-update-item-field` | `updateGithubProjectItemField` | Sets a field value on a GitHub Project V2 item. Supports text, number, date, single-select, and iteration field types. Use listGithubProjectFields first to discover field IDs and available options. |
+| [x] | ○ | `github-projects-update-item-position` | `updateGithubProjectItemPosition` | Updates the position of an item in a GitHub Project V2. Place the item after a specific item, or omit after_id to move it to the top. |
 
 #### Github: Pulls (15)
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
 | [ ] | ● | `github-pulls-add-reviewers` | `addGithubPullRequestReviewers` | Adds reviewers to a pull request |
-| [ ] | ● | `github-pulls-create` | `createGithubPullRequest` | Creates a new pull request in a repository |
-| [ ] | ○ | `github-pulls-create-review` | `createGithubPullRequestReview` | Creates a review on a pull request |
-| [ ] | ● | `github-pulls-get` | `getGithubPullRequest` | Gets the details of a specific pull request within a repository |
-| [ ] | ○ | `github-pulls-get-comments` | `getGithubPullRequestComments` | Gets the comments on a pull request |
-| [ ] | ○ | `github-pulls-get-files` | `getGithubPullRequestFiles` | Gets the list of files changed in a pull request |
-| [ ] | ○ | `github-pulls-get-review-threads` | `getGithubPullRequestReviewThreads` | Lists review threads for a pull request, including resolution state and comment details. |
-| [ ] | ○ | `github-pulls-get-reviews` | `getGithubPullRequestReviews` | Gets the reviews on a pull request |
-| [ ] | ● | `github-pulls-get-status` | `getGithubPullRequestStatus` | Gets the combined status of all status checks for a pull request |
-| [ ] | ● | `github-pulls-list` | `listGithubPullRequests` | Lists and filters repository pull requests |
-| [ ] | ○ | `github-pulls-mark-ready` | `markGithubPullRequestReady` | Marks a draft pull request as ready for review |
+| [x] | ● | `github-pulls-create` | `createGithubPullRequest` | Creates a new pull request in a repository |
+| [x] | ○ | `github-pulls-create-review` | `createGithubPullRequestReview` | Creates a review on a pull request |
+| [x] | ● | `github-pulls-get` | `getGithubPullRequest` | Gets the details of a specific pull request within a repository |
+| [x] | ○ | `github-pulls-get-comments` | `getGithubPullRequestComments` | Gets the comments on a pull request |
+| [x] | ○ | `github-pulls-get-files` | `getGithubPullRequestFiles` | Gets the list of files changed in a pull request |
+| [x] | ○ | `github-pulls-get-review-threads` | `getGithubPullRequestReviewThreads` | Lists review threads for a pull request, including resolution state and comment details. |
+| [x] | ○ | `github-pulls-get-reviews` | `getGithubPullRequestReviews` | Gets the reviews on a pull request |
+| [x] | ● | `github-pulls-get-status` | `getGithubPullRequestStatus` | Gets the combined status of all status checks for a pull request |
+| [x] | ● | `github-pulls-list` | `listGithubPullRequests` | Lists and filters repository pull requests |
+| [x] | ○ | `github-pulls-mark-ready` | `markGithubPullRequestReady` | Marks a draft pull request as ready for review |
 | [ ] | ○ | `github-pulls-merge` | `mergeGithubPullRequest` | Merges a pull request |
-| [ ] | ● | `github-pulls-remove-reviewers` | `removeGithubPullRequestReviewers` | Removes reviewers from a pull request |
+| [x] | ● | `github-pulls-remove-reviewers` | `removeGithubPullRequestReviewers` | Removes reviewers from a pull request |
 | [ ] | ○ | `github-pulls-update-branch` | `updateGithubPullRequestBranch` | Updates a pull request branch with the latest changes from the base branch |
 | [ ] | ○ | `github-set-pr-review-thread-resolution` | `setGithubPullRequestReviewThreadResolution` | Sets the resolution status of a review thread on a pull request. Use resolved=true to mark feedback as addressed, or resolved=false to reopen for further discussion. |
 
@@ -152,33 +223,33 @@ servers appear here too — they are registered at runtime and cannot be seen in
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-get-latest-release` | `getLatestGithubRelease` | Gets the latest published release for a GitHub repository |
-| [ ] | ○ | `github-list-releases` | `listGithubReleases` | Gets a list of releases for a GitHub repository |
+| [x] | ○ | `github-get-latest-release` | `getLatestGithubRelease` | Gets the latest published release for a GitHub repository |
+| [x] | ○ | `github-list-releases` | `listGithubReleases` | Gets a list of releases for a GitHub repository |
 
 #### Github: Repos (6)
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-repos-list` | `listGithubRepositories` | Lists all repositories in an organization |
-| [ ] | ○ | `github-repository-get` | `getGithubRepository` | Gets details for a specific repository |
-| [ ] | ○ | `github-repository-get-content` | `getGithubRepositoryContent` | Gets the contents of a file or directory in a repository |
-| [ ] | ○ | `github-repository-topics-get` | `getGithubRepositoryTopics` | Gets topics for a specific repository |
-| [ ] | ○ | `github-repository-topics-update` | `updateGithubRepositoryTopics` | Updates topics for a repository (add/remove/replace) |
-| [ ] | ○ | `github-user-repos-list` | `listUserGithubRepositories` | Lists public repositories for the specified user |
+| [x] | ○ | `github-repos-list` | `listGithubRepositories` | Lists all repositories in an organization |
+| [x] | ○ | `github-repository-get` | `getGithubRepository` | Gets details for a specific repository |
+| [x] | ○ | `github-repository-get-content` | `getGithubRepositoryContent` | Gets the contents of a file or directory in a repository |
+| [x] | ○ | `github-repository-topics-get` | `getGithubRepositoryTopics` | Gets topics for a specific repository |
+| [x] | ○ | `github-repository-topics-update` | `updateGithubRepositoryTopics` | Updates topics for a repository (add/remove/replace) |
+| [x] | ○ | `github-user-repos-list` | `listUserGithubRepositories` | Lists public repositories for the specified user |
 
 #### Github: Search (3)
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-code-search` | `searchCode` | Searches for query terms inside of a file |
-| [ ] | ○ | `github-commits-search` | `searchCommits` | Find commits via various criteria on the default branch |
-| [ ] | ○ | `github-repos-search` | `searchRepos` | Find repositories via various criteria. |
+| [x] | ○ | `github-code-search` | `searchCode` | Searches for query terms inside of a file |
+| [x] | ○ | `github-commits-search` | `searchCommits` | Find commits via various criteria on the default branch |
+| [x] | ○ | `github-repos-search` | `searchRepos` | Find repositories via various criteria. |
 
 #### Github: Wiki (1)
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-wiki-get-content` | `getGithubWikiContent` | Gets the content of a specific page from a GitHub wiki repository |
+| [x] | ○ | `github-wiki-get-content` | `getGithubWikiContent` | Gets the content of a specific page from a GitHub wiki repository |
 
 ### Non-GitHub (50 tools)
 
@@ -201,7 +272,7 @@ servers appear here too — they are registered at runtime and cannot be seen in
 | [ ] | ○ | `delete-entities` | `deleteEntities` | Delete multiple entities and their associated relations from the knowledge graph | – |
 | [ ] | ○ | `delete-observations` | `deleteObservations` | Delete specific observations from entities in the knowledge graph | – |
 | [ ] | ○ | `delete-relations` | `deleteRelations` | Delete multiple relations from the knowledge graph | – |
-| [ ] | ○ | `open-nodes` | `openNodes` | Open/expand specific nodes in the knowledge graph to show their connections and related entities | – |
+| [x] | ○ | `open-nodes` | `openNodes` | Open/expand specific nodes in the knowledge graph to show their connections and related entities | – |
 | [x] | ○ | `read-graph` | `readGraph` | Read and query the knowledge graph structure, entities, and relations | – |
 | [x] | ○ | `search-nodes` | `searchNodes` | Search for entities/nodes in the knowledge graph by content, name, or other fields | – |
 
@@ -245,21 +316,21 @@ servers appear here too — they are registered at runtime and cannot be seen in
 
 | ✓ | On | Tool ID | Function | Description | Requires |
 |---|---|---|---|---|---|
-| [ ] | ○ | `claude-code-usage` | `getClaudeCodeUsage` | Retrieve the usage statistics for a Claude Code project. | – |
+| [x] | ○ | `claude-code-usage` | `getClaudeCodeUsage` | Retrieve the usage statistics for a Claude Code project. | – |
 | [x] | ● | `clipboard` | `getClipboardContent` | Fetch the contents of the clipboard (text, images, or binary data). Used to see what is on the clipboard. | – |
 | [x] | ○ | `convert-unix-timestamp` | `convertUnixTimestamp` | Convert unix timestamps to human readable time representations | – |
 | [x] | ● | `doctor` | `doctor` | Diagnose MCP configuration issues when tools fail with authentication, connection, or permission errors. Checks for missing environment variables (API keys, tokens), invalid paths, and configuration problems. Use this when Splunk, Slack, GitHub, or other external service tools report errors. | – |
 | [ ] | ○ | `execute-task` | `executeTask` | Get next pending task and mark tasks as completed in a unified execution workflow. Enforces one task in progress at a time per list. | – |
 | [x] | ○ | `get-converted-time` | `convertTime` | Convert time between timezones. | – |
 | [x] | ○ | `get-current-time` | `getCurrentTime` | Get current time in a specific timezone. | – |
-| [ ] | ○ | `get-task-statistics` | `getTaskStatistics` | Get task completion statistics and history with comprehensive analytics | – |
+| [x] | ○ | `get-task-statistics` | `getTaskStatistics` | Get task completion statistics and history with comprehensive analytics | – |
 | [ ] | ○ | `location-to-coords` | `getCoordinatesFromLocation` | Convert a location or POI to latitude and longitude coordinates | `GEOCODE_MAPS_API_KEY` |
 | [ ] | ○ | `logout` | `logout` | Log out of a single remote MCP server. Clears the locally-stored session token and opens the gateway credential manager (behind SSO) to revoke your saved credential for that server. | – |
-| [ ] | ○ | `manage-task-lists` | `manageTaskLists` | Create, view, delete, and list task lists with comprehensive management capabilities | – |
+| [x] | ○ | `manage-task-lists` | `manageTaskLists` | Create, view, delete, and list task lists with comprehensive management capabilities | – |
 | [ ] | ○ | `manage-tasks` | `manageTasks` | Add, edit, delete, and insert tasks within task lists with full CRUD capabilities | – |
 | [ ] | ○ | `reauth` | `reauth` | Force re-authentication for a given service. Clears stored tokens and triggers a fresh login flow. | – |
 | [ ] | ○ | `reorder-tasks` | `reorderTasks` | Reorder tasks within a task list by updating their positions | – |
-| [ ] | ○ | `weather` | `getWeatherForecast` | Get the weather forecast for a given latitude and longitude | – |
+| [-] | ○ | `weather` | `getWeatherForecast` | Get the weather forecast for a given latitude and longitude | – |
 
 #### k6 (6)
 

@@ -16,8 +16,7 @@ describe('GithubCreateBranchTool', () => {
 
   // Example valid parameters for testing
   const validParams: GithubCreateBranchToolParams = {
-    org: 'testorg',
-    owner: 'testowner', // This gets overridden by the org value during transformation
+    org: 'testorg', // This gets overridden by the org value during transformation
     repo: 'test-repo',
     ref: 'refs/heads/new-branch',
     sha: 'abc123def456',
@@ -40,7 +39,7 @@ describe('GithubCreateBranchTool', () => {
     // Validate schema keys
     const schemaShape = GithubCreateBranchToolSchema.shape;
     expect(Object.keys(schemaShape)).toContain('org');
-    expect(Object.keys(schemaShape)).toContain('owner');
+    expect(Object.keys(schemaShape)).toContain('org');
     expect(Object.keys(schemaShape)).toContain('repo');
     expect(Object.keys(schemaShape)).toContain('ref');
     expect(Object.keys(schemaShape)).toContain('sha');
@@ -54,7 +53,7 @@ describe('GithubCreateBranchTool', () => {
     // Check that parameters were properly transformed (org to owner)
     const apiParams = (mocks.git.createRef as any).mock.calls[0][0];
     expect(apiParams).toEqual({
-      owner: 'testowner', // When both org and owner are provided, owner takes precedence
+      owner: 'testorg',
       repo: 'test-repo',
       ref: 'refs/heads/new-branch',
       sha: 'abc123def456',
@@ -79,7 +78,6 @@ describe('GithubCreateBranchTool', () => {
       // Missing sha field
       await tool.execute({
         org: 'testorg',
-        owner: 'testowner',
         repo: 'test-repo',
         ref: 'refs/heads/new-branch',
       } as any);
@@ -131,7 +129,6 @@ describe('GithubCreateBranchTool', () => {
     it('should reject invalid parameters', () => {
       const invalidParams = {
         org: 'testorg',
-        owner: 'testowner',
         repo: 'test-repo',
         ref: 123, // Invalid: number instead of string
         sha: 'abc123def456',
@@ -182,7 +179,7 @@ describe('GithubCreateBranchTool', () => {
     });
 
     it('should accept empty strings (current schema behavior)', () => {
-      const emptyFields = ['org', 'owner', 'repo', 'ref', 'sha'];
+      const emptyFields = ['org', 'org', 'repo', 'ref', 'sha'];
 
       emptyFields.forEach((field) => {
         const params = { ...validParams, [field]: '' };
@@ -193,15 +190,20 @@ describe('GithubCreateBranchTool', () => {
   });
 
   describe('API parameter transformation', () => {
-    it('should transform org parameter to owner for GitHub API', () => {
-      // This is tested implicitly in the execute method
-      // The parseAndTransformGitHubParams function should handle this transformation
-      expect(validParams.org).toBe('testorg');
-      expect(validParams.owner).toBe('testowner');
+    it('should send org as the API owner, and not require it twice', async () => {
+      // parseAndTransformGitHubParams maps org to the owner the REST client wants.
+      // The schema used to declare an `owner` of its own on top of that, so the
+      // organisation had to be supplied twice under two names or the call failed.
+      await tool.execute(validParams);
+
+      const apiParams = (mocks.git.createRef as unknown as { mock: { calls: unknown[][] } }).mock
+        .calls[0][0] as Record<string, unknown>;
+      expect(apiParams.owner).toBe(validParams.org);
+      expect(validParams).not.toHaveProperty('owner');
     });
 
     it('should preserve all required parameters', () => {
-      const requiredFields = ['org', 'owner', 'repo', 'ref', 'sha'];
+      const requiredFields = ['org', 'repo', 'ref', 'sha'];
       requiredFields.forEach((field) => {
         expect(validParams).toHaveProperty(field);
         expect(validParams[field as keyof GithubCreateBranchToolParams]).toBeTruthy();

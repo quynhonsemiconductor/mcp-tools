@@ -36,7 +36,16 @@ export const ListDependabotAlertsSchema = GithubBaseSchema.extend({
     .optional()
     .describe('The scope of the vulnerable dependency.'),
   per_page: z.number().int().min(1).max(100).default(10).describe('The number of results per page'),
-  page: z.number().int().min(1).default(1).describe('The page number of the results to fetch'),
+  // This endpoint rejects `page` outright — "Pagination using the `page` parameter
+  // is not supported" — because it pages by cursor. Sending it failed every call.
+  before: z
+    .string()
+    .optional()
+    .describe('Cursor for the page before; take it from a previous response link header'),
+  after: z
+    .string()
+    .optional()
+    .describe('Cursor for the page after; take it from a previous response link header'),
 });
 
 /**
@@ -77,14 +86,14 @@ export class ListDependabotAlertsTool extends GithubBaseTool {
       epss_percentage,
       scope,
       per_page,
-      page,
+      before,
+      after,
     } = validatedArgs;
 
     const apiParams: ListAlertsForRepoParams = {
       owner: org,
       repo,
       per_page,
-      page,
     };
 
     if (state) apiParams.state = state;
@@ -94,6 +103,8 @@ export class ListDependabotAlertsTool extends GithubBaseTool {
     if (manifest) apiParams.manifest = manifest;
     if (epss_percentage) apiParams.epss_percentage = epss_percentage;
     if (scope) apiParams.scope = scope;
+    if (before) apiParams.before = before;
+    if (after) apiParams.after = after;
 
     return this.cleanResponse(
       await this.getClient().rest.dependabot.listAlertsForRepo(apiParams),

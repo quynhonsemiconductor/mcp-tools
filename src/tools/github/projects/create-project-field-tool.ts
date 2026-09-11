@@ -16,8 +16,14 @@ export const CreateGithubProjectFieldToolSchema = z.object({
     .array(
       z.object({
         name: z.string().describe('Option name'),
-        description: z.string().optional().describe('Option description'),
-        color: z.string().optional().describe('Option color (e.g., RED, BLUE, GREEN)'),
+        // GitHub's ProjectV2SingleSelectFieldOptionInput rejects a null colour or
+        // description — "Expected value to not be null" — so leaving these merely
+        // optional made every SINGLE_SELECT field fail. They default instead.
+        description: z.string().default('').describe('Option description'),
+        color: z
+          .enum(['GRAY', 'BLUE', 'GREEN', 'YELLOW', 'ORANGE', 'RED', 'PINK', 'PURPLE'])
+          .default('GRAY')
+          .describe('Option colour'),
       }),
     )
     .optional()
@@ -27,7 +33,9 @@ export const CreateGithubProjectFieldToolSchema = z.object({
 /**
  * Type for the createGithubProjectField tool parameters
  */
-export type CreateGithubProjectFieldToolParams = z.infer<typeof CreateGithubProjectFieldToolSchema>;
+// z.input, not z.infer: description and color have defaults, so a caller may omit
+// them even though the parsed value always has them.
+export type CreateGithubProjectFieldToolParams = z.input<typeof CreateGithubProjectFieldToolSchema>;
 
 /**
  * Interface for the GraphQL mutation response
@@ -86,10 +94,26 @@ export class CreateGithubProjectFieldTool extends GithubBaseTool {
           singleSelectOptions: $singleSelectOptions
         }) {
           projectV2Field {
+            # projectV2Field is the union ProjectV2FieldConfiguration, and GraphQL
+            # rejects selecting fields directly on a union — every call failed with
+            # "Selections can't be made directly on unions". The concrete types have
+            # to be named, one per field kind this tool can create.
             __typename
-            id
-            name
-            dataType
+            ... on ProjectV2Field {
+              id
+              name
+              dataType
+            }
+            ... on ProjectV2SingleSelectField {
+              id
+              name
+              dataType
+            }
+            ... on ProjectV2IterationField {
+              id
+              name
+              dataType
+            }
           }
         }
       }`,
