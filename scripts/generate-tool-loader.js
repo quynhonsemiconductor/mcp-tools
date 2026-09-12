@@ -602,7 +602,6 @@ async function updateManifestEnvVars(
       'Github: Releases',
       'Github: Repos',
       'Github: Search',
-      'Memory',
       'Utility'
     ]);
 

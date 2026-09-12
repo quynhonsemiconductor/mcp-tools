@@ -143,13 +143,6 @@ export const categoryLoaders: Record<string, () => Promise<void>> = {
     await import('../tools/knowledge-graph/read-graph-tool');
     await import('../tools/knowledge-graph/search-nodes-tool');
   },
-  'Memory': async () => {
-    await import('../tools/memory/add-memory-tool');
-    await import('../tools/memory/clear-memory-tool');
-    await import('../tools/memory/get-memory-tool');
-    await import('../tools/memory/remove-memory-tool');
-    await import('../tools/memory/update-memory-tool');
-  },
   'NPM': async () => {
     await import('../tools/npm/build-order-tool');
     await import('../tools/npm/dag-tool');
@@ -199,7 +192,6 @@ export const availableCategories: string[] = [
   "Github: Search",
   "Github: Wiki",
   "Knowledge Graph",
-  "Memory",
   "NPM",
   "PostgreSQL",
   "Swagger",
