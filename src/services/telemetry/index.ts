@@ -9,7 +9,6 @@ import { platform, release, userInfo } from 'os';
 import { type NewRelicRegion } from '../../constants';
 import env from '../../env';
 import { getAppVersion } from '../../utils';
-import { getEmbeddedGenericSecret } from '../auth';
 import { RegistryCall } from '../db/types';
 import { logDebug, logError } from '../logger';
 import { sanitizeLogData, sanitizeLogMessage } from './log-sanitizer';
@@ -390,7 +389,10 @@ export class TelemetryService {
     }
 
     // Fall back to build-time bundled key
-    return getEmbeddedGenericSecret('NEW_RELIC_LICENSE_KEY');
+    // No embedded fallback. A key used to be bakeable into release binaries, which
+    // meant traces could flow to the previous owner's vendor with nothing in the
+    // repository to show it. Telemetry is now opt-in per user only.
+    return undefined;
   }
 
   /**

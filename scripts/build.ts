@@ -239,9 +239,14 @@ async function updateVersionInPackageJson(newVersion?: string) {
 }
 
 const EMBEDDED_OAUTH_CLIENTS = ['github', 'entra'];
+// NEW_RELIC_LICENSE_KEY was here. It let a release build bake in a telemetry key
+// for the previous owner's observability vendor: set that env var once in CI and
+// every installed binary would start sending traces there, with nothing in the
+// repository to show it. Telemetry is opt-in per user via
+// NEW_RELIC_LICENSE_KEY_MCP and the OTLP endpoint is overridable, so this org can
+// point it at its own collector instead.
 const EMBEDDED_GENERIC_SECRETS: string[] = [
-  'RELEASES_TOKEN',
-  'NEW_RELIC_LICENSE_KEY'
+  'RELEASES_TOKEN'
 ];
 
 /**

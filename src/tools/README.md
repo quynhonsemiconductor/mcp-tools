@@ -23,7 +23,6 @@ The native categories that currently exist are:
 | Knowledge Graph | 9 | No credentials |
 | k6 | 6 | Requires `GRAFANA_K6_TOKEN` |
 | NPM | 5 | No credentials |
-| Memory | 5 | `addMemory`/`updateMemory` need `QNSC_MCP_API_KEY`, which points at a platform API this org does not host, so those calls cannot succeed here |
 | CrUX | 4 | Requires `GOOGLE_CRUX_API_KEY` |
 | PostgreSQL | 4 | No credentials (connection supplied at call time) |
 | Swagger | 2 | `saveSwaggerHubDocument` needs `SWAGGER_HUB_API_KEY` |
