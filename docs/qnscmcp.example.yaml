@@ -1,0 +1,91 @@
+# Example configuration. Copy to `.qnscmcp.yaml` at the repository root, or to
+# ~/.qnscmcp/config.yaml for all projects.
+#
+# The point of this file is that everything it enables actually works. Without it
+# the fallback is "includeByDefault", which switches on SharePoint's 56 tools —
+# they need an Azure app registration — and leaves most GitHub tools dormant. That
+# is exactly backwards: 89 tools that fail on use, and the 88 your team wants off.
+#
+# 113 of the 114 tools this config offers are verified end to end against a real
+# organisation. See TOOLS.md.
+
+# qnsc-mcp configuration
+#
+# Local, gitignored. Without this file the server falls back to
+# "includeByDefault" tools, which enables SharePoint's 56 tools and leaves most
+# GitHub tools dormant — rarely what you want.
+#
+# Start narrow and widen deliberately: every enabled tool is surface area an
+# assistant can call.
+
+tools:
+  # Remote MCP servers.
+  #
+  # Only aws-knowledge-mcp-server is listed. AWS hosts it publicly with no
+  # credentials, so it is reached directly and does not need the platform
+  # gateway. Every other remote server in available-remote-servers.ts does route
+  # through that gateway (*.ai.qnsc.vn), which has no DNS records, so enabling
+  # any of them here would just produce connection failures.
+  # No remote servers. AWS Knowledge lists its tools but answers tools/call with
+  # "Http operation is not supported for gateway protocol type MCP" — confirmed
+  # with raw curl at all three protocol versions. Its five tools would register
+  # and then fail on first use. Re-add it if AWS fixes that.
+  includeRemoteMCPs: []
+
+  # Native tool categories.
+  #
+  # Credential-free, so they work immediately:
+  #   Utility          - time, clipboard, weather, doctor, task management
+  #   Knowledge Graph  - entity/relation store
+  #   NPM              - dependency graph, build order, workspace checks
+  #
+  # Add once the matching credential is in place:
+  #   Github: *  -> GITHUB_TOKEN   (92 tools; targets api.github.com)
+  #   k6         -> GRAFANA_K6_TOKEN
+  #   CrUX       -> GOOGLE_CRUX_API_KEY
+  #   Swagger    -> SWAGGER_HUB_API_KEY
+  # Bundled servers are off. SharePoint's 56 tools need an Azure app registration
+  # with a certificate, and chrome-devtools is not built here — so every call would
+  # fail, putting 82 dead tools in front of the model on every request.
+  #
+  # Note this is the only lever that works: the display groups "Bundled sharepoint"
+  # and "Bundled chrome-devtools-mcp" are not categories, and includeMCPs has no
+  # effect on them. The real category on every bundled tool is "Bundled".
+  # Individual tools that cannot succeed here, so they are not offered to the
+  # model at all rather than failing when it tries them.
+  exclude:
+    # Needs an Entra app registration with a client secret. Reaches Microsoft and
+    # fails with AADSTS7000218 without one.
+    - reauth
+    # Needs GEOCODE_MAPS_API_KEY.
+    - location-to-coords
+    # api.weather.gov is the US National Weather Service; it returns 404 for
+    # anywhere outside the United States.
+    - weather
+
+  excludeCategories:
+    - 'Bundled'
+    # Needs SWAGGER_HUB_API_KEY, which is not set.
+    - 'Swagger'
+
+  includeCategories:
+    # The reason to install this: Claude operating GitHub as you, through your own
+    # OAuth sign-in. 83 of these are verified against the real organisation.
+    - 'Github: Actions'
+    - 'Github: Branches'
+    - 'Github: Dependabot'
+    - 'Github: Discussions'
+    - 'Github: Gists'
+    - 'Github: Issues'
+    - 'Github: Orgs'
+    - 'Github: Projects'
+    - 'Github: Pulls'
+    - 'Github: Releases'
+    - 'Github: Repos'
+    - 'Github: Search'
+    - 'Github: Wiki'
+    # Credential-free. Utility carries doctor, the first thing to run when a
+    # teammate reports that the tools are not working.
+    - Utility
+    - Knowledge Graph
+    - NPM

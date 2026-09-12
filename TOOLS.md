@@ -93,6 +93,31 @@ closed down on 2023-11-28 in favour of GitHub Discussions, and the API returns 4
 for a team that plainly exists and is readable. They could not have worked for
 anyone, so they have been removed rather than left in the inventory as capability.
 
+### What your teammates will actually see
+
+The client is offered **114 tools**, and 113 of them are verified end to end. That
+figure is the one that matters: it is what `tools/list` returns over the MCP
+protocol with the shipped config, not the total number of tools in the repository.
+
+Verified through the real protocol, not just by calling execute() directly:
+Claude Code reports the server as connected, `initialize` negotiates 2025-06-18,
+`tools/list` returns 114, and `tools/call` succeeds for both a local tool and a
+GitHub tool authenticated from the OS keyring.
+
+Note the protocol names differ from the internal ids — the client sees
+`getGithubBranch`, not `github-list-branches`. Use the protocol names in any
+client configuration; `list-tools` prints internal ids.
+
+One tool is not fully provable here. `github-pulls-add-reviewers` sends a valid
+request that GitHub accepts, but nothing is recorded, because the only member of
+the reviewing team is the pull request's author and GitHub will not let anyone
+review their own work. Finishing it needs a second GitHub user.
+
+Three tools are excluded from the config rather than shipped failing: `reauth`
+needs an Entra app registration with a client secret (it does reach Microsoft and
+returns AADSTS7000218 without one), `location-to-coords` needs an API key, and
+`weather` is the US National Weather Service and returns 404 for Vietnam.
+
 **Review status:** `[ ]` not checked, `[x]` verified working, `[!]` broken/needs work, `[-]` not applicable to us.
 
 ---
@@ -149,11 +174,11 @@ anyone, so they have been removed rather than left in the inventory as capabilit
 
 | ✓ | On | Tool ID | Function | Description |
 |---|---|---|---|---|
-| [ ] | ○ | `github-gist-create` | `createGithubGist` | Creates a new gist |
-| [ ] | ○ | `github-gist-delete` | `deleteGithubGist` | Deletes a gist |
+| [x] | ○ | `github-gist-create` | `createGithubGist` | Creates a new gist |
+| [x] | ○ | `github-gist-delete` | `deleteGithubGist` | Deletes a gist |
 | [x] | ○ | `github-gist-get` | `getGithubGist` | Gets a specific gist by ID with full content |
 | [x] | ○ | `github-gist-list` | `listGithubGists` | Lists gists for a user or authenticated user |
-| [ ] | ○ | `github-gist-update` | `updateGithubGist` | Updates an existing gist |
+| [x] | ○ | `github-gist-update` | `updateGithubGist` | Updates an existing gist |
 
 #### Github: Issues (10)
 
@@ -219,7 +244,7 @@ anyone, so they have been removed rather than left in the inventory as capabilit
 | [x] | ○ | `github-pulls-mark-ready` | `markGithubPullRequestReady` | Marks a draft pull request as ready for review |
 | [x] | ○ | `github-pulls-merge` | `mergeGithubPullRequest` | Merges a pull request |
 | [x] | ● | `github-pulls-remove-reviewers` | `removeGithubPullRequestReviewers` | Removes reviewers from a pull request |
-| [ ] | ○ | `github-pulls-update-branch` | `updateGithubPullRequestBranch` | Updates a pull request branch with the latest changes from the base branch |
+| [x] | ○ | `github-pulls-update-branch` | `updateGithubPullRequestBranch` | Updates a pull request branch with the latest changes from the base branch |
 | [x] | ○ | `github-set-pr-review-thread-resolution` | `setGithubPullRequestReviewThreadResolution` | Sets the resolution status of a review thread on a pull request. Use resolved=true to mark feedback as addressed, or resolved=false to reopen for further discussion. |
 
 #### Github: Releases (2)
@@ -328,7 +353,7 @@ anyone, so they have been removed rather than left in the inventory as capabilit
 | [x] | ○ | `get-current-time` | `getCurrentTime` | Get current time in a specific timezone. | – |
 | [x] | ○ | `get-task-statistics` | `getTaskStatistics` | Get task completion statistics and history with comprehensive analytics | – |
 | [ ] | ○ | `location-to-coords` | `getCoordinatesFromLocation` | Convert a location or POI to latitude and longitude coordinates | `GEOCODE_MAPS_API_KEY` |
-| [ ] | ○ | `logout` | `logout` | Log out of a single remote MCP server. Clears the locally-stored session token and opens the gateway credential manager (behind SSO) to revoke your saved credential for that server. | – |
+| [x] | ○ | `logout` | `logout` | Log out of a single remote MCP server. Clears the locally-stored session token and opens the gateway credential manager (behind SSO) to revoke your saved credential for that server. | – |
 | [x] | ○ | `manage-task-lists` | `manageTaskLists` | Create, view, delete, and list task lists with comprehensive management capabilities | – |
 | [x] | ○ | `manage-tasks` | `manageTasks` | Add, edit, delete, and insert tasks within task lists with full CRUD capabilities | – |
 | [ ] | ○ | `reauth` | `reauth` | Force re-authentication for a given service. Clears stored tokens and triggers a fresh login flow. | – |
