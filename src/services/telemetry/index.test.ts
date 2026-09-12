@@ -253,31 +253,29 @@ describe('TelemetryService', () => {
       expect(capturedExporterConfig.headers['api-key']).toBe('mcp-override-key');
     });
 
-    it('should ignore generic NEW_RELIC_LICENSE_KEY and use build-time constant', () => {
-      // Set generic env var and build-time constant (no MCP override)
-      setMockedEnvVar('NEW_RELIC_LICENSE_KEY', 'generic-env-var-key');
-      mockBuildTimeLicenseKey = 'build-time-key';
+    it('should ignore the generic NEW_RELIC_LICENSE_KEY entirely', () => {
+      // Users may have that variable set for their own APM agent; reading it here
+      // would silently redirect this toolkit's traces into their account.
+      process.env.NEW_RELIC_LICENSE_KEY = 'someone-elses-account-key';
 
-      const service = new TelemetryService({
-        appVersion: '1.0.0',
-      });
+      const service = new TelemetryService({ appVersion: '1.0.0' });
       service.initialize();
 
-      // Should use the build-time key (ignoring generic env var)
-      expect(capturedExporterConfig.headers['api-key']).toBe('build-time-key');
+      expect(service.isEnabled()).toBe(false);
+      delete process.env.NEW_RELIC_LICENSE_KEY;
     });
 
-    it('should use build-time constant when no MCP override is set', () => {
-      // Only set build-time constant
+    it('should not resolve a key from a build-time constant', () => {
+      // A key used to be bakeable into release binaries, which let traces flow to
+      // the previous owner's observability vendor with nothing in the repository to
+      // show it. Telemetry is opt-in per user now, so a build-time value is ignored.
       mockBuildTimeLicenseKey = 'build-time-key';
 
-      const service = new TelemetryService({
-        appVersion: '1.0.0',
-      });
+      const service = new TelemetryService({ appVersion: '1.0.0' });
       service.initialize();
 
-      // Should use the build-time key
-      expect(capturedExporterConfig.headers['api-key']).toBe('build-time-key');
+      expect(service.isEnabled()).toBe(false);
+      expect(capturedExporterConfig).toBeNull();
     });
 
     it('should use MCP env var as sole key source when no build-time key exists', () => {
@@ -320,17 +318,13 @@ describe('TelemetryService', () => {
       expect(capturedExporterConfig.headers['api-key']).toBe('explicit-config-key');
     });
 
-    it('should ignore unresolved placeholder in NEW_RELIC_LICENSE_KEY_MCP and fall back to build-time key', () => {
-      setMockedEnvVar('NEW_RELIC_LICENSE_KEY_MCP', '${user_config.NEW_RELIC_LICENSE_KEY_MCP}');
+    it('should treat an unresolved placeholder as no key at all', () => {
       mockBuildTimeLicenseKey = 'build-time-key';
 
-      const service = new TelemetryService({
-        appVersion: '1.0.0',
-      });
+      const service = new TelemetryService({ appVersion: '1.0.0' });
       service.initialize();
 
-      // Should fall back to build-time key, not the placeholder
-      expect(capturedExporterConfig.headers['api-key']).toBe('build-time-key');
+      expect(service.isEnabled()).toBe(false);
     });
   });
 
