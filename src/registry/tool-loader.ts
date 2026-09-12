@@ -44,15 +44,11 @@ export const categoryLoaders: Record<string, () => Promise<void>> = {
     await import('../tools/github/dependabot/update-dependabot-alert-tool');
   },
   'Github: Discussions': async () => {
-    await import('../tools/github/discussions/create-team-discussion-comment-reaction-tool');
-    await import('../tools/github/discussions/create-team-discussion-reaction-tool');
     await import('../tools/github/discussions/delete-commit-comment-reaction-tool');
     await import('../tools/github/discussions/delete-issue-comment-reaction-tool');
     await import('../tools/github/discussions/delete-issue-reaction-tool');
     await import('../tools/github/discussions/delete-pull-request-comment-reaction-tool');
     await import('../tools/github/discussions/delete-release-reaction-tool');
-    await import('../tools/github/discussions/delete-team-discussion-comment-reaction-tool');
-    await import('../tools/github/discussions/delete-team-discussion-reaction-tool');
   },
   'Github: Gists': async () => {
     await import('../tools/github/gists/create-gist-tool');
