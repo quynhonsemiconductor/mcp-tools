@@ -35,15 +35,23 @@ jobs:
       matrix:
         include:
           - target: bun-darwin-arm64
+            os: darwin
+            cpu: arm64
             outfile: qnsc-mcp-macos-arm64
             mcpb: qnsc-mcp-macos-arm64.mcpb
           - target: bun-darwin-x64
+            os: darwin
+            cpu: x64
             outfile: qnsc-mcp-macos-x64
             mcpb: qnsc-mcp-macos-x64.mcpb
           - target: bun-linux-x64
+            os: linux
+            cpu: x64
             outfile: qnsc-mcp-linux-x64
             mcpb: qnsc-mcp-linux-x64.mcpb
           - target: bun-linux-arm64
+            os: linux
+            cpu: arm64
             outfile: qnsc-mcp-linux-arm64
             mcpb: qnsc-mcp-linux-arm64.mcpb
           # Bun cross-compiles the .exe from the Linux runner; the extension is
@@ -51,6 +59,8 @@ jobs:
           # bundle name is spelled out because scripts/build.ts omits the .exe
           # there, so "<outfile>.mcpb" would not match what it writes.
           - target: bun-windows-x64
+            os: win32
+            cpu: x64
             outfile: qnsc-mcp-windows-x64.exe
             mcpb: qnsc-mcp-windows-x64.mcpb
     runs-on: ubuntu-latest
@@ -71,6 +81,14 @@ jobs:
           no-cache: true
 
       - run: bun install --frozen-lockfile
+
+        # @napi-rs/keyring ships one native binding per platform as an optional
+        # dependency, and bun installs only the one matching the runner. Every
+        # cross-compiled target therefore failed with "Could not find keyring
+        # binding for target ...", so four of five platforms produced nothing —
+        # including both macOS builds — while the release itself reported success.
+      - name: Install the keyring binding for ${{ matrix.target }}
+        run: bun install --os ${{ matrix.os }} --cpu ${{ matrix.cpu }}
 
       - name: Build binary + .mcpb (${{ matrix.target }})
         env:
