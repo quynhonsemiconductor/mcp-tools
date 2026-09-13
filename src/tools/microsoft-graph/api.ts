@@ -98,6 +98,22 @@ export async function graphRequestText(path: string, init?: RequestInit): Promis
 }
 
 /**
+ * Call Graph and return the response body as bytes.
+ *
+ * Needed for PDFs, and for Office documents which Graph will convert to PDF via
+ * `?format=pdf` — in both cases the useful payload is binary, and the text has to
+ * be extracted locally because Graph has no text conversion.
+ *
+ * @param path - Path below the Graph version root
+ * @param init - Additional fetch options
+ * @returns The response body as a byte array
+ */
+export async function graphRequestBytes(path: string, init?: RequestInit): Promise<Uint8Array> {
+  const response = await graphFetch(path, init);
+  return new Uint8Array(await response.arrayBuffer());
+}
+
+/**
  * Perform an authenticated Graph request and translate failures into UserErrors.
  *
  * @param path - Path below the Graph version root

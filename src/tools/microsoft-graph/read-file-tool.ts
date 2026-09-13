@@ -9,22 +9,24 @@
 import { z } from 'zod';
 import { Tool, ToolHandler } from '../registry';
 import { CatchErrors, UserError } from '../../utils';
-import { graphRequest, graphRequestText } from './api';
-
-/** Largest file returned, to avoid flooding the context with one document. */
-const MAX_BYTES = 512 * 1024;
+import { graphRequest, graphRequestBytes, graphRequestText } from './api';
+import { pdfToText, readStrategyFor } from './document-text';
 
 /**
- * Formats worth returning as text. Anything else is refused with its type named,
- * which is more useful than returning bytes the model cannot read.
+ * Largest text returned, to avoid flooding the context with one document.
+ *
+ * Applied to the extracted text, not the source file. A 5 MB slide deck can hold a
+ * couple of pages of words, and rejecting it on its file size refused documents that
+ * were perfectly readable — which is what happened to the first real PowerPoint
+ * tried against this tool.
  */
-const TEXT_LIKE = [
-  'text/',
-  'application/json',
-  'application/xml',
-  'application/javascript',
-  'application/x-yaml',
-];
+const MAX_TEXT_CHARS = 400_000;
+
+/**
+ * Largest source file downloaded, so a huge binary is not fetched only to be
+ * discarded. Generous, because a slide deck is mostly images.
+ */
+const MAX_SOURCE_BYTES = 64 * 1024 * 1024;
 
 export const ReadMicrosoftFileSchema = z.object({
   itemId: z
@@ -51,7 +53,7 @@ interface DriveItemMetadata {
   id: 'microsoft-read-file',
   name: 'readMicrosoftFile',
   description:
-    'Read the text contents of a file in OneDrive or SharePoint that the signed-in user can access. Takes an item id from searchMicrosoftFiles. Text, JSON, XML, YAML and similar formats only.',
+    'Read the text of a file in OneDrive or SharePoint that the signed-in user can access. Takes an item id from searchMicrosoftFiles. Handles plain text, JSON, XML and YAML directly, PDFs by extraction, and Word, PowerPoint and Excel documents by converting them first.',
   category: 'Microsoft 365',
   parameters: ReadMicrosoftFileSchema,
   version: '1.0.0',
@@ -83,22 +85,39 @@ export class ReadMicrosoftFileTool implements ToolHandler {
     }
 
     const mimeType = meta.file?.mimeType ?? 'unknown';
-    if (!TEXT_LIKE.some((prefix) => mimeType.startsWith(prefix))) {
+    const strategy = readStrategyFor(mimeType);
+    if (!strategy) {
       throw new UserError(
-        `"${meta.name}" is ${mimeType}, which cannot be returned as text. ` +
+        `"${meta.name}" is ${mimeType}, which has no text to extract. ` +
           `Open it at ${meta.webUrl ?? 'its web URL'} instead.`,
       );
     }
 
-    if ((meta.size ?? 0) > MAX_BYTES) {
+    if ((meta.size ?? 0) > MAX_SOURCE_BYTES) {
       throw new UserError(
-        `"${meta.name}" is ${Math.round((meta.size ?? 0) / 1024)} KB, above the ` +
-          `${MAX_BYTES / 1024} KB limit for reading into a conversation.`,
+        `"${meta.name}" is ${Math.round((meta.size ?? 0) / 1024 / 1024)} MB, above the ` +
+          `${MAX_SOURCE_BYTES / 1024 / 1024} MB limit for downloading.`,
       );
     }
 
-    // /content returns the file itself, not JSON.
-    const content = await graphRequestText(`${base}/content`);
+    // /content returns the file itself, not JSON. PDFs and Office documents come
+    // back as bytes; Graph converts the latter to PDF because it has no text
+    // conversion of its own.
+    let content: string;
+    let pages: number | undefined;
+    if (strategy === 'text') {
+      content = await graphRequestText(`${base}/content`);
+    } else {
+      const path = strategy === 'pdf' ? `${base}/content` : `${base}/content?format=pdf`;
+      const extracted = await pdfToText(await graphRequestBytes(path));
+      content = extracted.text;
+      pages = extracted.pages;
+    }
+
+    const truncated = content.length > MAX_TEXT_CHARS;
+    if (truncated) {
+      content = `${content.slice(0, MAX_TEXT_CHARS)}\n\n[truncated: the document holds more text than fits in one response]`;
+    }
 
     return JSON.stringify(
       {
@@ -106,6 +125,9 @@ export class ReadMicrosoftFileTool implements ToolHandler {
         mimeType,
         sizeBytes: meta.size,
         url: meta.webUrl,
+        pages,
+        extractedVia: strategy,
+        truncated,
         content,
       },
       null,
