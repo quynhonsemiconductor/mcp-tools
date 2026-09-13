@@ -118,6 +118,33 @@ needs an Entra app registration with a client secret (it does reach Microsoft an
 returns AADSTS7000218 without one), `location-to-coords` needs an API key, and
 `weather` is the US National Weather Service and returns 404 for Vietnam.
 
+### Where verification stands
+
+**120 of the 142 tools a client is offered are verified.** That is the figure that
+matters — what `tools/list` returns with the shipped config, not the repository
+total.
+
+The 22 remaining are 21 chrome-devtools interaction tools and
+`addGithubPullRequestReviewers`. The browser tools need a stateful session —
+navigate to a page, then act on it in the same browser — which the tool runner
+cannot provide because it spawns a fresh server per call. Five of the 26 are
+verified: navigate, list pages, snapshot, console messages and network requests.
+`addGithubPullRequestReviewers` needs a second GitHub user, since nobody may review
+their own pull request.
+
+### Microsoft 365 (2) — verified against the real tenant
+
+| ✔ | Tool | Name | Description | Needs |
+| - | ---- | ---- | ----------- | ----- |
+| [x] | `microsoft-search-files` | `searchMicrosoftFiles` | Search OneDrive and SharePoint for documents the signed-in user can access | `ENTRA_CLIENT_ID` |
+| [x] | `microsoft-read-file` | `readMicrosoftFile` | Read the text contents of a file by item id | `ENTRA_CLIENT_ID` |
+
+Exercised end to end: search returned real documents from the tenant with the
+signed-in user's own access, the read tool returned one file's text, and a pptx was
+refused by name and type rather than binary being handed to a model. Delegated
+permissions, so each person reaches only their own files — no certificate and no
+shared secret, unlike the SharePoint bundle.
+
 **Review status:** `[ ]` not checked, `[x]` verified working, `[!]` broken/needs work, `[-]` not applicable to us.
 
 ---
