@@ -14,17 +14,4 @@ import { z } from 'zod';
 export const remoteMcpCredentialsEnvSchema = z.object({
   // SwaggerHub — 2 native tools
   SWAGGER_HUB_API_KEY: z.string().optional().describe('Swagger Hub API Key'),
-
-  // SharePoint — read by the bundled sharepoint MCP, not by this codebase, which is
-  // why they look unreferenced here. Removing them would break its 56 tools.
-  AZURE_APPLICATION_ID: z.string().optional().describe('Azure Application ID'),
-  AZURE_APPLICATION_CERTIFICATE_THUMBPRINT: z
-    .string()
-    .optional()
-    .describe('Azure Application Certificate Thumbprint'),
-  AZURE_APPLICATION_CERTIFICATE_PASSWORD: z
-    .string()
-    .optional()
-    .describe('Azure Application Certificate Password'),
-  M365_TENANT_ID: z.string().optional().describe('M365 Tenant ID'),
 });
