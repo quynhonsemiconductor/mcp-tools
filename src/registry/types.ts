@@ -14,6 +14,9 @@ export const ToolCategoryMap = {
   CIP: 'cip',
   CrUX: 'crux',
   Dart: 'dart',
+  // Delegated Microsoft Graph tools: each request carries the signed-in person's
+  // own token, so they reach only the files and sites they already have.
+  'Microsoft 365': 'microsoft-graph',
   'Github: Actions': 'github',
   'Github: Dependabot': 'github',
   'Github: Discussions': 'github',

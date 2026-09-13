@@ -74,19 +74,39 @@ const DEFAULT_CALLBACK_PORT: number = CALLBACK_PORTS[0];
 const DEFAULT_LOGIN_TIMEOUT_MS = 120_000;
 
 /**
- * Build the default OAuth scopes for Entra ID.
- * Includes openid, profile, email, offline_access (for refresh tokens),
- * and the API scope for the MCP platform.
+ * Delegated Microsoft Graph scopes requested at sign-in.
  *
- * @param clientId - The Entra ID App Registration client ID
+ * Delegated, not application, permissions: the token acts as the person who signed
+ * in, so they reach exactly the files and sites they already have and nothing else.
+ * Application permissions would have meant one shared identity with tenant-wide
+ * reach, a certificate on every laptop, and an audit trail naming the app instead
+ * of the person.
+ *
+ * `offline_access` is what makes a refresh token available, so nobody has to sign
+ * in again every hour.
+ */
+const GRAPH_DELEGATED_SCOPES = [
+  'openid',
+  'profile',
+  'email',
+  'offline_access',
+  'https://graph.microsoft.com/User.Read',
+  'https://graph.microsoft.com/Files.Read',
+  'https://graph.microsoft.com/Sites.Read.All',
+] as const;
+
+/**
+ * Build the default OAuth scopes for Entra ID.
+ *
+ * These used to be `${clientId}/.default` — the API scope of the previous owner's
+ * MCP gateway, which is not deployed here, so a sign-in produced a token no service
+ * would accept. They now target Microsoft Graph, which is a real audience.
+ *
+ * @param _clientId - Unused; kept so the signature stays stable for callers
  * @returns Array of OAuth scope strings
  */
-function buildDefaultScopes(clientId: string): string[] {
-  const scopes = ['openid', 'profile', 'email', 'offline_access'];
-  if (clientId) {
-    scopes.push(`${clientId}/.default`);
-  }
-  return scopes;
+function buildDefaultScopes(_clientId: string): string[] {
+  return [...GRAPH_DELEGATED_SCOPES];
 }
 
 /**

@@ -143,6 +143,10 @@ export const categoryLoaders: Record<string, () => Promise<void>> = {
     await import('../tools/knowledge-graph/read-graph-tool');
     await import('../tools/knowledge-graph/search-nodes-tool');
   },
+  'Microsoft 365': async () => {
+    await import('../tools/microsoft-graph/read-file-tool');
+    await import('../tools/microsoft-graph/search-files-tool');
+  },
   'NPM': async () => {
     await import('../tools/npm/build-order-tool');
     await import('../tools/npm/dag-tool');
@@ -192,6 +196,7 @@ export const availableCategories: string[] = [
   "Github: Search",
   "Github: Wiki",
   "Knowledge Graph",
+  "Microsoft 365",
   "NPM",
   "PostgreSQL",
   "Swagger",

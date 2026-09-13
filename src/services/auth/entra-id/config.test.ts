@@ -133,16 +133,30 @@ describe('Entra ID Config', () => {
   });
 
   describe('scope building', () => {
-    it('should include client ID scope when client ID is provided', () => {
+    it('should request Microsoft Graph scopes, not a platform API scope', () => {
+      // These used to be `${clientId}/.default`, the API scope of a gateway that is
+      // not deployed here, so a sign-in produced a token no service would accept.
       process.env.ENTRA_CLIENT_ID = 'my-client-id';
       const config = loadEntraIdConfig();
-      expect(config.scopes).toContain('my-client-id/.default');
+
+      expect(config.scopes).toContain('https://graph.microsoft.com/User.Read');
+      expect(config.scopes).toContain('https://graph.microsoft.com/Files.Read');
+      expect(config.scopes).toContain('https://graph.microsoft.com/Sites.Read.All');
+      expect(config.scopes.some((s: string) => s.endsWith('/.default'))).toBe(false);
     });
 
-    it('should not include empty client ID scope', () => {
-      // No client ID env var, no embedded credentials in test build
+    it('should request offline_access so a refresh token is issued', () => {
+      // Without it every teammate signs in again roughly hourly.
+      expect(loadEntraIdConfig().scopes).toContain('offline_access');
+    });
+
+    it('should request only delegated scopes, never .default application scopes', () => {
+      // A .default scope on a confidential client yields app-only access, which is
+      // tenant-wide and loses the audit trail of who actually asked.
       const config = loadEntraIdConfig();
-      expect(config.scopes).not.toContain('/.default');
+      for (const scope of config.scopes) {
+        expect(scope).not.toContain('.default');
+      }
     });
   });
 });
