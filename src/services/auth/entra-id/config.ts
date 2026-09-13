@@ -93,6 +93,12 @@ const GRAPH_DELEGATED_SCOPES = [
   'https://graph.microsoft.com/User.Read',
   'https://graph.microsoft.com/Files.Read',
   'https://graph.microsoft.com/Sites.Read.All',
+  // Outlook and Teams, read-only. Teams message APIs stopped being metered on
+  // 2025-08-25, so these need no billing setup and work on the M365 Business
+  // licences this tenant has. The protected-API restrictions that still apply to
+  // chat messages are for application-only access, which this never uses.
+  'https://graph.microsoft.com/Mail.Read',
+  'https://graph.microsoft.com/Chat.Read',
 ] as const;
 
 /**

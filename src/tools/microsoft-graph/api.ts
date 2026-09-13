@@ -165,9 +165,15 @@ async function graphFetch(path: string, init?: RequestInit): Promise<Response> {
     if (response.status === 403) {
       throw new UserError(
         `Microsoft Graph refused the request — ${detail}\n\n` +
-          'The signed-in user reached Graph, so this is usually a missing permission. ' +
-          'Check that the app registration has the delegated scope this call needs and ' +
-          'that an administrator has granted consent.',
+          'The signed-in user reached Graph, so this is a permission problem, and there ' +
+          'are two possible causes:\n' +
+          '  1. The app registration lacks the delegated scope this call needs, or an ' +
+          'administrator has not consented to it.\n' +
+          '  2. The scope was added after this user last signed in. Scopes are fixed when ' +
+          'a token is issued, so an existing token will not carry a newly granted one — ' +
+          'signing in again is required.\n' +
+          'The second is easy to mistake for the first: the permission looks correct in ' +
+          'the portal while every call still fails.',
       );
     }
 
