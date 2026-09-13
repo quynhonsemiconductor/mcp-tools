@@ -95,6 +95,7 @@ nav:
       - Windows: quickstart/windows.md
       - Linux / WSL: quickstart/linux.md
       - API Key Setup: quickstart/api-keys.md
+      - Enabling more tools: quickstart/enabling-more-tools.md
       - Unified Setup (All Clients): quickstart/unified-setup.md
       - IDE Setup:
           - VS Code: quickstart/clients/vs-code.md
