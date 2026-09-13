@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.2...v0.1.3) (2026-09-13)
+
+
+### 🐛 Bug Fixes
+
+* **release:** upload the Windows bundle under the name it is actually written to ([#20](https://github.com/quynhonsemiconductor/mcp-tools/issues/20)) ([db2afa2](https://github.com/quynhonsemiconductor/mcp-tools/commit/db2afa23f36eda5cfe00b407c58c43dda4f0ec15))
+
 ## [0.1.2](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.1...v0.1.2) (2026-09-13)
 
 
