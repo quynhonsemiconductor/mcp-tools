@@ -119,9 +119,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REF_NAME: ${{ github.ref_name }}
           OUTFILE: ${{ matrix.outfile }}
+          # The matrix value, not "$OUTFILE.mcpb". The Windows binary carries .exe
+          # while scripts/build.ts writes the bundle without it, so deriving the name
+          # looked for qnsc-mcp-windows-x64.exe.mcpb and the upload failed with "no
+          # matches found" — after the build had succeeded.
+          MCPB: ${{ matrix.mcpb }}
         run: |
           gh release upload "$REF_NAME" \
             "$OUTFILE" \
             "$OUTFILE.sha256" \
-            "$OUTFILE.mcpb" \
+            "$MCPB" \
             --clobber
