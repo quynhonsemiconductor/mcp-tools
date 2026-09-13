@@ -59,9 +59,12 @@ describe('graphRequest', () => {
     expect(captured?.url).toBe('https://graph.microsoft.com/v1.0/me/drive/root/children');
   });
 
-  it('reports a 403 as a missing permission rather than a bad request', async () => {
-    // The distinction matters: the user authenticated fine, so the fix is consent
-    // on the app registration, not a change to the call.
+  it('reports a 403 as a permission problem and names both causes', async () => {
+    // The user authenticated fine, so the fix is a permission, not the call. And
+    // there are two causes that look identical: a scope that was never granted, and
+    // a scope granted after this user's token was issued. The second was hit while
+    // adding the mail and chat scopes — the portal looked right and every call
+    // failed — so the message has to mention signing in again.
     stubFetch(403, { error: { code: 'accessDenied', message: 'Access denied' } });
 
     let caught: Error | undefined;
@@ -72,8 +75,8 @@ describe('graphRequest', () => {
     }
 
     expect(caught).toBeDefined();
-    expect(caught!.message).toContain('missing permission');
     expect(caught!.message).toContain('consent');
+    expect(caught!.message).toContain('signing in again');
   });
 
   it('surfaces the Graph error code and message on other failures', async () => {
