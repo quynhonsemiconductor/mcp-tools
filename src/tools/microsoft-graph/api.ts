@@ -57,7 +57,11 @@ async function getGraphToken(): Promise<string> {
       `Microsoft sign-in failed: ${message}\n\n` +
         'This needs an Entra app registration configured as a public client:\n' +
         '  - Platform: Mobile and desktop applications\n' +
-        '  - Redirect URI: http://localhost:9876/callback\n' +
+        '  - Redirect URIs, all four (the callback server falls back if a port is busy):\n' +
+        '      http://localhost:9876/cms/auth/entra/callback\n' +
+        '      http://localhost:9877/cms/auth/entra/callback\n' +
+        '      http://localhost:9878/cms/auth/entra/callback\n' +
+        '      http://localhost:9879/cms/auth/entra/callback\n' +
         '  - Delegated Graph permissions: User.Read, Files.Read, Sites.Read.All\n' +
         'Then set ENTRA_CLIENT_ID. No client secret or certificate is required.',
     );
