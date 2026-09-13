@@ -100,3 +100,6 @@ tools:
     - Utility
     - Knowledge Graph
     - NPM
+  # Delegated Microsoft sign-in: each person reaches only their own OneDrive and
+  # SharePoint files. Needs ENTRA_CLIENT_ID from a public-client app registration.
+    - 'Microsoft 365'
