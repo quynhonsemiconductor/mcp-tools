@@ -31,6 +31,7 @@ export type SearchMicrosoftFilesParams = z.input<typeof SearchMicrosoftFilesSche
 /** The subset of Graph's driveItem we return; Graph sends a great deal more. */
 interface DriveItemSearchResponse {
   value?: {
+    id?: string;
     name?: string;
     webUrl?: string;
     size?: number;
@@ -72,7 +73,7 @@ export class SearchMicrosoftFilesTool implements ToolHandler {
     const escaped = query.replace(/'/g, "''");
     const path =
       `/me/drive/root/search(q='${encodeURIComponent(escaped)}')` +
-      `?$top=${limit}&$select=name,webUrl,size,lastModifiedDateTime,lastModifiedBy,parentReference,file,folder`;
+      `?$top=${limit}&$select=id,name,webUrl,size,lastModifiedDateTime,lastModifiedBy,parentReference,file,folder`;
 
     const response = await graphRequest<DriveItemSearchResponse>(path);
     const items = response.value ?? [];
@@ -82,6 +83,9 @@ export class SearchMicrosoftFilesTool implements ToolHandler {
         query,
         count: items.length,
         results: items.map((item) => ({
+          // itemId is what readMicrosoftFile takes; without it the two tools
+          // could not be used together.
+          itemId: item.id,
           name: item.name,
           kind: item.folder ? 'folder' : (item.file?.mimeType ?? 'file'),
           url: item.webUrl,
@@ -89,6 +93,7 @@ export class SearchMicrosoftFilesTool implements ToolHandler {
           lastModified: item.lastModifiedDateTime,
           lastModifiedBy: item.lastModifiedBy?.user?.displayName,
           location: item.parentReference?.path,
+          driveId: item.parentReference?.driveId,
         })),
       },
       null,
