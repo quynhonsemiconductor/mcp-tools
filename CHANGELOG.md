@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.1...v0.1.2) (2026-09-13)
+
+
+### 🐛 Bug Fixes
+
+* **release:** install each target's keyring binding so all five platforms build ([#18](https://github.com/quynhonsemiconductor/mcp-tools/issues/18)) ([0c48ff1](https://github.com/quynhonsemiconductor/mcp-tools/commit/0c48ff113d14a3d796e8cb06a06e6cae3f514bff))
+
 ## [0.1.1](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.0...v0.1.1) (2026-09-13)
 
 
