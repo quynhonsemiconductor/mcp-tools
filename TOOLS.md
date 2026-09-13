@@ -304,15 +304,9 @@ returns AADSTS7000218 without one), `location-to-coords` needs an API key, and
 | [x] | ○ | `read-graph` | `readGraph` | Read and query the knowledge graph structure, entities, and relations | – |
 | [x] | ○ | `search-nodes` | `searchNodes` | Search for entities/nodes in the knowledge graph by content, name, or other fields | – |
 
-#### Memory (5)
 
 | ✓ | On | Tool ID | Function | Description | Requires |
 |---|---|---|---|---|---|
-| [ ] | ○ | `add-memory` | `addMemory` | When the user wants to remember something important, they can use this tool to add a memory for future retrieval. | `QNSC_MCP_API_KEY` |
-| [ ] | ○ | `clear-memory` | `clearMemory` | When the user wants to remove all previously stored memories. | – |
-| [ ] | ○ | `get-memory` | `getMemory` | When the user wants to remember something important, they can use this tool to retrieve a memory. | – |
-| [ ] | ○ | `remove-memory` | `removeMemory` | When the user wants to remove a specific memory. | – |
-| [ ] | ○ | `update-memory` | `updateMemory` | When the user wants to update an existing memory. | `QNSC_MCP_API_KEY` |
 
 #### NPM (5)
 

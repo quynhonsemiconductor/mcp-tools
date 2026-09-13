@@ -1,13 +1,11 @@
 # Example configuration. Copy to `.qnscmcp.yaml` at the repository root, or to
 # ~/.qnscmcp/config.yaml for all projects.
 #
-# The point of this file is that everything it enables actually works. Without it
-# the fallback is "includeByDefault", which switches on SharePoint's 56 tools —
-# they need an Azure app registration — and leaves most GitHub tools dormant. That
-# is exactly backwards: 89 tools that fail on use, and the 88 your team wants off.
+# Everything this enables works. Without a config file the fallback switches on
+# SharePoint's 56 tools, which need an Azure app registration, and leaves most
+# GitHub tools dormant — exactly backwards.
 #
-# 113 of the 114 tools this config offers are verified end to end against a real
-# organisation. See TOOLS.md.
+# 140 tools are offered here. See TOOLS.md for what has been verified.
 
 # qnsc-mcp configuration
 #
@@ -53,7 +51,18 @@ tools:
   # effect on them. The real category on every bundled tool is "Bundled".
   # Individual tools that cannot succeed here, so they are not offered to the
   # model at all rather than failing when it tries them.
+  # Run the bundled Chrome headless and in an isolated profile, so it never opens a
+  # window over someone's work and never acts with their signed-in sessions.
+  mcpArgs:
+    chrome-devtools-mcp:
+      - '--headless'
+      - '--isolated'
+
   exclude:
+    # SharePoint's 56 tools need an Azure app registration with a certificate, and
+    # its own security scan reports a command injection risk in that auth path.
+    # Excluded by id glob because bundled servers cannot be excluded by name.
+    - 'sharepoint__*'
     # Needs an Entra app registration with a client secret. Reaches Microsoft and
     # fails with AADSTS7000218 without one.
     - reauth
@@ -64,7 +73,9 @@ tools:
     - weather
 
   excludeCategories:
-    - 'Bundled'
+  # chrome-devtools is on: verified working, needs no credential, and runs
+  # headless via mcpArgs below. SharePoint is the only other bundled server
+  # and it needs an Azure app registration, so it is excluded by name instead.
     # Needs SWAGGER_HUB_API_KEY, which is not set.
     - 'Swagger'
 
