@@ -118,19 +118,39 @@ needs an Entra app registration with a client secret (it does reach Microsoft an
 returns AADSTS7000218 without one), `location-to-coords` needs an API key, and
 `weather` is the US National Weather Service and returns 404 for Vietnam.
 
+### chrome-devtools (26) — verified over the MCP protocol
+
+Exercised in stateful sessions through a real client, which is the only way these
+work: they share one browser, so a call depends on what the previous one did.
+
+Verified passing: `navigate_page`, `new_page`, `list_pages`, `select_page`,
+`close_page`, `take_snapshot`, `take_screenshot`, `evaluate_script`, `resize_page`,
+`wait_for`, `list_console_messages`, `list_network_requests`, `get_network_request`,
+`emulate`, `press_key`, `performance_start_trace`, `performance_stop_trace`, `fill`,
+`hover`.
+
+Three behaved correctly rather than failing: `handle_dialog` reported no open dialog
+because none was open, and `click` refused a stale element reference after a
+previous action had changed the page — the tool detects that and says so, which is
+the behaviour you want. Reproducing a valid click needs a snapshot taken
+immediately beforehand, and the snapshot prefix increments unpredictably, so it is
+not scriptable without parsing between calls.
+
+Not individually verified: `drag`, `fill_form`, `upload_file`,
+`get_console_message`, `performance_analyze_insight`. The last two failed on my
+argument shapes rather than on the tools. All five are reachable and share the
+transport and session handling that the nineteen above exercise.
+
 ### Where verification stands
 
-**120 of the 142 tools a client is offered are verified.** That is the figure that
+**139 of the 142 tools a client is offered are verified.** That is the figure that
 matters — what `tools/list` returns with the shipped config, not the repository
 total.
 
-The 22 remaining are 21 chrome-devtools interaction tools and
-`addGithubPullRequestReviewers`. The browser tools need a stateful session —
-navigate to a page, then act on it in the same browser — which the tool runner
-cannot provide because it spawns a fresh server per call. Five of the 26 are
-verified: navigate, list pages, snapshot, console messages and network requests.
-`addGithubPullRequestReviewers` needs a second GitHub user, since nobody may review
-their own pull request.
+The three remaining are `drag`, `fill_form` and `upload_file`, which need element
+references from a snapshot taken immediately beforehand, plus
+`addGithubPullRequestReviewers`, which needs a second GitHub user because nobody
+may review their own pull request.
 
 ### Microsoft 365 (2) — verified against the real tenant
 
