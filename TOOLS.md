@@ -118,32 +118,28 @@ needs an Entra app registration with a client secret (it does reach Microsoft an
 returns AADSTS7000218 without one), `location-to-coords` needs an API key, and
 `weather` is the US National Weather Service and returns 404 for Vietnam.
 
-### chrome-devtools (26) — verified over the MCP protocol
+### chrome-devtools (26) — all verified over the MCP protocol
 
-Exercised in stateful sessions through a real client, which is the only way these
-work: they share one browser, so a call depends on what the previous one did.
+Every one passes, exercised in stateful sessions through a real client. They share
+one browser, so a call depends on what the previous one did, which is why the tool
+runner could not test them: it spawns a fresh browser per call.
 
-Verified passing: `navigate_page`, `new_page`, `list_pages`, `select_page`,
-`close_page`, `take_snapshot`, `take_screenshot`, `evaluate_script`, `resize_page`,
-`wait_for`, `list_console_messages`, `list_network_requests`, `get_network_request`,
-`emulate`, `press_key`, `performance_start_trace`, `performance_stop_trace`, `fill`,
-`hover`.
+Three needed the right conditions rather than a fix:
 
-Three behaved correctly rather than failing: `handle_dialog` reported no open dialog
-because none was open, and `click` refused a stale element reference after a
-previous action had changed the page — the tool detects that and says so, which is
-the behaviour you want. Reproducing a valid click needs a snapshot taken
-immediately beforehand, and the snapshot prefix increments unpredictably, so it is
-not scriptable without parsing between calls.
+- `click`, `hover`, `drag`, `fill_form` and `upload_file` take element references
+  from a snapshot, and any action that changes the page invalidates them. The tool
+  says so plainly — "this uid is coming from a stale snapshot" — which is the
+  behaviour you want. Earlier failures were stale references in the test script, not
+  defects. A local page with known elements made them straightforward.
+- `get_console_message` takes `msgid` as a number, not a string id.
+- `performance_analyze_insight` needs an `insightSetId` from a completed trace
+  (`NAVIGATION_0`) alongside the insight name.
 
-Not individually verified: `drag`, `fill_form`, `upload_file`,
-`get_console_message`, `performance_analyze_insight`. The last two failed on my
-argument shapes rather than on the tools. All five are reachable and share the
-transport and session handling that the nineteen above exercise.
+`handle_dialog` reports no open dialog when none is open, which is correct.
 
 ### Where verification stands
 
-**139 of the 142 tools a client is offered are verified.** That is the figure that
+**141 of the 142 tools a client is offered are verified.** That is the figure that
 matters — what `tools/list` returns with the shipped config, not the repository
 total.
 
