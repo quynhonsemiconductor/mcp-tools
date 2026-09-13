@@ -153,5 +153,11 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "8.49.0"
   },
-  "trustedDependencies": []
+  "trustedDependencies": [],
+  "overrides": {
+    "fast-xml-parser": "5.11.1",
+    "protobufjs": "8.8.0",
+    "tmp": "0.2.7",
+    "@opentelemetry/core": "2.8.0"
+  }
 }
