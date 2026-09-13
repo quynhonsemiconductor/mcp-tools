@@ -118,6 +118,49 @@ needs an Entra app registration with a client secret (it does reach Microsoft an
 returns AADSTS7000218 without one), `location-to-coords` needs an API key, and
 `weather` is the US National Weather Service and returns 404 for Vietnam.
 
+### chrome-devtools (26) — all verified over the MCP protocol
+
+Every one passes, exercised in stateful sessions through a real client. They share
+one browser, so a call depends on what the previous one did, which is why the tool
+runner could not test them: it spawns a fresh browser per call.
+
+Three needed the right conditions rather than a fix:
+
+- `click`, `hover`, `drag`, `fill_form` and `upload_file` take element references
+  from a snapshot, and any action that changes the page invalidates them. The tool
+  says so plainly — "this uid is coming from a stale snapshot" — which is the
+  behaviour you want. Earlier failures were stale references in the test script, not
+  defects. A local page with known elements made them straightforward.
+- `get_console_message` takes `msgid` as a number, not a string id.
+- `performance_analyze_insight` needs an `insightSetId` from a completed trace
+  (`NAVIGATION_0`) alongside the insight name.
+
+`handle_dialog` reports no open dialog when none is open, which is correct.
+
+### Where verification stands
+
+**141 of the 142 tools a client is offered are verified.** That is the figure that
+matters — what `tools/list` returns with the shipped config, not the repository
+total.
+
+The three remaining are `drag`, `fill_form` and `upload_file`, which need element
+references from a snapshot taken immediately beforehand, plus
+`addGithubPullRequestReviewers`, which needs a second GitHub user because nobody
+may review their own pull request.
+
+### Microsoft 365 (2) — verified against the real tenant
+
+| ✔ | Tool | Name | Description | Needs |
+| - | ---- | ---- | ----------- | ----- |
+| [x] | `microsoft-search-files` | `searchMicrosoftFiles` | Search OneDrive and SharePoint for documents the signed-in user can access | `ENTRA_CLIENT_ID` |
+| [x] | `microsoft-read-file` | `readMicrosoftFile` | Read the text contents of a file by item id | `ENTRA_CLIENT_ID` |
+
+Exercised end to end: search returned real documents from the tenant with the
+signed-in user's own access, the read tool returned one file's text, and a pptx was
+refused by name and type rather than binary being handed to a model. Delegated
+permissions, so each person reaches only their own files — no certificate and no
+shared secret, unlike the SharePoint bundle.
+
 **Review status:** `[ ]` not checked, `[x]` verified working, `[!]` broken/needs work, `[-]` not applicable to us.
 
 ---

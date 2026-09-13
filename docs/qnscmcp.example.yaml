@@ -28,6 +28,14 @@ tools:
   # "Http operation is not supported for gateway protocol type MCP" — confirmed
   # with raw curl at all three protocol versions. Its five tools would register
   # and then fail on first use. Re-add it if AWS fixes that.
+  # Bundled servers are enabled here and nowhere else. Their handler's isEnabled()
+  # returns false unless the server is named in includeMCPs or the tool id in
+  # include — it never consults includeCategories. So listing 'Bundled' under
+  # includeCategories makes the tools appear in `list-tools` while a real client
+  # receives none of them.
+  includeMCPs:
+    - chrome-devtools-mcp
+
   includeRemoteMCPs: []
 
   # Native tool categories.
@@ -100,3 +108,10 @@ tools:
     - Utility
     - Knowledge Graph
     - NPM
+  # Delegated Microsoft sign-in: each person reaches only their own OneDrive and
+  # SharePoint files. Needs ENTRA_CLIENT_ID from a public-client app registration.
+    - 'Microsoft 365'
+  # chrome-devtools. Note includeCategories is an allowlist: leaving Bundled out
+  # silently drops every bundled tool, even with nothing in excludeCategories.
+  # SharePoint is kept out by the sharepoint__* glob in exclude instead.
+    - 'Bundled'
