@@ -25,7 +25,7 @@
   are listed-but-not-usable in this org (see below).
 - **If you're here to support a user or debug:** jump to
   [§6 Supporting & debugging](#6-supporting-users--debugging-runbook).
-- **The one mental model to hold:** a *tool* is a `@Tool`-decorated class that auto-registers
+- **The one mental model to hold:** a _tool_ is a `@Tool`-decorated class that auto-registers
   into a global registry; a **generated loader** (`src/registry/tool-loader.ts`) is what makes
   tools visible. See §3.
 
@@ -49,6 +49,7 @@ org, because they depend on infrastructure that is not deployed for `quynhonsemi
 self-contained binary instead of a dozen separate integrations. ✓ (README.md, CLAUDE.md)
 
 Where it sits in the system:
+
 - **Upstream:** an MCP client (VS Code, JetBrains, Claude Code/Desktop) launches `qnsc-mcp` and
   speaks MCP over stdio or HTTP stream.
 - **Downstream:** the toolkit calls external services directly. The two remaining remote MCP
@@ -68,7 +69,7 @@ The fastest way to prove the repo is alive.
   Package manager is Bun only (no `package-lock.json`).
 - **Setup:** `bun install`.
 - **Run the server:** `bun dev` (runs `build:prep`, then watches `src/mcp.ts` with
-  `--transportType httpStream` — note it's httpStream, *not* stdio). Web config UI: `bun dev:web`.
+  `--transportType httpStream` — note it's httpStream, _not_ stdio). Web config UI: `bun dev:web`.
   MCP Inspector: `bun inspector`. ✓ (package.json)
   - The `httpStream` transport binds **`127.0.0.1` only** by default. Flags: `--port`
     (default 8081), `--endpoint` (default `/mcp`), and `--host` (default `127.0.0.1`).
@@ -92,7 +93,7 @@ The fastest way to prove the repo is alive.
   assets → generate loaders → bundle MCPs → embed native keyring binding → `Bun.build({compile})`
   → package `.mcpb`. ✓ (scripts/build.ts)
 - **Setup gotchas:** copy `.env.example` → `.env` before running; `src/env.ts` auto-loads
-  `dotenv` at import. OAuth in `bun dev` needs *real* env-var credentials — embedded build-time
+  `dotenv` at import. OAuth in `bun dev` needs _real_ env-var credentials — embedded build-time
   creds only exist in a compiled binary (§4.E).
 
 ## 3. Architecture & mental model
@@ -132,7 +133,7 @@ tool, `execute` is a generated wrapper that makes a network call to the remote e
 | `registry/` | The heart: decorator+manager, **generated** loaders, `types.ts`, middlewares |
 | `gateway/` | Integration of bundled/local/remote MCPs; sandbox, bundler, security, env-tier |
 | `services/` | Cross-cutting infra: `auth/` (OAuth/keyring/Entra), `telemetry/`, `logger/`, `mcp/` (express transport), `validation/` (doctor) |
-| `commands/` | CLI handlers: server, web, doctor, reauth, list-*, generate-config, update |
+| `commands/` | CLI handlers: server, web, doctor, reauth, list-\*, generate-config, update |
 | `remote-mcps/`, `local-mcps/` | Admin-curated allowlists of approved servers + SETUP docs |
 | `bin/` | The **binary** entrypoint (`src/bin/mcp.ts`) — distinct from `src/mcp.ts` (dev) |
 | `config.ts`, `env.ts` | YAML config loading + env-var schema |
@@ -149,10 +150,29 @@ env vars are validated in `src/env.ts`. ✓
 
 The most valuable section. Each: what it is → why it bites → what to do.
 
+- **0. A green release does not mean a working binary.** Nothing in the pipeline started
+  the artifact until v0.1.5, and v0.1.3 and v0.1.4 both shipped an executable that exited
+  immediately: `Cannot find module '../../package.json'`. Reading package.json at module
+  scope resolves under `bun run` and never inside a single-file executable, so typecheck
+  and the unit suite both pass while the shipped thing is dead. **Never read package.json
+  at runtime — use `PACKAGE_VERSION` from `src/utils/version.ts`**, which is injected as a
+  literal by `scripts/build.ts`. `scripts/smoke-binary.ts` now starts the binary in CI and
+  requires a `tools/list` reply before upload. Note also that a static JSON import does not
+  help: bun rewrites it to `createRequire`, and a `new URL` next to `import.meta.url` is
+  treated as an asset reference and resolved too.
+
+- **0b. Nested parentheses in a commit body stop release-please.** A body line reading
+  `readFileSync` followed by a call wrapped in another call failed to parse with
+  `unexpected token '(' ... valid tokens [)]`, so the commit was dropped, `commits: 0` was
+  reported and **no release PR appeared even though the merge was green**. The changelog is
+  built from the squashed body, so this silently withholds releases. Keep bodies plain prose
+  and avoid nesting one call inside another. If a release PR does not appear, read the
+  release-please log for `commit could not be parsed` before assuming a permissions problem.
+
 - **A. The global test mocks are load-bearing and fragile.** `src/test-utils/mocks.ts` runs
   `setupStandardMocks()` once at import and mutates global modules. **Do NOT `mock.module`
   anything it already mocks — you break tests** (see the file header). Override
-  `CatchErrors`/`logger` only by *preserving original behavior* (it ships GOOD/BAD examples).
+  `CatchErrors`/`logger` only by _preserving original behavior_ (it ships GOOD/BAD examples).
   Prefer `spyOn` — Bun's `mock.module` is global, doesn't auto-restore, and is known-buggy
   (oven-sh/bun#6040, #12823). ✓
 - **B. Generated artifacts — rebuild, never hand-edit.** All carry an AUTO-GENERATED header, and
@@ -162,21 +182,21 @@ The most valuable section. Each: what it is → why it bites → what to do.
   `build:prep` first, which regenerates all loaders** — so any hand-edit to them is silently
   overwritten on the next dev run. ✓
 - **C. Compiled binary ≠ `bun dev`.** Several things only exist in the compiled binary:
-  - **Embedded credentials:** OAuth client creds + secrets are XOR-*obfuscated* (not encrypted)
+  - **Embedded credentials:** OAuth client creds + secrets are XOR-_obfuscated_ (not encrypted)
     and injected at build time via a Bun `define`. `EMBEDDED_CREDENTIAL_CONTEXT` only exists in
     the binary, so **OAuth in `bun dev` requires real env-var creds**. Missing creds at build
     time only `console.warn` — a binary can ship credential-less and "succeed." ✓ (scripts/build.ts)
   - **Native keyring binding:** `@napi-rs/keyring` loads a native `.node` at import; the binary
     entrypoint (`src/bin/mcp.ts`) extracts it to a temp dir and sets `NAPI_RS_NATIVE_LIBRARY_PATH`
-    *before* any other import. `keyring-loader.ts` exists because Bun's `--compile` breaks dynamic
+    _before_ any other import. `keyring-loader.ts` exists because Bun's `--compile` breaks dynamic
     requires. Be careful editing `isKeyringCorrupted()` — its indicator list deliberately
-    *excludes* "not found"/"NoSuchObject" to avoid false-positive password re-prompts. ✓
+    _excludes_ "not found"/"NoSuchObject" to avoid false-positive password re-prompts. ✓
   - **Embedded-asset ENOENT:** compiled binaries can hit `ENOENT: 'mcps.tar'` because a static
     `import { readFile } from 'fs/promises'` captures the unpatched `fs` before `bun-assets.ts`
     monkey-patches it. This **cannot reproduce under `bun test`** (mocks no-op `fs`); there's a
     standalone `*.verify.ts` script for it. Classic "works in dev, fails in binary." ✓
 - **D. Swallowed errors to know about.** The PostgreSQL connection probe
-  (`src/tools/postgresql/postgresql-profile.ts:215-216`) returns `false` on *any* error, so an
+  (`src/tools/postgresql/postgresql-profile.ts:215-216`) returns `false` on _any_ error, so an
   auth/network failure looks like "can't connect." Keep this in mind when debugging connection
   issues. ✓
 - **E. Unfinished surfaces (don't assume they work):** config-based filtering of **resources and
@@ -246,7 +266,7 @@ TLS, and reports unknown server ids). Common issues:
 
 ## 8. History & decisions (append-only)
 
-Newest first. Each session that learns something adds a line — capture the *why*, never delete
+Newest first. Each session that learns something adds a line — capture the _why_, never delete
 past entries.
 
 - **Remote fleet removed:** 17 of 19 remote MCP servers (atlassian, datadog, pagerduty, slack,
