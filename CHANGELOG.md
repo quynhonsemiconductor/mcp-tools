@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.4](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.3...v0.1.4) (2026-09-14)
+
+
+### ✨ Features
+
+* **microsoft-365:** read the calendar and Teams channel posts ([#31](https://github.com/quynhonsemiconductor/mcp-tools/issues/31)) ([022b118](https://github.com/quynhonsemiconductor/mcp-tools/commit/022b1180fb5b6bb724548220c6cfb86c4750e927))
+* **microsoft-365:** read the documents people actually store ([#26](https://github.com/quynhonsemiconductor/mcp-tools/issues/26)) ([2e7c60b](https://github.com/quynhonsemiconductor/mcp-tools/commit/2e7c60b130574ef0c381749d68bd58c7d881f5d4))
+* **microsoft-365:** search Outlook and read Teams conversations ([#30](https://github.com/quynhonsemiconductor/mcp-tools/issues/30)) ([1d0bbdb](https://github.com/quynhonsemiconductor/mcp-tools/commit/1d0bbdb2fc9461c692020618714ddf5a5f115ca0))
+
+
+### 🐛 Bug Fixes
+
+* **deps:** clear both critical advisories and every high one ([#23](https://github.com/quynhonsemiconductor/mcp-tools/issues/23)) ([0a1aa18](https://github.com/quynhonsemiconductor/mcp-tools/commit/0a1aa188e8c0d51fecb6a7c466ab78d480160a9b))
+
 ## [0.1.3](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.2...v0.1.3) (2026-09-13)
 
 
