@@ -144,7 +144,8 @@ export const categoryLoaders: Record<string, () => Promise<void>> = {
     await import('../tools/knowledge-graph/search-nodes-tool');
   },
   'Microsoft 365': async () => {
-    await import('../tools/microsoft-graph/list-chats-tool');
+    await import('../tools/microsoft-graph/list-calendar-tool');
+    await import('../tools/microsoft-graph/list-channel-messages-tool');
     await import('../tools/microsoft-graph/list-recent-files-tool');
     await import('../tools/microsoft-graph/read-file-tool');
     await import('../tools/microsoft-graph/search-email-tool');

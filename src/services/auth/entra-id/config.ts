@@ -99,6 +99,18 @@ const GRAPH_DELEGATED_SCOPES = [
   // chat messages are for application-only access, which this never uses.
   'https://graph.microsoft.com/Mail.Read',
   'https://graph.microsoft.com/Chat.Read',
+  'https://graph.microsoft.com/Calendars.Read',
+  // Channel posts are team-wide rather than personal, so these need administrator
+  // consent. They still read only what this user has joined — Graph scopes every
+  // response to their membership.
+  //
+  // Three scopes are needed rather than one, which is not obvious: reading posts
+  // requires ChannelMessage.Read.All, but the team and channel ids have to be
+  // discovered first, and /me/joinedTeams and /teams/{id}/channels are governed
+  // separately. Granting only the message scope fails at the first call.
+  'https://graph.microsoft.com/Team.ReadBasic.All',
+  'https://graph.microsoft.com/Channel.ReadBasic.All',
+  'https://graph.microsoft.com/ChannelMessage.Read.All',
 ] as const;
 
 /**
