@@ -51,25 +51,49 @@ interface ChatMessagesResponse {
 }
 
 /**
+ * Named entities Teams uses, decoded in a single pass.
+ *
+ * A single pass matters: decoding `&amp;` before `&lt;` turns `&amp;lt;` into `<`,
+ * which is double-unescaping. One regex with a lookup table cannot reorder itself,
+ * so the class of bug goes away rather than being ordered around.
+ */
+const HTML_ENTITIES: Record<string, string> = {
+  '&nbsp;': ' ',
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
+  '&quot;': '"',
+  '&#39;': "'",
+  '&apos;': "'",
+};
+
+/**
  * Reduce Teams' HTML message bodies to readable text.
  *
- * Messages are usually HTML even for one-line replies, and handing raw markup to a
- * model wastes context and reads badly.
+ * Messages are HTML even for one-line replies, and handing raw markup to a model
+ * wastes context and reads badly.
+ *
+ * Tags are removed repeatedly until the text stops changing. A single pass is not
+ * enough: `<<div>script>` leaves `<script>` behind once the inner tag is taken out,
+ * so one pass can reintroduce the very thing it was removing. This text is never
+ * rendered as HTML, so that is a correctness problem rather than an injection one —
+ * but mangled text is still wrong.
  *
  * @param html - Message body as returned by Graph
- * @returns Plain text with tags and entities resolved
+ * @returns Plain text with tags removed and entities decoded
  */
-function htmlToText(html: string): string {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/(p|div)>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
+export function htmlToText(html: string): string {
+  let text = html.replace(/<br\s*\/?>/gi, '\n').replace(/<\/(p|div)>/gi, '\n');
+
+  // Loop to a fixed point, with a bound so a pathological input cannot spin.
+  for (let pass = 0; pass < 10; pass += 1) {
+    const stripped = text.replace(/<[^<>]*>/g, '');
+    if (stripped === text) break;
+    text = stripped;
+  }
+
+  return text
+    .replace(/&(?:nbsp|amp|lt|gt|quot|#39|apos);/g, (entity) => HTML_ENTITIES[entity] ?? entity)
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
@@ -145,3 +169,10 @@ export class ListTeamsChatsTool implements ToolHandler {
     );
   }
 }
+
+/**
+ * Exported under a distinct name so tests can exercise the conversion directly.
+ * Both CodeQL findings against the original implementation were real, so this is
+ * worth pinning rather than testing only through a live Graph call.
+ */
+export { htmlToText as htmlToTextForTesting };
