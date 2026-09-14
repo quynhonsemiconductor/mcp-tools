@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.7](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.6...v0.1.7) (2026-09-14)
+
+
+### 🐛 Bug Fixes
+
+* **build:** stop a tagged release that cannot sign anyone in ([#37](https://github.com/quynhonsemiconductor/mcp-tools/issues/37)) ([f38f8a3](https://github.com/quynhonsemiconductor/mcp-tools/commit/f38f8a3f31005c7d47eaec7cbff81e4638836cce))
+
 ## [0.1.6](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.5...v0.1.6) (2026-09-14)
 
 
