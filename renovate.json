@@ -1,6 +1,46 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "local>quynhonsemiconductor/.github:renovate-config"
+  "extends": ["local>quynhonsemiconductor/.github:renovate-config"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Upstream versions of the bundled MCP servers, pinned as a git ref in bundled/<name>/server.yaml. Renovate reads package.json and nothing else by default, so these were invisible and drifted a long way: chrome-devtools-mcp sat at 0.12.1 against an upstream 1.9.0, and browser-tools-mcp at v1.2.0 against v2.0.2. chrome-devtools is the second largest tool group shipped, so a stale pin there is not cosmetic.",
+      "managerFilePatterns": ["/^bundled/[^/]+/server\\.yaml$/"],
+      "matchStrings": [
+        "repository:\\s*https://github\\.com/(?<depName>[^/\\s]+/[^/\\s]+)\\s*\\n\\s*ref:\\s*(?<currentValue>\\S+)"
+      ],
+      "datasourceTemplate": "github-tags"
+    },
+    {
+      "customType": "regex",
+      "description": "Versions of the local MCP servers launched through npx, pinned inline in the launch string rather than declared as dependencies. @playwright/mcp was pinned at 0.0.52 against an upstream 0.0.80, and @mobilenext/mobile-mcp at 0.0.33 against 1.0.4.",
+      "managerFilePatterns": ["/^src/local-mcps/available-local-servers\\.ts$/"],
+      "matchStrings": [
+        "npx\\s+(?<depName>@?[a-z0-9][a-z0-9._/-]*)@(?<currentValue>[0-9][0-9a-zA-Z.+-]*)"
+      ],
+      "datasourceTemplate": "npm"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "chrome-devtools-mcp tags carry the package name as a prefix, as in chrome-devtools-mcp-v1.9.0, so the version has to be extracted before it can be compared. Without this the tags sort as plain strings and the newest release is not recognised.",
+      "matchDatasources": ["github-tags"],
+      "matchPackageNames": ["ChromeDevTools/chrome-devtools-mcp"],
+      "extractVersion": "^chrome-devtools-mcp-v(?<version>.+)$"
+    },
+    {
+      "description": "Bundled MCP servers ship inside the released binary, and a major bump can rename or re-shape the tools a client sees. Separate PRs per package keep each one reviewable, since adopting one means re-verifying its tools against a real target.",
+      "matchDatasources": ["github-tags"],
+      "matchFileNames": ["bundled/**"],
+      "separateMajorMinor": true,
+      "separateMultipleMajor": true,
+      "addLabels": ["bundled-mcp", "needs-tool-verification"]
+    },
+    {
+      "description": "markdown2pdf-mcp is pinned to the commit 687dbfa rather than a tag, and a commit cannot be compared against a tag list, so Renovate would either skip it or report nonsense. Upstream does publish tags and is currently at v2.1.3. Left disabled deliberately: moving from a commit to a tag changes what is bundled and should be a considered switch, not an automated bump.",
+      "matchDatasources": ["github-tags"],
+      "matchPackageNames": ["2b3pro/markdown2pdf-mcp"],
+      "enabled": false
+    }
   ]
 }
