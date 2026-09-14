@@ -43,6 +43,18 @@ export interface SourceConfig {
 export interface BuildConfig {
   enabled: boolean;
   command?: string;
+  /**
+   * Command used to install dependencies before building. Defaults to `bun install`.
+   *
+   * Needed because bun ignores a nested `overrides` block and warns rather than
+   * failing. chrome-devtools-mcp 1.9.0 declares
+   * `{"eslint-plugin-import": {"eslint": "$eslint"}, "puppeteer-core": "$puppeteer"}`,
+   * so skipping the block also drops the puppeteer-core pin, every
+   * `puppeteer-core/internal/*` import becomes unresolvable, and the re-export barrel
+   * ends up empty — surfacing as dozens of "has no exported member" errors that look
+   * like an upstream break rather than a resolution problem.
+   */
+  installCommand?: string;
   args?: string[];
   startFunction?: string;
   external?: string[];

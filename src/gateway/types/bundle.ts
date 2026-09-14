@@ -35,6 +35,8 @@ export interface MCPBundleOptions {
   outputPath?: string;
   buildProject?: boolean;
   buildCommand?: string;
+  /** Overrides the default `bun install` when a server needs a different installer. */
+  installCommand?: string;
   minify?: boolean;
   sourceMaps?: boolean;
   verbose?: boolean;
