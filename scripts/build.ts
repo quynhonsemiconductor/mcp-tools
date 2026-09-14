@@ -239,6 +239,18 @@ async function updateVersionInPackageJson(newVersion?: string) {
 }
 
 const EMBEDDED_OAUTH_CLIENTS = ['github', 'entra'];
+
+/**
+ * OAuth clients a tagged release cannot ship without.
+ *
+ * Only GitHub. Entra resolves its client id from a source-level default in
+ * src/services/auth/entra-id/config.ts, so Microsoft 365 sign-in works in a binary
+ * built with no secrets at all — which is why the released v0.1.6 could reach the
+ * tenant while GitHub asked every user for a token. Requiring the Entra pair here
+ * would fail every release for a credential the workflow does not pass and does not
+ * need.
+ */
+const REQUIRED_FOR_RELEASE = ['github'];
 // NEW_RELIC_LICENSE_KEY was here. It let a release build bake in a telemetry key
 // for the previous owner's observability vendor: set that env var once in CI and
 // every installed binary would start sending traces there, with nothing in the
@@ -264,6 +276,19 @@ function obfuscate(plaintext: string, key: Buffer): string {
   return result.toString('base64');
 }
 
+/**
+ * Whether this build is producing artifacts for a published release.
+ *
+ * Local and pull-request builds legitimately have no OAuth secrets, so only a tag
+ * build is held to the stricter rule. GITHUB_REF_TYPE is set by Actions and absent
+ * everywhere else, which makes a developer's machine lenient by default.
+ *
+ * @returns True when Actions is building a tag
+ */
+function isTaggedReleaseBuild(): boolean {
+  return process.env.GITHUB_REF_TYPE === 'tag';
+}
+
 async function getEmbeddedCredentialDefines() {
   const defines: Record<string, string> = {};
 
@@ -284,6 +309,23 @@ async function getEmbeddedCredentialDefines() {
     const clientSecretEnv = process.env[`${clientUpper}_CLIENT_SECRET`];
 
     if (!clientIdEnv || !clientSecretEnv) {
+      // A release without these is not a release anybody can use. Embedding the
+      // org's OAuth app is the whole reason a teammate signs in as themselves rather
+      // than creating a personal access token, and both halves are needed — an id
+      // without a secret embeds nothing.
+      //
+      // This only warned until v0.1.7, which is exactly how v0.1.3 through v0.1.6
+      // shipped with no GitHub sign-in: the secret was never set, five platforms went
+      // green, and the gap surfaced only when the published binary was searched for
+      // the client id. A tagged build now stops instead.
+      if (isTaggedReleaseBuild() && REQUIRED_FOR_RELEASE.includes(client)) {
+        throw new Error(
+          `${clientUpper}_CLIENT_ID and ${clientUpper}_CLIENT_SECRET are both required for a ` +
+            `tagged release, and ${!clientIdEnv ? 'the id' : 'the secret'} is missing. Without ` +
+            `both, the binary cannot sign anyone in and would ship demanding a token from ` +
+            `every user. Set the corresponding repository secrets.`
+        );
+      }
       console.warn(
         `Missing environment variables for ${clientUpper}: ${clientUpper}_CLIENT_ID or ${clientUpper}_CLIENT_SECRET, not embedding credentials.`
       );
