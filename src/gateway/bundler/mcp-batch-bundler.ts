@@ -169,6 +169,7 @@ export class MCPBatchBundler {
         mcpSource,
         buildProject: updatedConfig.build.enabled,
         buildCommand: updatedConfig.build.command,
+        installCommand: updatedConfig.build.installCommand,
         entryPoint: updatedConfig.source.entrypoint,
         staticFiles: updatedConfig.staticFiles,
         envVars: updatedConfig.envVars,

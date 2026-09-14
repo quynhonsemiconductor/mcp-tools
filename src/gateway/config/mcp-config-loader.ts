@@ -42,6 +42,7 @@ interface RawSourceConfig {
 interface RawBuildConfig {
   enabled?: boolean;
   command?: string;
+  installCommand?: string;
   args?: unknown;
   startFunction?: string;
   external?: string[];
@@ -388,6 +389,9 @@ export class MCPConfigLoader {
       build: {
         enabled: raw.build?.enabled ?? DEFAULT_CONFIG.build?.enabled ?? true,
         command: raw.build?.command,
+        // Mapped field by field, so a key missing here is dropped no matter how correct
+        // server.yaml is — which is why the first attempt at this appeared to do nothing.
+        installCommand: raw.build?.installCommand,
         args: raw.build?.args as string[] | undefined,
         startFunction: raw.build?.startFunction,
         external: raw.build?.external,

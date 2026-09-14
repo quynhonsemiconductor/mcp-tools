@@ -498,10 +498,15 @@ try {
       );
     }
 
-    logIf(`📦 Installing dependencies...`, verbose);
+    // `bun install` unless the server asks for something else. A server needs npm when
+    // it relies on package.json features bun does not implement; bun only warns, so the
+    // consequence appears much later as unresolved imports.
+    const installCmd =
+      this.currentOptions?.installCommand ?? `bun install ${verbose ? '--silent' : ''}`;
+    logIf(`📦 Installing dependencies: ${installCmd}`, verbose);
 
     try {
-      execSync(`bun install ${verbose ? '--silent' : ''}`, {
+      execSync(installCmd, {
         cwd: workDir!,
         stdio: verbose ? 'inherit' : 'ignore',
       });

@@ -150,6 +150,29 @@ env vars are validated in `src/env.ts`. ✓
 
 The most valuable section. Each: what it is → why it bites → what to do.
 
+- **0c. Upgrading chrome-devtools-mcp past 1.0 is four problems, not a version bump.**
+  Attempted 0.12.1 → 1.9.0 and stopped. No tool was renamed or removed — the 26 tool
+  names are identical — but the bundle would not run. In order: (1) bun skips a nested
+  `overrides` block with only a warning, which also drops upstream's
+  `"puppeteer-core": "$puppeteer"` pin, so every `puppeteer-core/internal/*` import
+  fails to resolve and the re-export barrel empties, surfacing as dozens of "has no
+  exported member" errors that look like an upstream break. `build.installCommand:
+npm install` in `server.yaml` fixes this and is now supported. (2) The CLI moved to
+  `build/src/bin/chrome-devtools-mcp.js`; `main` still points at
+  `build/src/index.js`, which is now a library entry that exits 0 having produced
+  nothing — so the server looks like it starts and then answers nothing, and tool
+  discovery records zero tools. (3) 1.9.0 reads
+  `build/src/third_party/issue-descriptions` at startup and throws ENOENT without it,
+  and that directory is not in the build output. (4) `staticFiles` copies files only —
+  a directory entry fails with `ENOTSUP ... copyfile`, so fixing (3) needs directory
+  support in the bundler first.
+
+  **Beware a false pass while testing this.** The runtime extracts from `mcps.tar`,
+  which `generate:bundles` does not rewrite — only `build:bundle` does. A run after
+  `generate:bundles` alone reported 26 working tools that were the _old_ 0.12.1
+  bundle. Check `~/.qnscmcp/bundled/<name>/metadata.json` for the version actually
+  loaded before believing any result.
+
 - **0. A green release does not mean a working binary.** Nothing in the pipeline started
   the artifact until v0.1.5, and v0.1.3 and v0.1.4 both shipped an executable that exited
   immediately: `Cannot find module '../../package.json'`. Reading package.json at module
