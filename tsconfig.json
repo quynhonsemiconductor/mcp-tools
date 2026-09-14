@@ -16,7 +16,10 @@
     "verbatimModuleSyntax": false,
 
     "allowJs": true, // allow importing `.js` from `.ts`
-    "esModuleInterop": true, // allow default imports for CommonJS modules
+    "esModuleInterop": true,
+    // Lets the version be imported from package.json as a value, so it is bundled
+    // into the compiled binary rather than looked up on disk at runtime.
+    "resolveJsonModule": true, // allow default imports for CommonJS modules
 
     // decorator support
     "experimentalDecorators": true,

@@ -399,6 +399,13 @@ async function buildBinary(args: {
       },
       define: {
         ...(await getEmbeddedCredentialDefines()),
+        // The version has to arrive as a literal. Reading package.json at runtime
+        // is what stopped every binary before v0.1.5 from starting: the compiled
+        // executable has no package.json to resolve, and a static JSON import is
+        // not inlined either — bun rewrites it to createRequire, which fails the
+        // same way. JSON.stringify supplies the surrounding quotes that `define`
+        // requires for a string literal.
+        __PACKAGE_VERSION__: JSON.stringify(args.targetVersion ?? ''),
         BUILD_ENVIRONMENT_TIER: (() => {
           const tier = process.env.BUILD_ENVIRONMENT_TIER || 'non-prod';
           console.log(`🌍 Build environment tier: ${tier}`);

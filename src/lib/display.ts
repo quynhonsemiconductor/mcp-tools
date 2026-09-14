@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import { PACKAGE_VERSION } from '../utils/version.js';
 import { logError } from '../services/logger';
 
 /**
@@ -24,12 +25,7 @@ export function displayHeader(showVersion = true): void {
   console.log(chalk.cyan(ASCII_HEADER));
 
   if (showVersion) {
-    try {
-      const packageJson = require('../../package.json');
-      console.log(chalk.dim(` v${packageJson.version}`));
-    } catch {
-      // If package.json can't be loaded, just skip the version info
-    }
+    console.log(chalk.dim(` v${PACKAGE_VERSION}`));
 
     console.log('');
   }

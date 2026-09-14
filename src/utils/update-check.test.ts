@@ -25,11 +25,12 @@ void mock.module('../tools/github', () => ({
 // mocked by standard mocks (darwin/arm64), so getPlatformInfo returns the correct values.
 // Mocking it via mock.module would poison other test files sharing this bun process.
 
-// Mock package.json version
-void mock.module('../../package.json', () => ({
-  version: '3.6.0',
-}));
-
+// The version arrives through APP_VERSION rather than a mocked package.json module.
+// Nothing imports package.json any more: reading it at module scope is what stopped
+// every compiled binary before v0.1.5 from starting, so there is no module left to
+// mock. This is also what CLAUDE.md asks for — mock.module is global and leaks into
+// whichever test files share the bun process.
+process.env.APP_VERSION = '3.6.0';
 // Octokit mock — controlled per-test via mockGetLatestRelease
 const MOCK_RELEASE = {
   tag_name: 'v3.7.0',

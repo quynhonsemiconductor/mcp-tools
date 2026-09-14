@@ -103,6 +103,22 @@ jobs:
           GITHUB_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
         run: bun run build:binary
 
+      - name: Smoke test the binary
+        # Four releases reported success while shipping an executable that could not
+        # start: a top-level read of package.json resolves under `bun run` and not
+        # inside a single-file executable, so v0.1.3 and v0.1.4 both exited before
+        # serving a request. Build, checksum and upload all passed; nothing ever
+        # started the artifact.
+        #
+        # Only the native target can be executed here — every target is built on
+        # ubuntu-latest, so the macOS, Windows and arm64 outputs cannot run. That is
+        # still enough, because this class of failure is not platform-specific: it
+        # comes from how the bundle is produced, which every target shares.
+        if: matrix.target == 'bun-linux-x64'
+        env:
+          OUTFILE: ${{ matrix.outfile }}
+        run: bun run scripts/smoke-binary.ts "./$OUTFILE"
+
       - name: Checksum
         # Values reach the shell as ENV, never as `${{ }}` inside `run:`. A template
         # expansion is substituted into the script text before bash sees it, so the

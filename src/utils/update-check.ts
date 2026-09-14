@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import { PACKAGE_VERSION } from './version.js';
 import { Octokit } from 'octokit';
 import semver from 'semver';
 import { getEmbeddedGenericSecret } from '../services/auth/embedded-credentials';
@@ -25,12 +26,8 @@ export const getAuthToken = (): string | null => {
  * Get package version from package.json or environment
  */
 export const getPackageVersion = (): string => {
-  try {
-    const pkg = require('../../package.json') as { version: string };
-    return pkg.version;
-  } catch {
-    return process.env.APP_VERSION || '0.0.0';
-  }
+  // APP_VERSION still wins so a build can override what it reports.
+  return process.env.APP_VERSION || PACKAGE_VERSION;
 };
 
 export interface UpdateCheckResult {
