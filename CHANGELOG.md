@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.4...v0.1.5) (2026-09-14)
+
+
+### 🐛 Bug Fixes
+
+* release the binary startup fix, which release-please could not parse ([#33](https://github.com/quynhonsemiconductor/mcp-tools/issues/33)) ([b51263b](https://github.com/quynhonsemiconductor/mcp-tools/commit/b51263b5648a24a3786eaa7f7f0f05e3d71c3d2a))
+
 ## [0.1.4](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.3...v0.1.4) (2026-09-14)
 
 
