@@ -23,24 +23,27 @@
   ],
   "packageRules": [
     {
-      "description": "chrome-devtools-mcp tags carry the package name as a prefix, as in chrome-devtools-mcp-v1.9.0, so the version has to be extracted before it can be compared. Without this the tags sort as plain strings and the newest release is not recognised.",
+      "description": "chrome-devtools-mcp tags carry the package name as a prefix, as in chrome-devtools-mcp-v1.9.0, so the version has to be extracted before it can be compared. Without this the tags sort as plain strings and the newest release is not recognised. Wait before proposing a newly published version. A compromised release is usually caught and yanked within days, and without a delay Renovate would open a PR minutes after publication \u2014 which for these packages means code that ends up inside the released binary. Flagged by Semgrep on the first version of this config.",
       "matchDatasources": ["github-tags"],
       "matchPackageNames": ["ChromeDevTools/chrome-devtools-mcp"],
-      "extractVersion": "^chrome-devtools-mcp-v(?<version>.+)$"
+      "extractVersion": "^chrome-devtools-mcp-v(?<version>.+)$",
+      "minimumReleaseAge": "7 days"
     },
     {
-      "description": "Bundled MCP servers ship inside the released binary, and a major bump can rename or re-shape the tools a client sees. Separate PRs per package keep each one reviewable, since adopting one means re-verifying its tools against a real target.",
+      "description": "Bundled MCP servers ship inside the released binary, and a major bump can rename or re-shape the tools a client sees. Separate PRs per package keep each one reviewable, since adopting one means re-verifying its tools against a real target. Wait before proposing a newly published version. A compromised release is usually caught and yanked within days, and without a delay Renovate would open a PR minutes after publication \u2014 which for these packages means code that ends up inside the released binary. Flagged by Semgrep on the first version of this config.",
       "matchDatasources": ["github-tags"],
       "matchFileNames": ["bundled/**"],
       "separateMajorMinor": true,
       "separateMultipleMajor": true,
-      "addLabels": ["bundled-mcp", "needs-tool-verification"]
+      "addLabels": ["bundled-mcp", "needs-tool-verification"],
+      "minimumReleaseAge": "7 days"
     },
     {
-      "description": "markdown2pdf-mcp is pinned to the commit 687dbfa rather than a tag, and a commit cannot be compared against a tag list, so Renovate would either skip it or report nonsense. Upstream does publish tags and is currently at v2.1.3. Left disabled deliberately: moving from a commit to a tag changes what is bundled and should be a considered switch, not an automated bump.",
+      "description": "markdown2pdf-mcp is pinned to the commit 687dbfa rather than a tag, and a commit cannot be compared against a tag list, so Renovate would either skip it or report nonsense. Upstream does publish tags and is currently at v2.1.3. Left disabled deliberately: moving from a commit to a tag changes what is bundled and should be a considered switch, not an automated bump. It carries the same seven day delay as the active rules. The value is inert because the rule proposes nothing, but the scanner does not reason about enabled, and the false form the Semgrep message suggests is rejected by Renovate's own schema, which requires a duration string.",
       "matchDatasources": ["github-tags"],
       "matchPackageNames": ["2b3pro/markdown2pdf-mcp"],
-      "enabled": false
+      "enabled": false,
+      "minimumReleaseAge": "7 days"
     }
   ]
 }
