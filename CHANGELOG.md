@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.5...v0.1.6) (2026-09-14)
+
+
+### 🐛 Bug Fixes
+
+* **microsoft-365:** make the Teams channel tool actually work ([#35](https://github.com/quynhonsemiconductor/mcp-tools/issues/35)) ([ced544e](https://github.com/quynhonsemiconductor/mcp-tools/commit/ced544e8dd3c7a60da67bbf79a603a2a79350547))
+
 ## [0.1.5](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.4...v0.1.5) (2026-09-14)
 
 
