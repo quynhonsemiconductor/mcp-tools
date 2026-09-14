@@ -146,10 +146,16 @@ export class ListTeamsChatsTool implements ToolHandler {
       );
     }
 
+    // Graph rejects $orderby on lastUpdatedDateTime when members are expanded
+    // ("QueryOptions to order by 'lastUpdatedDateTime' is not supported"), and the
+    // members are what make an untitled group chat identifiable. Sorting here keeps
+    // both, at the cost of ordering only within the page that was fetched.
     const response = await graphRequest<ChatsResponse>(
-      `/me/chats?$top=${limit}&$expand=members&$orderby=lastUpdatedDateTime desc`,
+      `/me/chats?$top=${limit}&$expand=members`,
     );
-    const chats = response.value ?? [];
+    const chats = [...(response.value ?? [])].sort((a, b) =>
+      (b.lastUpdatedDateTime ?? '').localeCompare(a.lastUpdatedDateTime ?? ''),
+    );
 
     return JSON.stringify(
       {
