@@ -1,4 +1,5 @@
 import yargs from 'yargs';
+import { PACKAGE_VERSION } from './utils/version.js';
 import {
   doctor,
   generateConfig,
@@ -33,12 +34,7 @@ export async function main(): Promise<void> {
   // synchronous rename-then-replace approach
   checkUpdateResult();
 
-  let version: string;
-  try {
-    version = require('../package.json').version;
-  } catch {
-    version = 'unknown';
-  }
+  const version = PACKAGE_VERSION;
 
   const parser = yargs(process.argv.slice(2))
     .scriptName('qnsc-mcp')

@@ -1,7 +1,7 @@
 # Bundled MCP Servers
 
 <!-- BEGIN MCP STATS -->
-Bundled MCPs provide a comprehensive suite of 82 tools across 2 third-party MCP servers.
+Bundled MCPs provide a comprehensive suite of 26 tools across 1 third-party MCP servers.
 <!-- END MCP STATS -->
 
 ## Available MCPs
@@ -10,13 +10,11 @@ Bundled MCPs provide a comprehensive suite of 82 tools across 2 third-party MCP 
 | Name | Version | Tools | Risk Score |
 | ---- | ------- | ----- | ---------- |
 | [chrome-devtools-mcp](./chrome-devtools-mcp) | 0.12.1 | 26 | N/A |
-| [sharepoint](./sharepoint) | 1.0.14 | 56 | 🟢 [25/100](./sharepoint/security-scan.json) |
 
 ## Tool Count by MCP
 
 | MCP | Tool Count |
 | --- | ---------- |
-| sharepoint | 56 |
 | chrome-devtools-mcp | 26 |
 
 <!-- END MCP TABLE -->

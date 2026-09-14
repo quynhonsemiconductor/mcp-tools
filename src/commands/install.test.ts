@@ -56,7 +56,10 @@ void mock.module('../utils/update-windows', () => ({
   checkDirectoryWritePermission: mock(() => true),
   getProcessDisplayName: (name: string) => name,
 }));
-void mock.module('../../package.json', () => ({ version: packageVersion }));
+// APP_VERSION rather than a mocked package.json module: nothing imports package.json
+// now, because doing so at module scope prevented every compiled binary before v0.1.5
+// from starting.
+process.env.APP_VERSION = packageVersion;
 
 const mockExecSync = mock(() => {});
 const mockSpawn = mock(() => ({ unref: mock(() => {}), on: mock(() => {}) }));

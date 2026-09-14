@@ -1,19 +1,20 @@
 import { execSync } from 'child_process';
 import { logWarn } from '../services/logger';
-// Read through createRequire, NOT `import pkg from '../../package.json'`.
+// The version comes from a constant, because every way of reading package.json here
+// has failed somewhere. The history is worth keeping, since each fix looked correct
+// to whoever made it:
 //
-// Both static forms are platform-dependent on the pinned Bun 1.3.11, which is why the
-// note that used to sit here was half right: the import-attribute form
-// (`with { type: 'json' }`) fails on macOS, and the plain form — its replacement —
-// fails on LINUX with the same "Missing 'default' export in module package.json".
-// Local runs are macOS and CI is Linux, so each form looks correct to whoever last
-// touched it and breaks for everybody else.
+//   - `import pkg from '...' with { type: 'json' }` — fails on macOS.
+//   - `import pkg from '...'` — fails on Linux, "Missing 'default' export".
+//   - `createRequire(import.meta.url)('...')` — works in development on both, and
+//     broke every compiled binary. This line ran at module scope, so the executable
+//     exited before serving a single request: "Cannot find module
+//     '../../package.json' from '/$bunfs/root/src/bin/mcp.js'". Releases v0.1.3 and
+//     v0.1.4 both shipped that way and neither could start.
 //
-// createRequire resolves JSON the CommonJS way, which is not subject to the ESM JSON
-// module semantics either form depends on, and behaves the same on both platforms.
-import { createRequire } from 'module';
-
-const pkg = createRequire(import.meta.url)('../../package.json') as { version?: unknown };
+// Local runs were macOS and CI was Linux, so the platform gap got attention while
+// the compiled artifact — the only form teammates install — was never started.
+import { PACKAGE_VERSION } from './version';
 
 /**
  * Output limit for `osascript`, well above Node's 1 MB default.
@@ -98,7 +99,7 @@ let cachedAppVersion: string | null = null;
  */
 export function getAppVersion(): string {
   if (cachedAppVersion === null) {
-    cachedAppVersion = typeof pkg.version === 'string' ? pkg.version : 'unknown';
+    cachedAppVersion = PACKAGE_VERSION;
   }
   return cachedAppVersion;
 }

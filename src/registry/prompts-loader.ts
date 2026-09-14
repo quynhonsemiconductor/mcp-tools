@@ -8,11 +8,11 @@
  */
 
 // Auto-generated imports
-import '../prompts/analysis/code-performance-prompt';
-import '../prompts/analysis/code-security-prompt';
-import '../prompts/analysis/code-smell-prompt';
-import '../prompts/analysis/test-mcp-tools-prompt';
 import '../prompts/documentation/class-diagram-prompt';
 import '../prompts/documentation/flowchart-prompt';
+import '../prompts/analysis/code-performance-prompt';
+import '../prompts/analysis/test-mcp-tools-prompt';
+import '../prompts/analysis/code-security-prompt';
+import '../prompts/analysis/code-smell-prompt';
 
 // No need to export anything - the imports themselves will register the prompts
