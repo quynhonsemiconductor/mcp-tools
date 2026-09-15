@@ -157,3 +157,31 @@ export function rovaItems<T>(body: RovaPage<T> | T[] | null | undefined): T[] {
   if (Array.isArray(body)) return body;
   return body?.data ?? [];
 }
+
+/** Cached for the process: the signed-in identity does not change while it runs. */
+let cachedUserId: string | null = null;
+
+/**
+ * The id of the person the token belongs to.
+ *
+ * Several Rova writes require a user id for something the caller means to be themselves —
+ * recording who ran a test, most obviously. Without this, using those tools would mean
+ * knowing your own uuid, which nobody does.
+ *
+ * Read from /bff/me, which answers for an API token as well as a browser session.
+ *
+ * @returns The current user's id
+ * @throws When the identity cannot be resolved
+ */
+export async function rovaCurrentUserId(): Promise<string> {
+  if (cachedUserId) return cachedUserId;
+  const me = await rovaRequest<{ id?: string; user?: { id?: string } }>('/bff/me');
+  const id = me.id ?? me.user?.id;
+  if (!id) {
+    throw new UserError(
+      'Could not work out which Rova user this token belongs to, so a field that needs a user id cannot be filled in. Pass the id explicitly.',
+    );
+  }
+  cachedUserId = id;
+  return id;
+}

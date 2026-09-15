@@ -183,6 +183,7 @@ export const categoryLoaders: Record<string, () => Promise<void>> = {
     await import('../tools/rova/reports-tool');
     await import('../tools/rova/search-work-items-tool');
     await import('../tools/rova/team-status-tool');
+    await import('../tools/rova/test-cases-tool');
     await import('../tools/rova/update-work-item-tool');
   },
   'Swagger': async () => {
