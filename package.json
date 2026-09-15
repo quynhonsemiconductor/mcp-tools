@@ -125,7 +125,7 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@modelcontextprotocol/inspector": "0.17.5",
-    "@tsconfig/node22": "^22.0.5",
+    "@tsconfig/node24": "^24.0.0",
     "@types/express": "5.0.6",
     "@types/inquirer": "9.0.10",
     "@types/js-yaml": "4.0.9",
