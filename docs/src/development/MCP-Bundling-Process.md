@@ -88,10 +88,10 @@ The QNSC MCP Toolkit implements a multi-layer defense-in-depth security strategy
 
 #### Build-Time Security Layers
 
-**Code Injection - Filesystem Security** ([fs-security-plugin.ts](../../../../src/gateway/bundler/plugins/fs-security-plugin.ts)):
+**Code Injection - Filesystem Security** ([fs-security-plugin.ts](https://github.com/quynhonsemiconductor/mcp-tools/blob/main/src/gateway/bundler/plugins/fs-security-plugin.ts)):
 
 - Intercepts all `fs` and `fs/promises` module imports during bundling
-- Replaces them with security shim templates ([fs-security.js.tmpl](../../../../src/gateway/bundler/templates/fs-security.js.tmpl))
+- Replaces them with security shim templates ([fs-security.js.tmpl](https://github.com/quynhonsemiconductor/mcp-tools/blob/main/src/gateway/bundler/templates/fs-security.js.tmpl))
 - Security options:
   - Block all filesystem access (default)
   - Allow specific paths only via whitelist
@@ -99,7 +99,7 @@ The QNSC MCP Toolkit implements a multi-layer defense-in-depth security strategy
 - All filesystem operations check paths against the allowlist before execution
 - Unauthorized access attempts throw descriptive errors
 
-**Code Injection - Network Security** ([network-security-plugin.ts](../src/gateway/bundler/plugins/network-security-plugin.ts)):
+**Code Injection - Network Security** ([network-security-plugin.ts](https://github.com/quynhonsemiconductor/mcp-tools/blob/main/src/gateway/bundler/plugins/network-security-plugin.ts)):
 
 - Intercepts network-related module imports: `http`, `https`, `net`, `dns`, `dgram`, `tls`
 - Overrides the global `fetch` API via injected shim code
@@ -111,7 +111,7 @@ The QNSC MCP Toolkit implements a multi-layer defense-in-depth security strategy
 
 #### Runtime Security Layers
 
-**Process Isolation** ([bun-subprocess-runner.ts](../src/gateway/sandbox/bun-subprocess-runner.ts)):
+**Process Isolation** ([bun-subprocess-runner.ts](https://github.com/quynhonsemiconductor/mcp-tools/blob/main/src/gateway/sandbox/bun-subprocess-runner.ts)):
 
 - Executes bundled MCPs in completely separate subprocesses using `spawn()`
 - Key isolation features:
@@ -121,7 +121,7 @@ The QNSC MCP Toolkit implements a multi-layer defense-in-depth security strategy
   - Can be terminated at any time with timeouts
   - Configurable RPC timeout (default: 60 seconds)
 
-**Environment Variable Filtering** ([env-filter.ts](../src/gateway/utils/env-filter.ts)):
+**Environment Variable Filtering** ([env-filter.ts](https://github.com/quynhonsemiconductor/mcp-tools/blob/main/src/gateway/utils/env-filter.ts)):
 
 - Strictly controls which environment variables are passed to subprocess
 - Default safe system variables whitelist:
@@ -135,7 +135,7 @@ The QNSC MCP Toolkit implements a multi-layer defense-in-depth security strategy
 - Sensitive credentials never passed unless explicitly configured
 - Supports default values and required variable validation
 
-**JSON-RPC Protocol Enforcement** ([bun-subprocess-runner.ts](../src/gateway/sandbox/bun-subprocess-runner.ts)):
+**JSON-RPC Protocol Enforcement** ([bun-subprocess-runner.ts](https://github.com/quynhonsemiconductor/mcp-tools/blob/main/src/gateway/sandbox/bun-subprocess-runner.ts)):
 
 - All communication happens through validated JSON-RPC messages
 - MCP can only respond to specific methods:
@@ -146,7 +146,7 @@ The QNSC MCP Toolkit implements a multi-layer defense-in-depth security strategy
 - Timeouts prevent hanging processes
 - Pending requests tracked and cleaned up on process exit
 
-**Remote MCP Isolation** ([remote-mcp-client.ts](../src/gateway/remote-mcp-client.ts)):
+**Remote MCP Isolation** ([remote-mcp-client.ts](https://github.com/quynhonsemiconductor/mcp-tools/blob/main/src/gateway/remote-mcp-client.ts)):
 
 - Remote HTTP-based MCPs use network-level isolation
 - Communication via HTTP streaming transport only

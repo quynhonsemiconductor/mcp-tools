@@ -60,7 +60,7 @@ tools:
     Run `qnsc-mcp list-tools` to see the exact category names. Native categories are
     `CrUX`, `Github: *` (Actions, Branches, Dependabot, Discussions, Gists, Issues,
     Orgs, Projects, Pulls, Releases, Repos, Search, Wiki), `k6`, `Knowledge Graph`,
-    `Memory`, `NPM`, `PostgreSQL`, `Swagger`, and `Utility`.
+    `Microsoft 365`, `NPM`, `PostgreSQL`, `Rova`, `Swagger`, and `Utility`.
 
 ### Glob Pattern Matching
 
@@ -99,7 +99,7 @@ Enable third-party MCP servers that are packaged with the toolkit:
 ```yaml
 tools:
   includeMCPs:
-    - 'sharepoint'
+    - 'chrome-devtools-mcp'
     - 'chrome-devtools-mcp'
 ```
 
@@ -231,7 +231,7 @@ tools:
 
   # Enable bundled MCP servers
   includeMCPs:
-    - 'sharepoint'
+    - 'chrome-devtools-mcp'
 
 logging:
   enabled: true

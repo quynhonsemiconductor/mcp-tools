@@ -16,7 +16,14 @@ This guide will help you set up QNSC MCP Toolkit so your AI assistant (like GitH
 
 ## Step 1: Get the Toolkit
 
-There are no published installers or binaries yet — this repository has no releases or tags — so you run the toolkit from source with [Bun](https://bun.sh).
+Download the file for your platform from [the latest release](https://github.com/quynhonsemiconductor/mcp-tools/releases/latest). Each platform has
+two: the plain binary for Claude Code, and a `.mcpb` bundle for Claude Desktop.
+
+Per-platform steps, including how to clear macOS quarantine and warm the binary before
+first use, are in [macOS](macOS.md), [Windows](windows.md) and [Linux](linux.md).
+
+You only need the steps below if you are working on the toolkit itself, rather than using
+it.
 
 1. Install Bun (`>=1.3.11`) by following the instructions at [bun.sh](https://bun.sh). Verify it with `bun --version`.
 

@@ -2,130 +2,105 @@
 
 [![CI](https://github.com/quynhonsemiconductor/mcp-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/quynhonsemiconductor/mcp-tools/actions/workflows/ci.yml)
 
-Model Context Protocol server that gives an AI assistant a catalog of tools: GitHub,
-SharePoint, Chrome DevTools, AWS documentation, Postgres, a knowledge graph, npm
-dependency analysis and more. Works with any MCP client — VS Code, Claude Desktop,
-Claude Code, JetBrains.
+A Model Context Protocol server that gives Claude access to the systems QNSC works in:
+GitHub, Microsoft 365, Rova, and a Chrome browser. Everyone signs in as themselves — the
+tools reach only what that person can already see.
 
-## What's included
-
-**224 tools**, of which 101 are enabled by default.
-[`TOOLS.md`](TOOLS.md) is the full inventory, generated from the running server.
-
-| Surface | Count | Notes |
-|---|---|---|
-| Native tools | 142 | GitHub (92), Utility (15), Knowledge Graph (9), k6 (6), NPM (5), Memory (5), CrUX (4), PostgreSQL (4), Swagger (2) |
-| Bundled MCP tools | 82 | `sharepoint` (56), `chrome-devtools-mcp` (26) — run locally, see [`bundled/README.md`](bundled/README.md) |
-| Remote MCP servers | 2 | AWS documentation and Figma Dev Mode; see [Remote servers](#remote-servers) |
-| Local MCP servers | 3 | Playwright, Mobile Next, Dart — opt-in subprocesses |
-| Prompts | 8 | Code review, diagrams, test plans |
-| Resources | 5 | Logs, current config, Kong entities |
-
-Most GitHub tools need a `GITHUB_TOKEN`; the credential each tool requires is listed
-in [`TOOLS.md`](TOOLS.md).
+Works with Claude Code, Claude Desktop, and any other MCP client.
 
 ## Install
 
-No binaries are published yet — there are no releases or tags on this repository, so
-run it from source. Requires [Bun](https://bun.sh) `>=1.3.11`.
+Download the file for your platform from
+[the latest release](https://github.com/quynhonsemiconductor/mcp-tools/releases/latest).
+There are two per platform and the one you want depends on which Claude you use.
+
+### Claude Code
+
+Take the plain binary, without the `.mcpb` extension:
 
 ```bash
-git clone https://github.com/quynhonsemiconductor/mcp-tools.git
-cd mcp-tools
-bun install
+# macOS on Apple silicon; substitute your platform's file
+chmod +x qnsc-mcp-macos-arm64
+mv qnsc-mcp-macos-arm64 ~/.local/bin/qnsc-mcp
 
-bun run src/mcp.ts --version
-bun run src/mcp.ts doctor        # validate config, env, keyring, TLS
-bun run src/mcp.ts list-tools    # everything registered
+# Start it once before registering it. A first launch can take longer than Claude
+# Code's 30-second connection limit, which reports a failure that is not real.
+qnsc-mcp --help >/dev/null
+
+claude mcp add qnsc-mcp -- ~/.local/bin/qnsc-mcp --config fromEnv
+claude mcp list        # expect: ✔ Connected
 ```
 
-To build a local binary: `bun run build:binary` (macOS arm64/x64 and Linux x64;
-nothing is code-signed, so macOS Gatekeeper will object).
+If the first `claude mcp list` still times out, run it again — see
+[the Claude Code guide](docs/src/quickstart/clients/claude.md) for `MCP_TIMEOUT`.
+
+### Claude Desktop
+
+Take the `.mcpb` file and open it. Claude Desktop installs it and asks which tool
+categories to enable; every tool is listed by name on that screen.
+
+### From source
+
+Only needed to work on the toolkit itself. Requires [Bun](https://bun.sh) `>=1.3.11`.
+
+```bash
+bun install
+bun run src/mcp.ts doctor        # checks config, environment, keyring, TLS
+bun run src/mcp.ts list-tools    # everything registered
+bun run build:binary             # builds for the current platform
+```
+
+## What you get
+
+**199 tools**, listed individually in [`TOOLS.md`](TOOLS.md).
+
+| Area                          | Tools | Signing in                                                   |
+| ----------------------------- | ----- | ------------------------------------------------------------ |
+| GitHub                        | 88    | Browser OAuth on first use. No personal access token needed. |
+| Rova                          | 23    | A personal API token, created in Rova under API tokens       |
+| Chrome DevTools               | 29    | Nothing — drives a local Chrome                              |
+| Microsoft 365                 | 14    | Browser sign-in with your own Entra account                  |
+| Utility, Knowledge Graph, NPM | 29    | Nothing                                                      |
+| k6, CrUX, PostgreSQL, Swagger | 16    | One API key each; unused unless you configure them           |
+
+A fresh install enables **17 tools** and offers the rest as opt-in categories. Microsoft
+365 is on by default because it needs no configuration; Rova is not, because it needs a
+token only you can create.
+
+Everything is read-only except where stated: sending mail, posting in Teams, creating
+calendar events, and creating or updating Rova items. Mail recipients are restricted to
+the organisation.
 
 ## Configure
 
-Tools are opt-in through `.qnscmcp.yaml` in the working directory, or
-`~/.qnscmcp/config.yaml`. Without one you get the `includeByDefault` set, which
-includes all 56 SharePoint tools — usually worth narrowing.
+Enable tools through `.qnscmcp.yaml` in the working directory, or
+`~/.qnscmcp/config.yaml`. Category names must match `TOOLS.md` exactly.
 
 ```yaml
 tools:
-  # Category names must match TOOLS.md exactly.
   includeCategories:
+    - 'Microsoft 365'
+    - Rova
     - Utility
-    - Knowledge Graph
-    - NPM
     - 'Github: Issues'
     - 'Github: Pulls'
-
-  # Individual tool IDs, if a whole category is too broad.
-  include:
-    - doctor
-    - get-current-time
-
-  includeRemoteMCPs:
-    - aws-knowledge-mcp-server
-
-  includeLocalMCPs:
-    - playwright-local
+  # Bundled servers are enabled by name, not by category.
+  includeMCPs:
+    - chrome-devtools-mcp
 ```
 
-`bun run src/mcp.ts list-tools --filtered` shows what a config actually enables.
-Full reference: [Configuration](docs/src/configuration.md).
+`includeCategories` is an allowlist: a category left out is excluded even when nothing
+appears in `excludeCategories`.
 
-## Remote servers
+Credentials come from the environment, or from the prompts Claude Desktop shows at
+install. `qnsc-mcp doctor` reports what is missing.
 
-Two, both reached without any hosted infrastructure:
+## Documentation
 
-- **`aws-knowledge-mcp-server`** — AWS documentation search and regional availability.
-  Public endpoint, no credentials. It connects and its 5 tools register, but calling one
-  currently returns `Http operation is not supported for gateway protocol type MCP` from
-  AWS. That is the endpoint's own reply — raw `curl` gets the same, for every protocol
-  version it will negotiate — so the tools are listed but not yet usable.
-- **`figma-dev`** — served by the Figma desktop app on `localhost:3845`.
-
-17 others were removed. They proxied through a platform gateway at `*.ai.qnsc.vn` which
-is not deployed for this organization, so none could connect;
-[`src/remote-mcps/README.md`](src/remote-mcps/README.md) records what it did. Grafana k6
-and GitHub, the two in that set that matter here, are covered by native tools instead.
-
-## Connect a client
-
-| Client | Guide |
-|---|---|
-| VS Code | [vs-code.md](docs/src/quickstart/clients/vs-code.md) |
-| Claude Desktop / Claude Code | [claude.md](docs/src/quickstart/clients/claude.md) |
-| Step-by-step from scratch | [getting-started.md](docs/src/quickstart/getting-started.md) |
-| macOS / Windows setup | [macOS.md](docs/src/quickstart/macOS.md) · [windows.md](docs/src/quickstart/windows.md) |
-
-Point the client at `qnsc-mcp` (or `bun run src/mcp.ts`) as the command. Restart the
-client to pick up changes.
-
-## CLI
-
-```bash
-qnsc-mcp                        # start the MCP server (stdio)
-qnsc-mcp doctor                 # diagnose config, env, keyring, TLS
-qnsc-mcp list-tools [--filtered]  # all tools, or only enabled ones
-qnsc-mcp list-prompts           # available prompts
-qnsc-mcp list-resources         # available resources
-qnsc-mcp generate-config        # scaffold a .qnscmcp.yaml
-qnsc-mcp webserver              # web config UI
-qnsc-mcp remote-mcp | local-mcp | bundled-mcp   # inspect MCP servers
-qnsc-mcp view-logs | tail-log-file
-qnsc-mcp --help
-```
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, how to add a tool,
-testing, and the release flow. Two things worth knowing before your first PR: `lint`
-fails only on errors (~1,400 warnings are tolerated), and three
-`localMcpReferenceValidation` tests fail in a full run for reasons that predate your
-change.
-
-## Support
-
-[Issues](https://github.com/quynhonsemiconductor/mcp-tools/issues) ·
-[Discussions](https://github.com/quynhonsemiconductor/mcp-tools/discussions) ·
-[Troubleshooting](docs/src/troubleshooting.md)
+|                                                |                                                 |
+| ---------------------------------------------- | ----------------------------------------------- |
+| [`TOOLS.md`](TOOLS.md)                         | every tool, by category                         |
+| [`docs/MAINTAINERS.md`](docs/MAINTAINERS.md)   | architecture, and the traps that have cost time |
+| [`docs/src/quickstart/`](docs/src/quickstart/) | per-client setup                                |
+| [`bundled/README.md`](bundled/README.md)       | how bundled MCP servers are built               |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md)           | development workflow                            |
