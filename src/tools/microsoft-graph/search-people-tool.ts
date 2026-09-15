@@ -18,7 +18,7 @@ export const SearchMicrosoftPeopleSchema = z.object({
   query: z
     .string()
     .min(1)
-    .describe('Name, email address, job title or department to look for, e.g. "Nghia" or "finance"'),
+    .describe('Name or email address to look for, e.g. "Nghia" or "nghiavt"'),
   limit: z.number().int().min(1).max(25).default(10).describe('Maximum people to return'),
 });
 
@@ -43,7 +43,7 @@ interface DirectoryResponse {
   id: 'microsoft-search-people',
   name: 'searchMicrosoftPeople',
   description:
-    'Look up colleagues in the organisation directory by name, email, job title or department. Use for questions about who someone is, what they do, or how to contact them.',
+    'Look up colleagues in the organisation directory by name or email address. Use for questions about who someone is or how to contact them. Returns job title and department when the directory holds them.',
   category: 'Microsoft 365',
   parameters: SearchMicrosoftPeopleSchema,
   version: '1.0.0',
@@ -67,7 +67,13 @@ export class SearchMicrosoftPeopleTool implements ToolHandler {
     // Quotes are part of Graph's $search syntax here, so a quote in the input would
     // change the meaning of the query rather than being searched for.
     const escaped = query.replace(/"/g, '');
-    const fields = ['displayName', 'mail', 'userPrincipalName', 'jobTitle', 'department'];
+    // Name and email fields only. jobTitle and department are not searchable with
+    // User.ReadBasic.All, and including either makes Graph reject the whole query with
+    // Authorization_RequestDenied — a message that points at the scope rather than the
+    // field, which is thoroughly misleading. Filtering on them is refused as well, so
+    // there is no way to reach them under this permission. They are still returned when
+    // the directory holds them, which in this tenant it currently does not.
+    const fields = ['displayName', 'mail', 'userPrincipalName', 'givenName', 'surname'];
     const search = fields.map((field) => `"${field}:${escaped}"`).join(' OR ');
     const select =
       'id,displayName,mail,userPrincipalName,jobTitle,department,officeLocation,mobilePhone,businessPhones,accountEnabled';
@@ -92,7 +98,7 @@ export class SearchMicrosoftPeopleTool implements ToolHandler {
         count: people.length,
         ...(people.length === 0
           ? {
-              note: 'No enabled accounts matched. Graph matches on the start of a word, so a partial surname works but a fragment from the middle of one does not.',
+              note: 'No enabled accounts matched. Graph matches from the start of a word, so a partial surname works while a fragment from the middle of one does not. Searching by job title or department is not possible with the permission this uses.',
             }
           : {}),
         people: people.map((person) => ({
