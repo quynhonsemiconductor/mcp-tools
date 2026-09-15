@@ -32,6 +32,12 @@ export type ReorderTasksToolParams = z.input<typeof ReorderTasksToolSchema>;
   parameters: ReorderTasksToolSchema,
   annotations: {
     title: 'reorder-tasks',
+    // Writes positions. Nothing is lost, and applying the same order twice leaves the
+    // list as it was, so it is idempotent and not destructive.
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
   },
 })
 export class ReorderTasksTool implements ToolHandler {

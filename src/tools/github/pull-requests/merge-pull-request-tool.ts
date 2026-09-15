@@ -33,6 +33,8 @@ export type GithubPullRequestMergeToolParams = z.infer<typeof GithubPullRequestM
   annotations: {
     title: 'Merge Github Pull Request',
     readOnlyHint: false,
+    // merging writes to a branch other people build on, and undoing it means another commit
+    destructiveHint: true,
     openWorldHint: true,
   },
 })

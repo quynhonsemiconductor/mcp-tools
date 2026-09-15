@@ -34,6 +34,8 @@ export type GithubDeleteCommitCommentReactionToolParams = z.infer<
   annotations: {
     title: 'Delete Github Commit Comment Reaction',
     readOnlyHint: false,
+    // Reversible: the same action can be applied again to restore what was there.
+    destructiveHint: false,
     openWorldHint: true,
   },
 })

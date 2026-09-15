@@ -46,6 +46,8 @@ interface DeleteFieldResponse {
   annotations: {
     title: 'Delete GitHub Project Field',
     readOnlyHint: false,
+    // removing a field discards its value on every item in the project
+    destructiveHint: true,
     openWorldHint: true,
   },
 })

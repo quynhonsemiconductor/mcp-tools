@@ -38,6 +38,8 @@ export type GithubMergeBranchToolParams = z.infer<typeof GithubMergeBranchSchema
   annotations: {
     title: 'Merge Github Branch',
     readOnlyHint: false,
+    // merging writes to a branch other people build on, and undoing it means another commit
+    destructiveHint: true,
     openWorldHint: true,
   },
 })

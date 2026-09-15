@@ -41,6 +41,8 @@ export type GithubPullRequestRemoveReviewersToolParams = z.infer<
   annotations: {
     title: 'Remove Github Pull Request Reviewers',
     readOnlyHint: false,
+    // Reversible: the same action can be applied again to restore what was there.
+    destructiveHint: false,
     openWorldHint: true,
   },
 })

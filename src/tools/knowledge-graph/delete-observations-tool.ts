@@ -34,6 +34,8 @@ export type DeleteObservationsParams = z.infer<typeof DeleteObservationsSchema>;
   annotations: {
     title: 'Delete Knowledge Graph Observations',
     readOnlyHint: false,
+    // observations are the recorded content; deleting them loses it
+    destructiveHint: true,
   },
 })
 export class DeleteObservationsTool implements ToolHandler {

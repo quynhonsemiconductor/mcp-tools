@@ -53,6 +53,12 @@ export type ManageTasksToolParams = z.input<typeof ManageTasksToolSchema>;
   parameters: ManageTasksToolSchema,
   annotations: {
     title: 'manage-tasks',
+    // Add, edit, delete and insert — a write in every mode, including one that removes
+    // a task outright.
+    readOnlyHint: false,
+    destructiveHint: true,
+    idempotentHint: false,
+    openWorldHint: false,
   },
 })
 export class ManageTasksTool implements ToolHandler {

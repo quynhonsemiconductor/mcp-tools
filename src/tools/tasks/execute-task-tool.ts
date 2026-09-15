@@ -44,6 +44,13 @@ export type ExecuteTaskToolParams = z.infer<typeof ExecuteTaskToolSchema>;
   parameters: ExecuteTaskToolSchema,
   annotations: {
     title: 'execute-task',
+    // Writes: it advances a task's state and records the outcome. Marked destructive
+    // because it acts on work items a person is tracking, and the effect is not a
+    // no-op if it is invoked twice.
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: false,
+    openWorldHint: false,
   },
 })
 export class ExecuteTaskTool implements ToolHandler {

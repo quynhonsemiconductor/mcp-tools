@@ -37,6 +37,8 @@ export type GithubIssuesRemoveSubIssueToolParams = z.infer<typeof GithubIssuesRe
   annotations: {
     title: 'Remove Github Sub-Issue',
     readOnlyHint: false,
+    // Reversible: the same action can be applied again to restore what was there.
+    destructiveHint: false,
     openWorldHint: true,
   },
 })

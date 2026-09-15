@@ -42,6 +42,8 @@ interface DeleteProjectItemResponse {
   annotations: {
     title: 'Delete GitHub Project Item',
     readOnlyHint: false,
+    // the item leaves the project, along with its field values
+    destructiveHint: true,
     openWorldHint: true,
   },
 })

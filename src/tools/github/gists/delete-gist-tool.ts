@@ -29,6 +29,8 @@ export type GithubGistDeleteToolParams = z.infer<typeof GithubGistDeleteSchema>;
   annotations: {
     title: 'Delete Github Gist',
     readOnlyHint: false,
+    // a gist and its contents are gone; nothing here can restore them
+    destructiveHint: true,
     openWorldHint: true,
   },
 })
