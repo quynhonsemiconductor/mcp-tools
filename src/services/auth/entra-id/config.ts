@@ -99,7 +99,9 @@ const GRAPH_DELEGATED_SCOPES = [
   // chat messages are for application-only access, which this never uses.
   'https://graph.microsoft.com/Mail.Read',
   'https://graph.microsoft.com/Chat.Read',
-  'https://graph.microsoft.com/Calendars.Read',
+  // Calendars.Read is not requested: Calendars.ReadWrite already covers reading, and
+  // asking for both means the consent screen and the audit trail list a permission
+  // that grants nothing extra.
   // Channel posts are team-wide rather than personal, so these need administrator
   // consent. They still read only what this user has joined — Graph scopes every
   // response to their membership.
