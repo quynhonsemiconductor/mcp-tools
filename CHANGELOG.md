@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.8](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.7...v0.1.8) (2026-09-15)
+
+
+### ✨ Features
+
+* **bundled:** upgrade chrome-devtools-mcp to 1.9.0 ([#43](https://github.com/quynhonsemiconductor/mcp-tools/issues/43)) ([ddf90ec](https://github.com/quynhonsemiconductor/mcp-tools/commit/ddf90ecac5e2e36733ce9fa937603a71ae4d3fbf))
+* **bundler:** let a server choose how its dependencies are installed ([#41](https://github.com/quynhonsemiconductor/mcp-tools/issues/41)) ([c7fed10](https://github.com/quynhonsemiconductor/mcp-tools/commit/c7fed10b5260c7a002d72c8fe98e3c2d6ead4388))
+
 ## [0.1.7](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.6...v0.1.7) (2026-09-14)
 
 
