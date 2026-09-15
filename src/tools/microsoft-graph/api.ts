@@ -134,6 +134,11 @@ async function graphFetch(path: string, init?: RequestInit): Promise<Response> {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
+        // Graph rejects a write with "RequestBodyRead: A missing or empty content type
+        // header was found" rather than anything mentioning JSON, so the cause is not
+        // obvious from the message. Set here rather than at each call site, so a write
+        // tool added later cannot forget it. A caller can still override it.
+        ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
         ...(init?.headers ?? {}),
       },
       signal: controller.signal,
