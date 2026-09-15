@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.10](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.9...v0.1.10) (2026-09-15)
+
+
+### ✨ Features
+
+* **rova:** read and update work items in the project tracker ([#54](https://github.com/quynhonsemiconductor/mcp-tools/issues/54)) ([7534719](https://github.com/quynhonsemiconductor/mcp-tools/commit/75347190818792a7e8d74afc772ee1eb1982b68a))
+
+
+### 🐛 Bug Fixes
+
+* stop offering defaults that cannot work ([#51](https://github.com/quynhonsemiconductor/mcp-tools/issues/51)) ([f1b1edf](https://github.com/quynhonsemiconductor/mcp-tools/commit/f1b1edfe3b13a70fb037026c96342941b27f2215))
+
 ## [0.1.9](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.8...v0.1.9) (2026-09-15)
 
 
