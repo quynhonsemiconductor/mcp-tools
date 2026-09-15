@@ -179,6 +179,7 @@ export const categoryLoaders: Record<string, () => Promise<void>> = {
     await import('../tools/rova/list-my-work-tool');
     await import('../tools/rova/list-portfolio-items-tool');
     await import('../tools/rova/list-projects-tool');
+    await import('../tools/rova/milestones-tool');
     await import('../tools/rova/releases-tool');
     await import('../tools/rova/reports-tool');
     await import('../tools/rova/search-work-items-tool');
