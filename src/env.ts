@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { z } from 'zod';
 import { coreEnvSchema } from './env/core';
 import { cruxEnvSchema } from './env/crux';
+import { microsoftEnvSchema } from './env/microsoft';
 import { githubEnvSchema } from './env/github';
 import { k6EnvSchema } from './env/k6';
 import { locationToCoordsEnvSchema } from './env/location-to-coords';
@@ -26,6 +27,7 @@ export const schema = coreEnvSchema
   .merge(newRelicEnvSchema)
   .merge(k6EnvSchema)
   .merge(cruxEnvSchema)
+  .merge(microsoftEnvSchema)
   .merge(locationToCoordsEnvSchema)
   .merge(remoteMcpCredentialsEnvSchema);
 

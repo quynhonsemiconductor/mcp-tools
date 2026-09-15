@@ -144,6 +144,7 @@ export const categoryLoaders: Record<string, () => Promise<void>> = {
     await import('../tools/knowledge-graph/search-nodes-tool');
   },
   'Microsoft 365': async () => {
+    await import('../tools/microsoft-graph/create-event-tool');
     await import('../tools/microsoft-graph/list-calendar-tool');
     await import('../tools/microsoft-graph/list-channel-messages-tool');
     await import('../tools/microsoft-graph/list-recent-files-tool');
@@ -153,6 +154,7 @@ export const categoryLoaders: Record<string, () => Promise<void>> = {
     await import('../tools/microsoft-graph/search-email-tool');
     await import('../tools/microsoft-graph/search-files-tool');
     await import('../tools/microsoft-graph/search-people-tool');
+    await import('../tools/microsoft-graph/send-email-tool');
   },
   'NPM': async () => {
     await import('../tools/npm/build-order-tool');

@@ -115,6 +115,13 @@ const GRAPH_DELEGATED_SCOPES = [
   // title, department and phone, and nothing else. User.Read alone covers only the
   // signed-in person, so it cannot answer a question about anybody else.
   'https://graph.microsoft.com/User.ReadBasic.All',
+  // The only write scopes here. Mail.Send sends as the signed-in person and cannot read
+  // anything, and Calendars.ReadWrite replaces Calendars.Read rather than adding to it.
+  // Recipients are restricted to the organisation by default, because this server also
+  // reads content written by outsiders and an instruction embedded in it must not be
+  // able to reach an outside address.
+  'https://graph.microsoft.com/Mail.Send',
+  'https://graph.microsoft.com/Calendars.ReadWrite',
 ] as const;
 
 /**
