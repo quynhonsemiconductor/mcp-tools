@@ -4,7 +4,7 @@
      `bun run generate:tools-doc`. An earlier hand-written version claimed a tool
      count that was wrong within a day, which is worse than having no document. -->
 
-Tools reachable when every category is enabled: **176**.
+Tools reachable when every category is enabled: **199**.
 
 A given install shows fewer, because categories are opt-in at install time. What each
 install actually exposes is listed in the bundle manifest and by `qnsc-mcp list-tools`.
@@ -31,6 +31,7 @@ install actually exposes is listed in the bundle manifest and by `qnsc-mcp list-
 | Microsoft 365 | 14 |
 | NPM | 5 |
 | PostgreSQL | 4 |
+| Rova | 23 |
 | Swagger | 2 |
 | Utility | 15 |
 
@@ -292,6 +293,34 @@ install actually exposes is listed in the bundle manifest and by `qnsc-mcp list-
 | `postgresListDatabases` | List all databases on the PostgreSQL server |
 | `postgresListTables` | List tables in a database with schema support |
 | `postgresQuery` | Execute custom SQL queries against a PostgreSQL database |
+
+## Rova
+
+| Tool | What it does |
+|---|---|
+| `addRovaComment` | Add a comment to a Rova work item, epic or feature, as the signed-in user |
+| `createRovaMilestone` | Create a Rova milestone: a dated commitment in a project, optionally linked to releases and teams |
+| `createRovaPortfolioItem` | Create a Rova epic or feature |
+| `createRovaTestCase` | Create a Rova test case under a work item |
+| `createRovaWorkItem` | Create a Rova work item — a story, defect, task or feature — in a project |
+| `getRovaIterationStatus` | Get the status of a Rova iteration: its metrics and the work assigned to it |
+| `getRovaPortfolioItem` | Read one Rova epic or feature in full, with what sits beneath it |
+| `getRovaReport` | Run a Rova report: iteration burndown, velocity over recent sprints, team capacity, release tracking or release burnup |
+| `getRovaTeamStatus` | Get Rova team status for an iteration: who is working on what, with their load |
+| `getRovaTestCase` | Read one Rova test case with its run history: what was tested, on which build, and how it went. |
+| `getRovaWorkItem` | Read one Rova work item in full by its key, such as DE-17 or US-118, including description, acceptance criteria, estimates and its tasks |
+| `listMyRovaWorkItems` | List the Rova work items assigned to the signed-in user across every project they can read |
+| `listRovaComments` | Read the comments on a Rova work item, epic or feature |
+| `listRovaDefects` | List the defects in a Rova project with the metrics Rova computes for them |
+| `listRovaIterations` | List the iterations (sprints) of a Rova project with their dates and state |
+| `listRovaMilestones` | List the milestones of a Rova project with their target dates and status, or pass milestoneId to read one with the work items linked to it |
+| `listRovaPortfolioItems` | List Rova epics and features in a project |
+| `listRovaProjects` | List the Rova projects the signed-in user can read, with their keys and ids |
+| `listRovaReleases` | List the releases of a Rova project, or pass releaseId to read one with the stories and defects it contains |
+| `listRovaTestCases` | List the test cases covering a Rova work item, with each one latest verdict |
+| `recordRovaTestResult` | Record the result of running a Rova test case: the verdict, the build and when |
+| `searchRovaWorkItems` | List or filter Rova work items within a project, by type, state, assignee or iteration |
+| `updateRovaWorkItem` | Update a Rova work item: change its state, priority, assignee, estimate, iteration, or mark it blocked |
 
 ## Swagger
 

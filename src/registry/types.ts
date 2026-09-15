@@ -17,6 +17,11 @@ export const ToolCategoryMap = {
   // Delegated Microsoft Graph tools: each request carries the signed-in person's
   // own token, so they reach only the files and sites they already have.
   'Microsoft 365': 'microsoft-graph',
+  // Rova, the company's project tracker. Authenticated with a personal Rova API
+  // token rather than Entra: Rova's own Entra flow is a confidential-client BFF
+  // designed so tokens never leave its server, and its API tokens already carry a
+  // person's identity, which is what makes its PolicyGuard scope the results.
+  Rova: 'rova',
   'Github: Actions': 'github',
   'Github: Dependabot': 'github',
   'Github: Discussions': 'github',
