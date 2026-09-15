@@ -42,4 +42,7 @@ jobs:
       # and leave the branch protection rule requiring `PR title (conventional commits)`
       # matching nothing — and a required check that never reports blocks every merge
       # rather than failing.
-      - uses: quynhonsemiconductor/ci/actions/pr-title-conventional-commits@v1
+      # Pinned to a commit, not the v1 tag. Every other action in this repository is
+      # pinned, and a tag can be moved — Semgrep flags the mutable form, correctly. The
+      # ci repository's pin-drift job reports when a pin here falls behind.
+      - uses: quynhonsemiconductor/ci/actions/pr-title-conventional-commits@501509660d0fb3491569327afc65fdb5c5403a41 # v1
