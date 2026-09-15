@@ -10,7 +10,7 @@ lists, per tool, which variable it requires.
 
 | If you want | Set | Unlocks |
 |---|---|---|
-| GitHub: issues, PRs, Actions, projects, repos | `GITHUB_TOKEN` | 92 tools |
+| GitHub: issues, PRs, Actions, projects, repos | browser sign-in, or `GITHUB_TOKEN` as a fallback | 88 tools |
 | Grafana k6 load-test results | `GRAFANA_K6_TOKEN` | 6 tools |
 | Core Web Vitals from the Chrome UX Report | `GOOGLE_CRUX_API_KEY` | 4 tools |
 | SwaggerHub / OpenAPI generation | `SWAGGER_HUB_API_KEY` | 2 tools |
@@ -60,7 +60,6 @@ tool.
 
 ## QNSC_MCP_API_KEY
 
-Required by the Memory tools, which call a platform API this organization does not
 host. There is no key to obtain and those tools cannot work until one exists.
 
 ## Removed services
@@ -68,7 +67,7 @@ host. There is no key to obtain and those tools cannot work until one exists.
 Earlier versions documented keys for New Relic, Splunk and Salesforce. Those tools
 reached their vendors through a hosted platform gateway that is not deployed here, so
 they were removed — there is no key to set. The same applies to the other remote
-servers in that fleet: Atlassian, Datadog, PagerDuty, Slack, Stripe, Postman, Kong,
+servers in that fleet: Atlassian, Datadog, PagerDuty, Slack, Stripe, Postman,
 Cortex, Bitrise, Smartsheet, LogRocket, Lucid, Pendo and Amplitude.
 
 See [remote MCP servers](https://github.com/quynhonsemiconductor/mcp-tools/blob/main/src/remote-mcps/README.md)
