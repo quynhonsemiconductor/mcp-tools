@@ -3,11 +3,30 @@ description: chrome-devtools-mcp lets your coding agent (such as Gemini, Claude,
 
 source:
   repository: https://github.com/ChromeDevTools/chrome-devtools-mcp
-  ref: chrome-devtools-mcp-v0.12.1
-  entrypoint: build/src/index.js
+  ref: chrome-devtools-mcp-v1.9.0
+  # The CLI, not `main`. 1.9.0 still points main at build/src/index.js, but that is now
+  # a library entry: running it exits 0 having produced nothing, so the server appears
+  # to start and then answers nothing, and bundling records zero tools.
+  entrypoint: build/src/bin/chrome-devtools-mcp.js
 
 build:
+  # npm, not the default bun. Upstream declares a nested overrides block; bun skips it
+  # with only a warning, which also drops the "puppeteer-core": "$puppeteer" pin, so
+  # every puppeteer-core/internal import fails to resolve and the re-export barrel ends
+  # up empty. It surfaces as dozens of "has no exported member" errors. npm also runs
+  # the prepare script, which is what generates src/third_party/issue-descriptions —
+  # 251 markdown files the server reads at startup, throwing ENOENT without them.
+  installCommand: npm install --no-audit --no-fund
   enabled: true
   command: npm run build
   external:
     - "/bundled/*"
+
+# The bundler copies the directory holding the entrypoint, which is now build/src/bin,
+# so this sibling tree is no longer picked up automatically. The server reads these 251
+# markdown files at startup and throws ENOENT without them.
+staticFiles:
+  # No source:destination form. A plain entry is copied to the same path under the
+  # bundle root, which is what the server expects; a custom destination is resolved
+  # against a different root and lands outside the bundle.
+  - build/src/third_party/issue-descriptions
