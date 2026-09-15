@@ -32,25 +32,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          types: |
-            feat
-            fix
-            chore
-            docs
-            style
-            refactor
-            perf
-            security
-            test
-            build
-            ci
-            deps
-            revert
-          requireScope: false
-          subjectPattern: ^(?![A-Z]).+$
-          subjectPatternError: |
-            The subject "{subject}" must start with a lowercase letter.
+      # The org's own action rather than the upstream one directly. Same behaviour — the
+      # default types, subject pattern and scope setting here were already identical to
+      # its defaults — but the configuration lives in one place, so a change to what the
+      # org accepts reaches this repository without editing it.
+      #
+      # Called as an action from a local job, not as a reusable workflow. A reusable
+      # workflow reports its check as `<caller>/<called>`, which would rename this check
+      # and leave the branch protection rule requiring `PR title (conventional commits)`
+      # matching nothing — and a required check that never reports blocks every merge
+      # rather than failing.
+      - uses: quynhonsemiconductor/ci/actions/pr-title-conventional-commits@v1
