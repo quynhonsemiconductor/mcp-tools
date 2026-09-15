@@ -52,8 +52,7 @@ bun run build:binary             # builds for the current platform
 
 ## What you get
 
-**199 tools.** [`TOOLS.md`](TOOLS.md) is the full inventory, generated from the running
-server by `bun run generate:tools-doc`.
+**199 tools**, listed individually in [`TOOLS.md`](TOOLS.md).
 
 | Area                          | Tools | Signing in                                                   |
 | ----------------------------- | ----- | ------------------------------------------------------------ |
@@ -75,7 +74,7 @@ the organisation.
 ## Configure
 
 Enable tools through `.qnscmcp.yaml` in the working directory, or
-`~/.qnscmcp/config.yaml`. Category names must match [`TOOLS.md`](TOOLS.md) exactly.
+`~/.qnscmcp/config.yaml`. Category names must match `TOOLS.md` exactly.
 
 ```yaml
 tools:
@@ -94,8 +93,7 @@ tools:
 appears in `excludeCategories`.
 
 Credentials come from the environment, or from the prompts Claude Desktop shows at
-install. See [`env.example`](env.example); `bun run src/mcp.ts doctor` reports what is
-missing.
+install. `qnsc-mcp doctor` reports what is missing.
 
 ## Documentation
 
@@ -106,10 +104,3 @@ missing.
 | [`docs/src/quickstart/`](docs/src/quickstart/) | per-client setup                                |
 | [`bundled/README.md`](bundled/README.md)       | how bundled MCP servers are built               |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md)           | development workflow                            |
-
-## Releases
-
-Tagging is handled by release-please: merge the release pull request it opens and five
-platform binaries are built and attached automatically. A release fails rather than
-publishes if the OAuth credentials are absent, and every build is started and asked for
-its tool list before its artifacts are uploaded.

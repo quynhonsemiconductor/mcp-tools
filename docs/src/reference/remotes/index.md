@@ -109,7 +109,7 @@ Remote MCP connections include robust error handling using the MCP SDK:
 
 ## Example Configuration
 
-See [`examples/remote-mcp-config.yml`](../examples/remote-mcp-config.yml) for a complete configuration example with multiple remote servers.
+See [`docs/qnscmcp.example.yaml`](https://github.com/quynhonsemiconductor/mcp-tools/blob/main/docs/qnscmcp.example.yaml) for a complete configuration example.
 
 ## Monitoring
 
