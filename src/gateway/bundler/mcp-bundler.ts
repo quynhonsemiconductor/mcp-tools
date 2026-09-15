@@ -797,7 +797,13 @@ try {
 
     if (fs.existsSync(sourcePath)) {
       try {
-        fs.copyFileSync(sourcePath, destinationPath);
+        // Directories are copied by the batch bundler, which resolves them against the
+        // bundle root. Doing it here as well put a second copy of 251 files under the
+        // entrypoint directory, where nothing reads them. copyFileSync on a directory
+        // also throws ENOTSUP, which reads like a real failure and is not.
+        if (!fs.statSync(sourcePath).isDirectory()) {
+          fs.copyFileSync(sourcePath, destinationPath);
+        }
       } catch (error) {
         console.error(
           `❌ ERROR copying static file: ${error instanceof Error ? error.message : String(error)}`,

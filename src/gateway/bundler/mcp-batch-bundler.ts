@@ -348,7 +348,17 @@ export class MCPBatchBundler {
                 }
 
                 try {
-                  fs.copyFileSync(sourcePath, destinationPath);
+                  // A staticFiles entry may name a directory, and copyFileSync fails on one with
+                  // ENOTSUP rather than anything that points at the cause. chrome-devtools-mcp
+                  // needs build/src/third_party/issue-descriptions, 251 markdown files it reads at
+                  // startup, throwing ENOENT without them. They are not picked up automatically
+                  // because the bundler copies the directory holding the entrypoint, and since
+                  // 1.9.0 that is build/src/bin, with this data one level up.
+                  if (fs.statSync(sourcePath).isDirectory()) {
+                    fs.cpSync(sourcePath, destinationPath, { recursive: true });
+                  } else {
+                    fs.copyFileSync(sourcePath, destinationPath);
+                  }
                 } catch (copyError) {
                   console.error(`❌ ERROR copying static file: ${staticFileEntry}`);
                   console.error(`❌ Error details: ${String(copyError)}`);
