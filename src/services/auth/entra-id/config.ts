@@ -122,6 +122,10 @@ const GRAPH_DELEGATED_SCOPES = [
   // able to reach an outside address.
   'https://graph.microsoft.com/Mail.Send',
   'https://graph.microsoft.com/Calendars.ReadWrite',
+  // Posting into a chat or channel the user already belongs to. Send scopes carry no
+  // read access of their own, so these do not widen what can be seen.
+  'https://graph.microsoft.com/ChatMessage.Send',
+  'https://graph.microsoft.com/ChannelMessage.Send',
 ] as const;
 
 /**
