@@ -48,7 +48,6 @@ export type SaveSwaggerDocToolParams = z.input<typeof SaveSwaggerDocToolSchema>;
   parameters: SaveSwaggerDocToolSchema,
   envVars: ['SWAGGER_HUB_API_KEY'],
   version: '1.0.0',
-  includeByDefault: true,
   annotations: {
     title: 'Save openapi documents to local files.',
     readOnlyHint: true,
