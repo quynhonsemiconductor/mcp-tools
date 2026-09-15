@@ -2,9 +2,23 @@
 
 This guide covers running QNSC MCP Toolkit on Linux distributions and Windows Subsystem for Linux (WSL).
 
-## Run from source (current install path)
+## Install the binary
 
-There are no published binaries yet — this repository has no releases or tags — so run the toolkit from source with [Bun](https://bun.sh).
+Download `qnsc-mcp-linux-x64`, or `qnsc-mcp-linux-arm64` on ARM, from
+[the latest release](https://github.com/quynhonsemiconductor/mcp-tools/releases/latest).
+
+```bash
+chmod +x qnsc-mcp-linux-x64
+mkdir -p ~/.local/bin
+mv qnsc-mcp-linux-x64 ~/.local/bin/qnsc-mcp
+qnsc-mcp --help >/dev/null   # warm it once; a cold first launch can exceed the client's timeout
+```
+
+Then follow [Getting started](getting-started.md).
+
+## Run from source
+
+Only needed to work on the toolkit itself.
 
 ### 1. Install Bun
 

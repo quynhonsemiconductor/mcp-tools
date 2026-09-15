@@ -14,7 +14,7 @@ or to the `env` block of your client configuration. Then add the category back t
 
 ---
 
-## chrome-devtools — 26 tools · no credential · recommended
+## chrome-devtools — 29 tools · no credential · recommended
 
 Claude drives a real Chrome browser: navigate, click, fill forms, read the console,
 capture network requests, run performance traces. Useful for debugging a web app.
@@ -106,47 +106,48 @@ remove `'Swagger'` from `excludeCategories`.
 
 ---
 
-## SharePoint — 56 tools · Azure app registration · read the warning
+## Microsoft 365 — 14 tools · nothing to configure
 
-The largest group by count: read and write SharePoint lists, files, sites, content
-types, navigation and permissions across your M365 tenant.
+Documents, spreadsheets, mail, Teams and calendar, reached with each person's own Entra
+sign-in. On by default: the client id ships with the toolkit, so the first call opens a
+browser and there is nothing to set up.
 
-**Setup** is the most involved here, and needs Azure AD admin rights.
+Reads cover searching and reading files, spreadsheets by row and column, full email bodies
+and attachments, Teams chats and channel posts, the calendar, and the staff directory.
+Writes cover sending mail, posting in Teams, and creating, changing or cancelling
+meetings. Mail recipients are restricted to the organisation, so an instruction embedded in
+a document the tools read cannot cause mail to reach an outsider.
 
-1. Azure Portal → **App registrations** → **New registration**
-2. Grant **application** permissions (not delegated): `Sites.Read.All`, and
-   `Sites.ReadWrite.All` only if you want writes. Grant admin consent.
-3. Create a certificate, upload the public key to the registration, and keep the
-   `.pfx` and its password
-4. Set all four:
+Replaced a bundled SharePoint server that asked every teammate for an Azure certificate
+thumbprint and password — credentials nobody had — and authenticated as one shared
+application rather than as the person using it.
+
+## Rova — 23 tools · one token you create
+
+The project tracker: work items, epics and features, iterations, releases, milestones,
+test cases, defects and reports.
+
+Opt-in rather than on by default, because it needs a token only you can create. In Rova,
+open **API tokens** and create one, then set:
 
 ```bash
-AZURE_APPLICATION_ID=…
-AZURE_APPLICATION_CERTIFICATE_THUMBPRINT=…
-AZURE_APPLICATION_CERTIFICATE_PASSWORD=…
-M365_TENANT_ID=dc0f2078-ac28-4ff2-b21a-d4b28df32361
+ROVA_API_TOKEN=rly_...
+# ROVA_API_URL defaults to production; set it only to point elsewhere
 ```
 
-5. Remove `'Bundled'` from `excludeCategories`
+The token is opaque and revoked by deleting it, and it carries your identity — so every
+response is limited to the projects you can already read.
 
-**Two things to weigh before doing this.**
+Reads cover what is assigned to you, searching and reading items by their key such as
+`DE-17`, the epic and feature hierarchy, sprint status with its metrics, defects with
+theirs, releases and their contents, milestones and the work tied to them, test cases with
+their latest verdicts, team status, and five reports. Writes cover creating and updating
+items, commenting, creating epics, features, test cases and milestones, and recording test
+results.
 
-The bundle's own security scan, recorded in `bundled/sharepoint/README.md`, reports a
-**medium-severity command injection risk** in its certificate handling: the
-thumbprint and password are interpolated into PowerShell commands, and the password
-appears in a command line where it can surface in process listings. That is upstream
-code, not ours.
-
-Application permissions are tenant-wide. `Sites.Read.All` means every SharePoint site
-in the tenant, not just the ones a given person can see — so this grants Claude
-broader access than the individual using it.
-
-**Worth it?** Only if Claude reading M365 documents is a real need. It is 56 of the
-137 remaining tools, which makes it look like the big prize, but it is also the
-highest setup cost and the only group carrying a known security finding. Consider
-starting read-only.
-
----
+Most collections are scoped to a project, so `listRovaProjects` comes first — a request
+without a project is refused with `PROJECT_PERMISSION_DENIED`, which reads like missing
+access but means a missing parameter.
 
 ## Not available regardless of setup
 

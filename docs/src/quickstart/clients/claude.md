@@ -15,8 +15,11 @@ The recommended way to install QNSC MCP Tools in Claude Desktop is the MCPB bund
 
 #### Get the MCPB Package
 
-!!! warning "No release has been published yet"
-This repository has no releases and no tags, so there is no `.mcpb` file to download today. Until CI publishes one, build it from source:
+Download the `.mcpb` file for your platform from [the latest release](https://github.com/quynhonsemiconductor/mcp-tools/releases/latest) — for
+example `qnsc-mcp-macos-arm64.mcpb` — and open it. Claude Desktop installs it and asks
+which tool categories to enable, listing every tool by name.
+
+To build the bundle yourself instead:
 
     ```bash
     git clone https://github.com/quynhonsemiconductor/mcp-tools.git
@@ -587,7 +590,7 @@ If QNSC MCP can't find its configuration file:
 
 For detailed instructions on obtaining API keys for various services, see the [API Key Setup guide](../api-keys.md), which covers:
 
-- GitHub token (`GITHUB_TOKEN`) -- 92 tools
+- GitHub — 88 tools. A browser sign-in on first use; `GITHUB_TOKEN` is only a fallback.
 - Grafana k6 token (`GRAFANA_K6_TOKEN`)
 - Google CrUX API Key (`GOOGLE_CRUX_API_KEY`)
 - SwaggerHub API key (`SWAGGER_HUB_API_KEY`)

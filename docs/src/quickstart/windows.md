@@ -1,8 +1,26 @@
 # Windows
 
-## Run from source (current install path)
+## Install the binary
 
-There are no published installers or binaries yet — this repository has no releases or tags — so on Windows you run the toolkit from source with [Bun](https://bun.sh).
+Download `qnsc-mcp-windows-x64.exe` from [the latest release](https://github.com/quynhonsemiconductor/mcp-tools/releases/latest) and put it somewhere
+on your `PATH`, for example `C:\Users\<you>\bin`.
+
+Windows Defender SmartScreen may warn about an unsigned binary. Nothing here is
+code-signed.
+
+Start it once before registering it with a client, since a first launch can exceed Claude
+Code's 30-second connection limit:
+
+```powershell
+qnsc-mcp-windows-x64.exe --help | Out-Null
+```
+
+Then follow [Getting started](getting-started.md), or [Claude Desktop](clients/claude.md)
+to install the `.mcpb` bundle instead.
+
+## Run from source
+
+Only needed to work on the toolkit itself.
 
 ### 1. Install Bun
 

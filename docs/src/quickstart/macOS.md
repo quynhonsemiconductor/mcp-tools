@@ -1,8 +1,36 @@
 # macOS
 
-## Run from source (current install path)
+## Install the binary
 
-There are no published installers or binaries yet — this repository has no releases or tags — so on macOS you run the toolkit from source with [Bun](https://bun.sh).
+Download `qnsc-mcp-macos-arm64` for Apple silicon, or `qnsc-mcp-macos-x64` for Intel,
+from [the latest release](https://github.com/quynhonsemiconductor/mcp-tools/releases/latest).
+
+```bash
+chmod +x qnsc-mcp-macos-arm64
+mkdir -p ~/.local/bin
+mv qnsc-mcp-macos-arm64 ~/.local/bin/qnsc-mcp
+```
+
+Nothing is code-signed, so macOS may refuse to run a downloaded binary. Clear the
+quarantine flag it applies:
+
+```bash
+xattr -d com.apple.quarantine ~/.local/bin/qnsc-mcp 2>/dev/null || true
+```
+
+Start it once before registering it with a client. A first launch can take longer than
+Claude Code's 30-second connection limit, which reports a failure that is not real:
+
+```bash
+qnsc-mcp --help >/dev/null
+```
+
+Then follow [Getting started](getting-started.md) to register it, or
+[Claude Desktop](clients/claude.md) if you would rather install the `.mcpb` bundle.
+
+## Run from source
+
+Only needed to work on the toolkit itself.
 
 ### 1. Install Bun
 

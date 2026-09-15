@@ -1,0 +1,85 @@
+name: Docs
+
+# The documentation site was written for GitHub Pages — mkdocs.yml has carried
+# site_url: https://quynhonsemiconductor.github.io/mcp-tools/ from the start — but
+# nothing ever published it, so twenty-eight pages of setup guidance existed only for
+# people who cloned the repository and read the markdown.
+#
+# Builds on every pull request that touches the docs, so a broken build is caught in
+# review, and publishes only from main.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # One deploy at a time, and cancel a superseded build rather than racing it to Pages.
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version: '3.13'
+
+      - name: Install documentation dependencies
+        # Pinned in requirements-docs.txt so a build is reproducible and the dependency
+        # scanner can identify versions; unpinned entries report as 0.0.0.
+        run: pip install -r docs/requirements-docs.txt
+
+      - name: Build
+        # --strict turns a broken link or a missing nav entry into a failure. The site is
+        # only useful if its links work, and a warning nobody reads is not a check.
+        working-directory: docs
+        run: mkdocs build --strict
+
+      - name: Upload the built site
+        # Only when the site will actually be deployed; an artifact nobody publishes is
+        # storage spent for nothing.
+        if: github.ref == 'refs/heads/main' && vars.DOCS_PAGES_ENABLED == 'true'
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+        with:
+          path: docs/site
+
+  deploy:
+    # Separate job because deployment needs write permissions the build does not, and a
+    # build of a pull request must never be able to publish.
+    #
+    # Gated on a repository variable rather than running unconditionally: deploy-pages
+    # fails when Pages has not been turned on for the repository, and that failure would
+    # be reported against main while telling nobody what to do about it. Set
+    # DOCS_PAGES_ENABLED to true once Pages is enabled in the repository settings. Until
+    # then the build still runs on every docs change, which is where the value is — it is
+    # what catches a broken link.
+    if: github.ref == 'refs/heads/main' && vars.DOCS_PAGES_ENABLED == 'true'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
