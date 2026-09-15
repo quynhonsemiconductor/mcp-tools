@@ -44,7 +44,7 @@ jobs:
       - name: Install documentation dependencies
         # Pinned in requirements-docs.txt so a build is reproducible and the dependency
         # scanner can identify versions; unpinned entries report as 0.0.0.
-        run: pip install --require-hashes=false -r docs/requirements-docs.txt
+        run: pip install -r docs/requirements-docs.txt
 
       - name: Build
         # --strict turns a broken link or a missing nav entry into a failure. The site is
