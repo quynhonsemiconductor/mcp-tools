@@ -4,7 +4,7 @@
      `bun run generate:tools-doc`. An earlier hand-written version claimed a tool
      count that was wrong within a day, which is worse than having no document. -->
 
-Tools reachable when every category is enabled: **172**.
+Tools reachable when every category is enabled: **176**.
 
 A given install shows fewer, because categories are opt-in at install time. What each
 install actually exposes is listed in the bundle manifest and by `qnsc-mcp list-tools`.
@@ -28,7 +28,7 @@ install actually exposes is listed in the bundle manifest and by `qnsc-mcp list-
 | Github: Wiki | 1 |
 | k6 | 6 |
 | Knowledge Graph | 9 |
-| Microsoft 365 | 10 |
+| Microsoft 365 | 14 |
 | NPM | 5 |
 | PostgreSQL | 4 |
 | Swagger | 2 |
@@ -259,6 +259,7 @@ install actually exposes is listed in the bundle manifest and by `qnsc-mcp list-
 
 | Tool | What it does |
 |---|---|
+| `createCalendarEvent` | Create a meeting on the signed-in user calendar and invite attendees |
 | `listCalendarEvents` | List the signed-in user calendar over a date range |
 | `listRecentMicrosoftFiles` | List the files the signed-in user recently opened or edited across OneDrive and SharePoint |
 | `listTeamsChannelMessages` | Browse Microsoft Teams channels and read their posts |
@@ -269,6 +270,9 @@ install actually exposes is listed in the bundle manifest and by `qnsc-mcp list-
 | `searchMicrosoftFiles` | Search for files and documents across the signed-in user OneDrive and the SharePoint sites they can access |
 | `searchMicrosoftPeople` | Look up colleagues in the organisation directory by name or email address |
 | `searchOutlookMessages` | Search the signed-in user Outlook mailbox by subject, body or participant |
+| `sendOutlookMail` | Send an email as the signed-in user, or reply to an existing message |
+| `sendTeamsMessage` | Post a message into a Teams chat or channel, or reply under an existing channel post |
+| `updateCalendarEvent` | Change or cancel an existing meeting on the signed-in user calendar |
 
 ## NPM
 

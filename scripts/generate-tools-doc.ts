@@ -111,10 +111,18 @@ function render(tools: ToolEntry[]): string {
     for (const tool of byCategory.get(category)!.sort((a, b) => a.name.localeCompare(b.name))) {
       // First sentence only: a full description runs to several lines and makes the
       // table unreadable, and the detail is in the tool schema anyway.
+      //
+      // Truncate before escaping, never after. Escaping first and then slicing can cut
+      // a two-character escape in half and leave a trailing backslash, which then
+      // escapes the cell's closing pipe and merges two columns — a corrupted table from
+      // a description that happened to be the wrong length. Backslashes are escaped
+      // before pipes so an existing backslash is not turned into an escape of its own.
       const summary = (tool.description ?? '')
         .split('. ')[0]
-        .replace(/\|/g, '\\|')
-        .slice(0, 160);
+        .replace(/[\r\n]+/g, ' ')
+        .slice(0, 160)
+        .replace(/\\/g, '\\\\')
+        .replace(/\|/g, '\\|');
       lines.push(`| \`${tool.name}\` | ${summary} |`);
     }
     lines.push('');
