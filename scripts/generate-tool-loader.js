@@ -483,6 +483,19 @@ async function updateManifestEnvVars(
         return acc;
       }, {});
 
+    // Declare the tools in the manifest so an installer can see what the bundle
+    // provides. Without it the install screen offers configuration prompts and no
+    // indication of what any of them do, which for a bundle this size means ticking
+    // categories blind. tools_generated marks the list as derived from source rather
+    // than hand written, which is what stops it drifting.
+    manifest.tools = toolInfos
+      .map((tool) => ({
+        name: tool.name,
+        description: (tool.description || '').split('. ')[0].slice(0, 200)
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    manifest.tools_generated = true;
+    
     let addedEnvCount = 0;
     let addedUserConfigCount = 0;
     let updatedDefaultCount = 0;
