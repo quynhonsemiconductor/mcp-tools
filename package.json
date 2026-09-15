@@ -1,6 +1,6 @@
 {
   "name": "qnsc-mcp",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "QNSC MCP Tools Server",
   "private": true,
   "repository": {

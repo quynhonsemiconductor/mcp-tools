@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.1.9](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.8...v0.1.9) (2026-09-15)
+
+
+### ✨ Features
+
+* **microsoft-365:** look up colleagues in the directory ([#46](https://github.com/quynhonsemiconductor/mcp-tools/issues/46)) ([99f261c](https://github.com/quynhonsemiconductor/mcp-tools/commit/99f261cf295046f3915fc1f2a62e4e483da57fda))
+* **microsoft-365:** read a full email and open its attachments ([#47](https://github.com/quynhonsemiconductor/mcp-tools/issues/47)) ([4b393e9](https://github.com/quynhonsemiconductor/mcp-tools/commit/4b393e98b8ac85aae1cfb4c956d3c4f17d79152c))
+* **microsoft-365:** read spreadsheets as rows and columns ([#45](https://github.com/quynhonsemiconductor/mcp-tools/issues/45)) ([eee9324](https://github.com/quynhonsemiconductor/mcp-tools/commit/eee9324c64ccaf95e4c8b0f8be15735f8a176fa6))
+* **microsoft-365:** reply in Teams and change or cancel meetings ([#49](https://github.com/quynhonsemiconductor/mcp-tools/issues/49)) ([76ec11d](https://github.com/quynhonsemiconductor/mcp-tools/commit/76ec11d186ef83bdc99c1f31f64425808ebd601f))
+* **microsoft-365:** send mail and create calendar events ([#48](https://github.com/quynhonsemiconductor/mcp-tools/issues/48)) ([532f56e](https://github.com/quynhonsemiconductor/mcp-tools/commit/532f56e8db08a1e9c9324fd77392c28b982cf3bc))
+* show installers what the bundle actually contains ([#50](https://github.com/quynhonsemiconductor/mcp-tools/issues/50)) ([69db5f9](https://github.com/quynhonsemiconductor/mcp-tools/commit/69db5f9db69e16f61185dd1aaa7552621a179c99))
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency @types/luxon to v3.7.5 ([#17](https://github.com/quynhonsemiconductor/mcp-tools/issues/17)) ([11a6152](https://github.com/quynhonsemiconductor/mcp-tools/commit/11a61525c58a1259f91243ef4dc092b16874ceac))
+* **deps:** update dependency minimatch to v10.2.6 ([#24](https://github.com/quynhonsemiconductor/mcp-tools/issues/24)) ([ef29a89](https://github.com/quynhonsemiconductor/mcp-tools/commit/ef29a89c1e336f1c48fc4da3dcc7bae0d2c1e946))
+* **deps:** update dependency rimraf to v6.1.3 ([#25](https://github.com/quynhonsemiconductor/mcp-tools/issues/25)) ([791257e](https://github.com/quynhonsemiconductor/mcp-tools/commit/791257e351bb30004eb63d76af4a8d04eb2f149a))
+* **deps:** update dependency tough-cookie to v6.0.2 ([#28](https://github.com/quynhonsemiconductor/mcp-tools/issues/28)) ([231a33d](https://github.com/quynhonsemiconductor/mcp-tools/commit/231a33ddd4b29ff8e61630bf4428fb6fdb388fa6))
+
 ## [0.1.8](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.7...v0.1.8) (2026-09-15)
 
 
