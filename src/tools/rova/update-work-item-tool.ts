@@ -50,6 +50,11 @@ const CLEARING_WORDS = new Set(['unassign', 'none', 'null', 'clear', '']);
   description:
     'Update a Rova work item: change its state, priority, assignee, estimate, iteration, or mark it blocked. Only the fields given are changed. Use getRovaWorkItem first to turn an item key such as DE-17 into the id.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: UpdateRovaWorkItemSchema,
   version: '1.0.0',
   annotations: {

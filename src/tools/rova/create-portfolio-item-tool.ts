@@ -38,6 +38,11 @@ export type CreateRovaPortfolioItemParams = z.input<typeof CreateRovaPortfolioIt
   description:
     'Create a Rova epic or feature. Use for work described above the story level. Pass parentId to place a feature beneath an epic.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: CreateRovaPortfolioItemSchema,
   version: '1.0.0',
   annotations: {

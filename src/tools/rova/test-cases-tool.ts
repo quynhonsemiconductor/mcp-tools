@@ -92,6 +92,11 @@ export type ListRovaTestCasesParams = z.input<typeof ListRovaTestCasesSchema>;
   description:
     'List the test cases covering a Rova work item, with each one latest verdict. Use to see what tests exist for a story, or which are failing. Test cases belong to a work item, so use getRovaWorkItem first to get its id.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: ListRovaTestCasesSchema,
   version: '1.0.0',
   annotations: { title: 'List Rova Test Cases', readOnlyHint: true, openWorldHint: true },
@@ -148,6 +153,11 @@ export type GetRovaTestCaseParams = z.input<typeof GetRovaTestCaseSchema>;
   description:
     'Read one Rova test case with its run history: what was tested, on which build, and how it went.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: GetRovaTestCaseSchema,
   version: '1.0.0',
   annotations: { title: 'Get Rova Test Case', readOnlyHint: true, openWorldHint: true },
@@ -232,6 +242,11 @@ export type CreateRovaTestCaseParams = z.input<typeof CreateRovaTestCaseSchema>;
   description:
     'Create a Rova test case under a work item. Use when a story needs a test written against it.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: CreateRovaTestCaseSchema,
   version: '1.0.0',
   annotations: {
@@ -295,6 +310,11 @@ export type RecordRovaTestResultParams = z.input<typeof RecordRovaTestResultSche
   description:
     'Record the result of running a Rova test case: the verdict, the build and when. The tester defaults to the signed-in user and the date to today.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: RecordRovaTestResultSchema,
   version: '1.0.0',
   annotations: {

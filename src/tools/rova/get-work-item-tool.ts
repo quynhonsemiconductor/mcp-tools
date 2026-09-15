@@ -58,6 +58,11 @@ interface RovaActivity {
   description:
     'Read one Rova work item in full by its key, such as DE-17 or US-118, including description, acceptance criteria, estimates and its tasks. Pass includeActivity for the change history.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: GetRovaWorkItemSchema,
   version: '1.0.0',
   annotations: {

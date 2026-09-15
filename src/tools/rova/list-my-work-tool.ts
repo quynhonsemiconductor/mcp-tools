@@ -24,6 +24,11 @@ export type ListMyRovaWorkParams = z.input<typeof ListMyRovaWorkSchema>;
   description:
     'List the Rova work items assigned to the signed-in user across every project they can read. Use for questions about what someone is working on or what is on their plate.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: ListMyRovaWorkSchema,
   version: '1.0.0',
   annotations: {

@@ -75,6 +75,11 @@ export type CreateRovaWorkItemParams = z.input<typeof CreateRovaWorkItemSchema>;
   description:
     'Create a Rova work item — a story, defect, task or feature — in a project. Needs a projectId from listRovaProjects. Returns the item key, such as DE-42, which is how people refer to it afterwards.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: CreateRovaWorkItemSchema,
   version: '1.0.0',
   annotations: {

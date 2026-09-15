@@ -53,6 +53,11 @@ export type ListRovaCommentsParams = z.input<typeof ListRovaCommentsSchema>;
   description:
     'Read the comments on a Rova work item, epic or feature. Use before replying, or to find what was decided about a piece of work.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: ListRovaCommentsSchema,
   version: '1.0.0',
   annotations: { title: 'List Rova Comments', readOnlyHint: true, openWorldHint: true },
@@ -113,6 +118,11 @@ export type AddRovaCommentParams = z.input<typeof AddRovaCommentSchema>;
   description:
     'Add a comment to a Rova work item, epic or feature, as the signed-in user. Use to record a decision or an update against the work it concerns.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: AddRovaCommentSchema,
   version: '1.0.0',
   annotations: {

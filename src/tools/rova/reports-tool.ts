@@ -82,6 +82,11 @@ export type GetRovaReportParams = z.input<typeof GetRovaReportSchema>;
   description:
     'Run a Rova report: iteration burndown, velocity over recent sprints, team capacity, release tracking or release burnup. Each needs the id of what it is about — an iteration, a release or a project.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: GetRovaReportSchema,
   version: '1.0.0',
   annotations: { title: 'Get Rova Report', readOnlyHint: true, openWorldHint: true },

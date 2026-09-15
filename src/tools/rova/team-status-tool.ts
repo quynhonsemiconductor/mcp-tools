@@ -28,6 +28,11 @@ export type GetRovaTeamStatusParams = z.input<typeof GetRovaTeamStatusSchema>;
   description:
     'Get Rova team status for an iteration: who is working on what, with their load. Use for standup questions, or who has capacity. Needs both a projectId and an iterationId.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: GetRovaTeamStatusSchema,
   version: '1.0.0',
   annotations: { title: 'Get Rova Team Status', readOnlyHint: true, openWorldHint: true },

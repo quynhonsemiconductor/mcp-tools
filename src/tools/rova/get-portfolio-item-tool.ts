@@ -26,6 +26,11 @@ export type GetRovaPortfolioItemParams = z.input<typeof GetRovaPortfolioItemSche
   description:
     'Read one Rova epic or feature in full, with what sits beneath it. Use to see how a feature breaks down, or what an epic contains.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: GetRovaPortfolioItemSchema,
   version: '1.0.0',
   annotations: { title: 'Get Rova Portfolio Item', readOnlyHint: true, openWorldHint: true },

@@ -36,6 +36,11 @@ export type ListRovaIterationsParams = z.input<typeof ListRovaIterationsSchema>;
   description:
     'List the iterations (sprints) of a Rova project with their dates and state. Use to find the current sprint, then pass its id to getRovaIterationStatus.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: ListRovaIterationsSchema,
   version: '1.0.0',
   annotations: { title: 'List Rova Iterations', readOnlyHint: true, openWorldHint: true },
@@ -95,6 +100,11 @@ export type GetRovaIterationStatusParams = z.input<typeof GetRovaIterationStatus
   description:
     'Get the status of a Rova iteration: its metrics and the work assigned to it. Use for how a sprint is going, what is left, or what is at risk.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: GetRovaIterationStatusSchema,
   version: '1.0.0',
   annotations: { title: 'Get Rova Iteration Status', readOnlyHint: true, openWorldHint: true },

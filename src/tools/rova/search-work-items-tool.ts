@@ -39,6 +39,11 @@ export type SearchRovaWorkItemsParams = z.input<typeof SearchRovaWorkItemsSchema
   description:
     'List or filter Rova work items within a project, by type, state, assignee or iteration. Needs a projectId from listRovaProjects. For items assigned to the caller across all projects, use listMyRovaWorkItems instead.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: SearchRovaWorkItemsSchema,
   version: '1.0.0',
   annotations: {

@@ -40,6 +40,11 @@ export type ListRovaReleasesParams = z.input<typeof ListRovaReleasesSchema>;
   description:
     'List the releases of a Rova project, or pass releaseId to read one with the stories and defects it contains. Use for what is shipping and when.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: ListRovaReleasesSchema,
   version: '1.0.0',
   annotations: { title: 'List Rova Releases', readOnlyHint: true, openWorldHint: true },

@@ -39,6 +39,11 @@ export type ListRovaPortfolioItemsParams = z.input<typeof ListRovaPortfolioItems
   description:
     'List Rova epics and features in a project. These sit above work items: an epic contains features, a feature contains stories. Their states form a funnel from intake to done, not the story delivery flow.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: ListRovaPortfolioItemsSchema,
   version: '1.0.0',
   annotations: { title: 'List Rova Portfolio Items', readOnlyHint: true, openWorldHint: true },

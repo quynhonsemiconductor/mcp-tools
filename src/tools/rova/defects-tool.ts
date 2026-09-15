@@ -25,6 +25,11 @@ export type ListRovaDefectsParams = z.input<typeof ListRovaDefectsSchema>;
   description:
     'List the defects in a Rova project with the metrics Rova computes for them. Prefer this over searching work items by type when the question is about defect counts, severity or quality.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: ListRovaDefectsSchema,
   version: '1.0.0',
   annotations: { title: 'List Rova Defects', readOnlyHint: true, openWorldHint: true },

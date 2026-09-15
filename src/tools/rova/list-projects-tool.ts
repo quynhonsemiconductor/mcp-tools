@@ -38,6 +38,11 @@ interface RovaProject {
   description:
     'List the Rova projects the signed-in user can read, with their keys and ids. Call this first: most other Rova tools need a projectId, and Rova refuses collection requests that lack one.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: ListRovaProjectsSchema,
   version: '1.0.0',
   annotations: {

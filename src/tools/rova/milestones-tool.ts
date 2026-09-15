@@ -81,6 +81,11 @@ export type ListRovaMilestonesParams = z.input<typeof ListRovaMilestonesSchema>;
   description:
     'List the milestones of a Rova project with their target dates and status, or pass milestoneId to read one with the work items linked to it. Use for dated commitments and whether they are at risk.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: ListRovaMilestonesSchema,
   version: '1.0.0',
   annotations: { title: 'List Rova Milestones', readOnlyHint: true, openWorldHint: true },
@@ -175,6 +180,11 @@ export type CreateRovaMilestoneParams = z.input<typeof CreateRovaMilestoneSchema
   description:
     'Create a Rova milestone: a dated commitment in a project, optionally linked to releases and teams. Work items are attached afterwards.',
   category: 'Rova',
+  // Declared so the bundle offers a prompt for it at install and passes it through.
+  // Without this the tools appear with no way to supply a token, and every call fails
+  // on a missing variable — which is how ROVA_API_TOKEN was first shipped.
+  envVars: ['ROVA_API_TOKEN'],
+  optionalEnvVars: ['ROVA_API_URL'],
   parameters: CreateRovaMilestoneSchema,
   version: '1.0.0',
   annotations: {
