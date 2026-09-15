@@ -151,6 +151,7 @@ export const categoryLoaders: Record<string, () => Promise<void>> = {
     await import('../tools/microsoft-graph/read-workbook-tool');
     await import('../tools/microsoft-graph/search-email-tool');
     await import('../tools/microsoft-graph/search-files-tool');
+    await import('../tools/microsoft-graph/search-people-tool');
   },
   'NPM': async () => {
     await import('../tools/npm/build-order-tool');

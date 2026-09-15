@@ -111,6 +111,10 @@ const GRAPH_DELEGATED_SCOPES = [
   'https://graph.microsoft.com/Team.ReadBasic.All',
   'https://graph.microsoft.com/Channel.ReadBasic.All',
   'https://graph.microsoft.com/ChannelMessage.Read.All',
+  // Directory lookup for colleagues. ReadBasic is the narrow form: name, email, job
+  // title, department and phone, and nothing else. User.Read alone covers only the
+  // signed-in person, so it cannot answer a question about anybody else.
+  'https://graph.microsoft.com/User.ReadBasic.All',
 ] as const;
 
 /**
