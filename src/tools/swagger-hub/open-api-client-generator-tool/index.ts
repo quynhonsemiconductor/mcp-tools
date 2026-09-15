@@ -40,7 +40,6 @@ export type OpenApiClientGeneratorToolParams = z.infer<typeof OpenApiClientGener
   category: 'Swagger',
   parameters: OpenApiClientGeneratorToolSchema,
   version: '1.0.0',
-  includeByDefault: true,
   annotations: {
     title: 'Generate client code from OpenAPI specifications.',
     readOnlyHint: false,

@@ -615,7 +615,14 @@ async function updateManifestEnvVars(
       'Github: Releases',
       'Github: Repos',
       'Github: Search',
-      'Utility'
+      'Utility',
+      // Microsoft 365 works on a fresh install with nothing configured: the Entra client
+      // id is a source-level default, so the first call opens a browser and the person
+      // signs in as themselves. Leaving it off meant the tools most of the company would
+      // use — documents, mail, Teams, calendar — were reachable only by someone who knew
+      // to tick a box. This includes the write tools: the client asks before every call,
+      // and mail recipients are held to the organisation.
+      'Microsoft 365'
     ]);
 
     // Remote MCPs enabled by default.
@@ -625,9 +632,12 @@ async function updateManifestEnvVars(
     // hosts it publicly, it needs no credentials, so it works on a fresh install with
     // nothing configured. figma-dev is left off — it only answers when the Figma
     // desktop app is running.
-    const defaultOnRemoteMCPs = new Set([
-      'aws-knowledge-mcp-server'
-    ]);
+    // Empty on purpose. aws-knowledge was the default until its endpoint was tested:
+    // initialize succeeds and every tools/call is refused with "Http operation is not
+    // supported for gateway protocol type MCP", reproduced directly against
+    // knowledge-mcp.global.api.aws. A default answering no call is worse than none,
+    // because the failure looks like a local misconfiguration.
+    const defaultOnRemoteMCPs = new Set([]);
 
     // Validate that default-on sets reference real entries (catch typos / renames at build time)
     for (const cat of defaultOnCategories) {
