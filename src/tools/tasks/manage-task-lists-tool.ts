@@ -44,6 +44,11 @@ export type ManageTaskListsToolParams = z.input<typeof ManageTaskListsToolSchema
   parameters: ManageTaskListsToolSchema,
   annotations: {
     title: 'manage-task-lists',
+    // Creates and deletes whole lists, so deleting one takes its tasks with it.
+    readOnlyHint: false,
+    destructiveHint: true,
+    idempotentHint: false,
+    openWorldHint: false,
   },
 })
 export class ManageTaskListsTool implements ToolHandler {

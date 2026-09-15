@@ -33,6 +33,8 @@ export type DeleteRelationsParams = z.infer<typeof DeleteRelationsSchema>;
   annotations: {
     title: 'Delete Knowledge Graph Relations',
     readOnlyHint: false,
+    // a relation cannot be recovered without knowing what it joined
+    destructiveHint: true,
   },
 })
 export class DeleteRelationsTool implements ToolHandler {

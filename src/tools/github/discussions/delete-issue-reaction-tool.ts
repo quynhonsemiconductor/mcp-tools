@@ -32,6 +32,8 @@ export type GithubDeleteIssueReactionToolParams = z.infer<typeof GithubDeleteIss
   annotations: {
     title: 'Delete Github Issue Reaction',
     readOnlyHint: false,
+    // Reversible: the same action can be applied again to restore what was there.
+    destructiveHint: false,
     openWorldHint: true,
   },
 })

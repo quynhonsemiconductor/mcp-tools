@@ -27,6 +27,8 @@ export type DeleteEntitiesParams = z.infer<typeof DeleteEntitiesSchema>;
   annotations: {
     title: 'Delete Knowledge Graph Entities',
     readOnlyHint: false,
+    // entities and the relations that referenced them are removed together
+    destructiveHint: true,
   },
 })
 export class DeleteEntitiesTool implements ToolHandler {
