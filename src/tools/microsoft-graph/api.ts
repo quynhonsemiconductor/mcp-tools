@@ -177,6 +177,20 @@ async function graphFetch(path: string, init?: RequestInit): Promise<Response> {
       );
     }
 
+    // A 404 on a drive item is usually the item being in a different drive rather
+    // than missing. /me/drive only covers the user's own OneDrive, so anything in a
+    // SharePoint site or shared with them answers itemNotFound unless the request
+    // names the drive. The bare message sends people looking for a deleted file.
+    if (response.status === 404 && /\/items\//.test(path)) {
+      throw new UserError(
+        `Microsoft Graph could not find that item — ${detail}\n\n` +
+          'If the item came from a search or the recent list, pass the driveId from that ' +
+          'same result alongside the itemId. Without it the lookup only covers the ' +
+          "signed-in user's own OneDrive, so anything held in a SharePoint site or " +
+          'shared with them cannot be found.',
+      );
+    }
+    
     throw new UserError(`Microsoft Graph request failed — ${detail}`);
   }
 
