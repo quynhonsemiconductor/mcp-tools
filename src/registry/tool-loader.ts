@@ -169,14 +169,20 @@ export const categoryLoaders: Record<string, () => Promise<void>> = {
     await import('../tools/postgresql/index');
   },
   'Rova': async () => {
+    await import('../tools/rova/comments-tool');
     await import('../tools/rova/create-portfolio-item-tool');
     await import('../tools/rova/create-work-item-tool');
+    await import('../tools/rova/defects-tool');
     await import('../tools/rova/get-portfolio-item-tool');
     await import('../tools/rova/get-work-item-tool');
+    await import('../tools/rova/iterations-tool');
     await import('../tools/rova/list-my-work-tool');
     await import('../tools/rova/list-portfolio-items-tool');
     await import('../tools/rova/list-projects-tool');
+    await import('../tools/rova/releases-tool');
+    await import('../tools/rova/reports-tool');
     await import('../tools/rova/search-work-items-tool');
+    await import('../tools/rova/team-status-tool');
     await import('../tools/rova/update-work-item-tool');
   },
   'Swagger': async () => {
