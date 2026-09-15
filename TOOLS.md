@@ -1,611 +1,321 @@
 # Tool & Capability Inventory
 
-Generated from source **and** from the running server (`list-tools`), so bundled MCP
-servers appear here too — they are registered at runtime and cannot be seen in source.
-
-| Surface | Count | Enabled by default |
-|---|---|---|
-| Native tools | 142 | 19 |
-| Bundled MCP tools | 82 | 82 |
-| **Total tools** | **224** | **101** |
-| Remote MCP servers | 2 | both reachable without a gateway |
-| Local MCP servers | 3 | 0 — opt-in |
-| Prompts | 8 | – |
-| Resources | 5 | – |
-
-**Enabled** column: ● on by default, ○ registered but dormant (enable via `.qnscmcp.yaml`).
-
-## Verification notes
-
-Tools are checked by invoking their own `execute()` through the registry with
-`bun run scripts/try-tool.ts <id> '<json>'`, which validates arguments against the
-tool's schema exactly as the MCP layer does. That bypasses the editor, so a failure
-is attributable to the tool rather than to transport or client configuration.
-
-Findings so far:
-
-- **GitHub auth works per user.** The OAuth App flow was exercised end to end: the
-  first call opened a browser and took 8.6s, the second reused the keyring token and
-  took 0.8s with no prompt. Seven read-only GitHub tools were verified against the
-  real organisation.
-- **Only 15 of the 91 GitHub tools are enabled by default.** The rest need
-  `tools.include` or `tools.includeCategories` in `.qnscmcp.yaml`. Anyone expecting
-  all 92 to appear will be surprised.
-- **`weather` cannot work here.** It calls `api.weather.gov`, the US National
-  Weather Service: verified passing for New York coordinates and returning 404 for
-  Ho Chi Minh City. Marked `[-]` rather than `[!]` — it is not broken, just
-  US-only, and would need a different provider to be useful.
-
-### GitHub, read paths (verified against quynhonsemiconductor)
-
-All 43 read-only GitHub tools were exercised against the real organisation. 40 pass.
-Two return a correct "not found" because the resource does not exist here — there
-are no gists and the wiki has no pages — so they are marked verified on the strength
-of their error handling. Three Projects tools could not be reached at all because the
-organisation has no project yet; they need a project created first.
-
-One real defect was found and fixed: `github-list-dependabot-alerts` sent a `page`
-parameter, which that endpoint rejects outright ("Pagination using the `page`
-parameter is not supported") because it pages by cursor. The tool failed on every
-call for every user. It now takes `before`/`after` and returns real alerts.
-
-To see all 92 GitHub tools rather than the 15 enabled by default, list with
-`--all`, or add the `Github: *` categories to `tools.includeCategories`.
-
-### GitHub, write paths (verified against a scratch repository)
-
-Write operations were exercised against `quynhonsemiconductor/mcp-tools-verify`, a
-throwaway repository, so nothing was created in a real one. 14 verified so far.
-
-Six more real defects were found and fixed:
-
-- `github-create-branch` and `github-create-update-file-content` required the
-  organisation **twice**, as `org` and again as `owner`, because they declared their
-  own `owner` on top of the base schema — and the call failed unless both were given,
-  even though the parameter transform already maps `org` to the API's `owner`.
-- `github-create-update-file-content` required `sha`, `committer` and `author`.
-  GitHub needs `sha` only when replacing an existing file, so a tool named "create"
-  could not create one, and it forced callers to invent identity details GitHub
-  defaults from the token. All three are now optional; creating a file was verified
-  with none of them.
-- The OAuth App requested seven scopes but not `gist`, while five gist tools ship.
-  Gist writes returned "Not Found" for every OAuth user. Anyone who signed in before
-  this change has to re-authorise, because scopes are fixed at authorisation time.
-
-- Three Projects mutations selected fields directly on the union
-  `ProjectV2FieldConfiguration`, which GraphQL forbids, so creating, updating and
-  deleting a project field failed every time with "Selections can't be made directly
-  on unions". They now name the concrete types through inline fragments.
-- `github-projects-create-field` marked an option's `colour` and `description`
-  optional, but GitHub rejects nulls for both, so every SINGLE_SELECT field failed.
-  They now default, and the params type is `z.input` so callers may still omit them.
-
-Several apparent failures are correct GitHub behaviour, not defects: a review cannot be
-requested from the pull request's own author; `pulls-update-branch` reports there are
-no new commits on the base branch when that is true; a title field cannot be cleared;
-only custom project fields can be deleted; and dispatching a workflow in a repository
-that has none returns not found.
-
-### Retired GitHub API
-
-Four tools wrapped GitHub's team discussion reaction endpoints. Those endpoints
-closed down on 2023-11-28 in favour of GitHub Discussions, and the API returns 404
-for a team that plainly exists and is readable. They could not have worked for
-anyone, so they have been removed rather than left in the inventory as capability.
-
-### What your teammates will actually see
-
-The client is offered **114 tools**, and 113 of them are verified end to end. That
-figure is the one that matters: it is what `tools/list` returns over the MCP
-protocol with the shipped config, not the total number of tools in the repository.
-
-Verified through the real protocol, not just by calling execute() directly:
-Claude Code reports the server as connected, `initialize` negotiates 2025-06-18,
-`tools/list` returns 114, and `tools/call` succeeds for both a local tool and a
-GitHub tool authenticated from the OS keyring.
-
-Note the protocol names differ from the internal ids — the client sees
-`getGithubBranch`, not `github-list-branches`. Use the protocol names in any
-client configuration; `list-tools` prints internal ids.
-
-One tool is not fully provable here. `github-pulls-add-reviewers` sends a valid
-request that GitHub accepts, but nothing is recorded, because the only member of
-the reviewing team is the pull request's author and GitHub will not let anyone
-review their own work. Finishing it needs a second GitHub user.
-
-Three tools are excluded from the config rather than shipped failing: `reauth`
-needs an Entra app registration with a client secret (it does reach Microsoft and
-returns AADSTS7000218 without one), `location-to-coords` needs an API key, and
-`weather` is the US National Weather Service and returns 404 for Vietnam.
-
-### chrome-devtools (26) — all verified over the MCP protocol
-
-Every one passes, exercised in stateful sessions through a real client. They share
-one browser, so a call depends on what the previous one did, which is why the tool
-runner could not test them: it spawns a fresh browser per call.
-
-Three needed the right conditions rather than a fix:
-
-- `click`, `hover`, `drag`, `fill_form` and `upload_file` take element references
-  from a snapshot, and any action that changes the page invalidates them. The tool
-  says so plainly — "this uid is coming from a stale snapshot" — which is the
-  behaviour you want. Earlier failures were stale references in the test script, not
-  defects. A local page with known elements made them straightforward.
-- `get_console_message` takes `msgid` as a number, not a string id.
-- `performance_analyze_insight` needs an `insightSetId` from a completed trace
-  (`NAVIGATION_0`) alongside the insight name.
-
-`handle_dialog` reports no open dialog when none is open, which is correct.
-
-### Where verification stands
-
-**141 of the 142 tools a client is offered are verified.** That is the figure that
-matters — what `tools/list` returns with the shipped config, not the repository
-total.
-
-The three remaining are `drag`, `fill_form` and `upload_file`, which need element
-references from a snapshot taken immediately beforehand, plus
-`addGithubPullRequestReviewers`, which needs a second GitHub user because nobody
-may review their own pull request.
-
-### Microsoft 365 (2) — verified against the real tenant
-
-| ✔ | Tool | Name | Description | Needs |
-| - | ---- | ---- | ----------- | ----- |
-| [x] | `microsoft-search-files` | `searchMicrosoftFiles` | Search OneDrive and SharePoint for documents the signed-in user can access | `ENTRA_CLIENT_ID` |
-| [x] | `microsoft-read-file` | `readMicrosoftFile` | Read the text contents of a file by item id | `ENTRA_CLIENT_ID` |
-
-Exercised end to end: search returned real documents from the tenant with the
-signed-in user's own access, the read tool returned one file's text, and a pptx was
-refused by name and type rather than binary being handed to a model. Delegated
-permissions, so each person reaches only their own files — no certificate and no
-shared secret, unlike the SharePoint bundle.
-
-**Review status:** `[ ]` not checked, `[x]` verified working, `[!]` broken/needs work, `[-]` not applicable to us.
-
----
-
-## 1. Native tools (142)
-
-### GitHub (92 tools)
-
-#### Github: Actions (10)
-
-| ✓ | On | Tool ID | Function | Description |
-|---|---|---|---|---|
-| [x] | ○ | `github-actions-cancel-workflow-run` | `cancelGithubWorkflowRun` | Cancels a workflow run |
-| [x] | ○ | `github-actions-create-dispatch` | `createGithubWorkflowDispatch` | Manually trigger a GitHub Actions workflow run |
-| [x] | ○ | `github-actions-get-workflow` | `getGithubWorkflow` | Gets a specific workflow in a repository by ID or file name |
-| [x] | ○ | `github-actions-get-workflow-run` | `getGithubWorkflowRun` | Gets a specific workflow run by ID |
-| [x] | ○ | `github-actions-get-workflow-run-job` | `getGithubWorkflowRunJob` | Gets a specific job in a workflow run by ID |
-| [x] | ○ | `github-actions-get-workflow-run-logs` | `getGithubWorkflowRunLogs` | Gets a log for a workflow run by ID |
-| [x] | ○ | `github-actions-list-workflow-run-jobs` | `listGithubWorkflowRunJobs` | Lists jobs for a workflow run |
-| [x] | ○ | `github-actions-list-workflow-runs` | `listGithubWorkflowRuns` | Lists all workflow runs for a repository |
-| [x] | ○ | `github-actions-list-workflows` | `listGithubWorkflows` | Lists the workflows in a repository |
-| [x] | ○ | `github-actions-rerun-workflow` | `rerunGithubWorkflow` | Re-runs a workflow by run ID |
-
-#### Github: Branches (6)
-
-| ✓ | On | Tool ID | Function | Description |
-|---|---|---|---|---|
-| [x] | ○ | `github-create-branch` | `createGithubBranch` | Creates a new branch in github repo |
-| [x] | ○ | `github-create-update-file-content` | `createOrUpdateGithubFileContent` | Creates or updates a file in a branch. Accepts plain text via content or a local file path via filePath. Do NOT base64-encode anything — the tool handles all encoding internally. |
-| [x] | ● | `github-get-branch` | `getGithubBranch` | Gets a branch in a GitHub repository |
-| [x] | ● | `github-list-branches` | `listGithubBranches` | Lists branches for a GitHub repository |
-| [x] | ● | `github-merge-branch` | `mergeGithubBranch` | Merges a branch in a GitHub repository |
-| [x] | ○ | `github-rename-branch` | `renameGithubBranch` | Renames a branch in a GitHub repository |
-
-#### Github: Dependabot (3)
-
-| ✓ | On | Tool ID | Function | Description |
-|---|---|---|---|---|
-| [x] | ○ | `github-get-dependabot-alert` | `getDependabotAlert` | Retrieves a Dependabot alert |
-| [x] | ○ | `github-list-dependabot-alerts` | `listDependabotAlerts` | List Dependabot alerts for a repository |
-| [x] | ○ | `github-update-dependabot-alert` | `updateDependabotAlert` | Updates a Dependabot alert |
-
-#### Github: Discussions (9)
-
-| ✓ | On | Tool ID | Function | Description |
-|---|---|---|---|---|
-| [x] | ○ | `github-delete-commit-comment-reaction` | `deleteGithubCommitCommentReaction` | Deletes a reaction to a commit comment |
-| [x] | ○ | `github-delete-issue-comment-reaction` | `deleteGithubIssueCommentReaction` | Deletes a reaction to an issue comment |
-| [x] | ○ | `github-delete-issue-reaction` | `deleteGithubIssueReaction` | Deletes a reaction to an issue |
-| [x] | ○ | `github-delete-pull-request-comment-reaction` | `deleteGithubPullRequestCommentReaction` | Deletes a reaction to a pull request review comment |
-| [x] | ○ | `github-delete-release-reaction` | `deleteGithubReleaseReaction` | Deletes a reaction to a release |
-
-#### Github: Gists (5)
-
-| ✓ | On | Tool ID | Function | Description |
-|---|---|---|---|---|
-| [x] | ○ | `github-gist-create` | `createGithubGist` | Creates a new gist |
-| [x] | ○ | `github-gist-delete` | `deleteGithubGist` | Deletes a gist |
-| [x] | ○ | `github-gist-get` | `getGithubGist` | Gets a specific gist by ID with full content |
-| [x] | ○ | `github-gist-list` | `listGithubGists` | Lists gists for a user or authenticated user |
-| [x] | ○ | `github-gist-update` | `updateGithubGist` | Updates an existing gist |
-
-#### Github: Issues (10)
-
-| ✓ | On | Tool ID | Function | Description |
-|---|---|---|---|---|
-| [x] | ○ | `github-issues-add-comment` | `addGithubIssueComment` | Adds a comment to an issue in a GitHub repository |
-| [x] | ● | `github-issues-add-sub-issue` | `addGithubSubIssue` | Adds an existing issue as a sub-issue of a parent issue, creating a formal parent-child relationship visible in the Sub-issues section of the parent |
-| [x] | ● | `github-issues-create` | `createGithubIssue` | Creates a new issue in a GitHub repository |
-| [x] | ● | `github-issues-get` | `getGithubIssue` | Gets the contents of an issue within a repository |
-| [x] | ○ | `github-issues-get-comments` | `getGithubIssueComments` | Gets the comments of an issue within a repository |
-| [x] | ● | `github-issues-list` | `listGithubIssues` | Lists and filters repository issues |
-| [x] | ● | `github-issues-list-sub-issues` | `listGithubSubIssues` | Lists all sub-issues of a parent issue, showing the formal parent-child relationships established via addGithubSubIssue |
-| [x] | ● | `github-issues-remove-sub-issue` | `removeGithubSubIssue` | Removes a sub-issue from a parent issue, dissolving the parent-child relationship without deleting either issue |
-| [x] | ○ | `github-issues-search` | `searchGithubIssues` | Searches for issues and pull requests across GitHub |
-| [x] | ○ | `github-issues-update` | `updateGithubIssue` | Updates an existing issue in a GitHub repository |
-
-#### Github: Orgs (3)
-
-| ✓ | On | Tool ID | Function | Description |
-|---|---|---|---|---|
-| [x] | ○ | `github-my-orgs-list` | `listMyGithubOrganizations` | Lists all organizations for the current user |
-| [x] | ○ | `github-org-get` | `getGithubOrganization` | Gets details for a specific organization |
-| [x] | ○ | `github-orgs-list` | `listGithubOrganizations` | Lists all organizations using cursor-based pagination |
-
-#### Github: Projects (19)
-
-| ✓ | On | Tool ID | Function | Description |
-|---|---|---|---|---|
-| [x] | ○ | `github-projects-add-draft-issue` | `addGithubProjectDraftIssue` | Creates a draft issue directly in a GitHub Project V2. Draft issues exist only within the project and are not linked to a repository. |
-| [x] | ○ | `github-projects-add-item` | `addGithubProjectItem` | Adds an existing issue or pull request to a GitHub Project V2. Requires the project node ID and the content node ID (issue or PR). |
-| [x] | ○ | `github-projects-archive-item` | `archiveGithubProjectItem` | Archives an item in a GitHub Project V2. Archived items are hidden from default views but can be restored with unarchiveGithubProjectItem. |
-| [x] | ○ | `github-projects-clear-item-field` | `clearGithubProjectItemField` | Clears/resets a field value on a GitHub Project V2 item. Supports text, number, date, single-select, iteration, assignees, labels, and milestone fields. |
-| [x] | ○ | `github-projects-convert-draft-to-issue` | `convertGithubProjectDraftToIssue` | Converts a draft issue in a GitHub Project V2 into a real GitHub issue in the specified repository. The item remains in the project but is now linked to the created issue. |
-| [x] | ○ | `github-projects-create` | `createGithubProject` | Creates a new GitHub Project V2 for an organization or user. Requires the owner node ID (use getGithubOrganization for orgs, or the GraphQL viewer query for users). |
-| [x] | ○ | `github-projects-create-field` | `createGithubProjectField` | Creates a new custom field in a GitHub Project V2. Supports TEXT, NUMBER, DATE, SINGLE_SELECT, and ITERATION field types. For SINGLE_SELECT, provide single_select_options with name and optional color/description. |
-| [x] | ○ | `github-projects-delete-field` | `deleteGithubProjectField` | Deletes a custom field from a GitHub Project V2. This permanently removes the field and all its values from all items in the project. |
-| [x] | ○ | `github-projects-delete-item` | `deleteGithubProjectItem` | Removes an item from a GitHub Project V2. This does not delete the underlying issue or pull request, only removes it from the project. |
-| [x] | ○ | `github-projects-get` | `getGithubProject` | Gets a single GitHub Project V2 by number for an organization or user. Provide either org or user parameter. Returns the project node ID needed by other project tools, along with full project details. |
-| [x] | ○ | `github-projects-list` | `listGithubProjects` | Lists GitHub Projects V2 for an organization or user. Provide either org or user parameter. Returns project titles, IDs, and metadata with pagination support. |
-| [x] | ○ | `github-projects-list-fields` | `listGithubProjectFields` | Lists fields/columns defined on a GitHub Project V2. Returns field IDs, names, types, and options (for single-select and iteration fields). Use this to discover field IDs before updating item field values. |
-| [x] | ○ | `github-projects-list-items` | `listGithubProjectItems` | Lists items (issues, pull requests, and draft issues) in a GitHub Project V2, including their field values. Use listGithubProjectFields first to understand the available fields. |
-| [x] | ○ | `github-projects-unarchive-item` | `unarchiveGithubProjectItem` | Restores an archived item in a GitHub Project V2, making it visible in default views again. |
-| [x] | ○ | `github-projects-update` | `updateGithubProject` | Updates a GitHub Project V2 settings including title, description, readme, visibility, and closed state. |
-| [x] | ○ | `github-projects-update-draft-issue` | `updateGithubProjectDraftIssue` | Updates the title and/or body of a draft issue in a GitHub Project V2. |
-| [x] | ○ | `github-projects-update-field` | `updateGithubProjectField` | Updates a custom field in a GitHub Project V2. Can rename the field or modify single-select options. For single-select fields, include the option id to update existing options or omit it to add new options. |
-| [x] | ○ | `github-projects-update-item-field` | `updateGithubProjectItemField` | Sets a field value on a GitHub Project V2 item. Supports text, number, date, single-select, and iteration field types. Use listGithubProjectFields first to discover field IDs and available options. |
-| [x] | ○ | `github-projects-update-item-position` | `updateGithubProjectItemPosition` | Updates the position of an item in a GitHub Project V2. Place the item after a specific item, or omit after_id to move it to the top. |
-
-#### Github: Pulls (15)
-
-| ✓ | On | Tool ID | Function | Description |
-|---|---|---|---|---|
-| [ ] | ● | `github-pulls-add-reviewers` | `addGithubPullRequestReviewers` | Adds reviewers to a pull request |
-| [x] | ● | `github-pulls-create` | `createGithubPullRequest` | Creates a new pull request in a repository |
-| [x] | ○ | `github-pulls-create-review` | `createGithubPullRequestReview` | Creates a review on a pull request |
-| [x] | ● | `github-pulls-get` | `getGithubPullRequest` | Gets the details of a specific pull request within a repository |
-| [x] | ○ | `github-pulls-get-comments` | `getGithubPullRequestComments` | Gets the comments on a pull request |
-| [x] | ○ | `github-pulls-get-files` | `getGithubPullRequestFiles` | Gets the list of files changed in a pull request |
-| [x] | ○ | `github-pulls-get-review-threads` | `getGithubPullRequestReviewThreads` | Lists review threads for a pull request, including resolution state and comment details. |
-| [x] | ○ | `github-pulls-get-reviews` | `getGithubPullRequestReviews` | Gets the reviews on a pull request |
-| [x] | ● | `github-pulls-get-status` | `getGithubPullRequestStatus` | Gets the combined status of all status checks for a pull request |
-| [x] | ● | `github-pulls-list` | `listGithubPullRequests` | Lists and filters repository pull requests |
-| [x] | ○ | `github-pulls-mark-ready` | `markGithubPullRequestReady` | Marks a draft pull request as ready for review |
-| [x] | ○ | `github-pulls-merge` | `mergeGithubPullRequest` | Merges a pull request |
-| [x] | ● | `github-pulls-remove-reviewers` | `removeGithubPullRequestReviewers` | Removes reviewers from a pull request |
-| [x] | ○ | `github-pulls-update-branch` | `updateGithubPullRequestBranch` | Updates a pull request branch with the latest changes from the base branch |
-| [x] | ○ | `github-set-pr-review-thread-resolution` | `setGithubPullRequestReviewThreadResolution` | Sets the resolution status of a review thread on a pull request. Use resolved=true to mark feedback as addressed, or resolved=false to reopen for further discussion. |
-
-#### Github: Releases (2)
-
-| ✓ | On | Tool ID | Function | Description |
-|---|---|---|---|---|
-| [x] | ○ | `github-get-latest-release` | `getLatestGithubRelease` | Gets the latest published release for a GitHub repository |
-| [x] | ○ | `github-list-releases` | `listGithubReleases` | Gets a list of releases for a GitHub repository |
-
-#### Github: Repos (6)
-
-| ✓ | On | Tool ID | Function | Description |
-|---|---|---|---|---|
-| [x] | ○ | `github-repos-list` | `listGithubRepositories` | Lists all repositories in an organization |
-| [x] | ○ | `github-repository-get` | `getGithubRepository` | Gets details for a specific repository |
-| [x] | ○ | `github-repository-get-content` | `getGithubRepositoryContent` | Gets the contents of a file or directory in a repository |
-| [x] | ○ | `github-repository-topics-get` | `getGithubRepositoryTopics` | Gets topics for a specific repository |
-| [x] | ○ | `github-repository-topics-update` | `updateGithubRepositoryTopics` | Updates topics for a repository (add/remove/replace) |
-| [x] | ○ | `github-user-repos-list` | `listUserGithubRepositories` | Lists public repositories for the specified user |
-
-#### Github: Search (3)
-
-| ✓ | On | Tool ID | Function | Description |
-|---|---|---|---|---|
-| [x] | ○ | `github-code-search` | `searchCode` | Searches for query terms inside of a file |
-| [x] | ○ | `github-commits-search` | `searchCommits` | Find commits via various criteria on the default branch |
-| [x] | ○ | `github-repos-search` | `searchRepos` | Find repositories via various criteria. |
-
-#### Github: Wiki (1)
-
-| ✓ | On | Tool ID | Function | Description |
-|---|---|---|---|---|
-| [x] | ○ | `github-wiki-get-content` | `getGithubWikiContent` | Gets the content of a specific page from a GitHub wiki repository |
-
-### Non-GitHub (50 tools)
-
-#### CrUX (4)
-
-| ✓ | On | Tool ID | Function | Description | Requires |
-|---|---|---|---|---|---|
-| [ ] | ○ | `crux-audit-core-web-vitals` | `auditCoreWebVitals` |  | `GOOGLE_CRUX_API_KEY` |
-| [ ] | ○ | `crux-compare-origins` | `compareCruxOrigins` | Compare web performance metrics across multiple origins or URLs side-by-side using real-user data from the Google Chrome UX Report (CrUX). Metrics include the 3 Core Web Vitals (LCP, INP, CLS) and supporting metrics FCP and TTFB. Accepts 2–5 targets and returns a normalized comparison table with p75 values and Good/Needs Improvement/Poor ratings for each metric. Ideal for competitive benchmarking or comparing multiple pages on the same site. | `GOOGLE_CRUX_API_KEY` |
-| [ ] | ○ | `crux-query-history` | `queryCruxHistory` | Query historical Core Web Vitals trends from the Google Chrome UX Report (CrUX) History API for an origin or URL. Returns up to 40 weeks of weekly timeseries data, enabling trend analysis and regression detection. Each data point in the timeseries represents a 28-day rolling average for that week. Use this to track how performance has changed over time. | `GOOGLE_CRUX_API_KEY` |
-| [ ] | ○ | `crux-query-metrics` | `queryCruxMetrics` | Query current Core Web Vitals and performance metrics from the Google Chrome UX Report (CrUX) for an origin or URL. Returns the latest 28-day rolling window of real-user experience data including LCP, INP, CLS, FCP, TTFB, and more. Use this to get a snapshot of field performance data for a website or page. | `GOOGLE_CRUX_API_KEY` |
-
-#### Knowledge Graph (9)
-
-| ✓ | On | Tool ID | Function | Description | Requires |
-|---|---|---|---|---|---|
-| [x] | ○ | `add-observations` | `addObservations` | Add new observations to existing entities in the knowledge graph | – |
-| [x] | ○ | `create-entities` | `createEntities` | Create multiple new entities in the knowledge graph | – |
-| [x] | ○ | `create-relations` | `createRelations` | Create multiple new relations between entities in the knowledge graph. Relations should be in active voice | – |
-| [x] | ○ | `delete-entities` | `deleteEntities` | Delete multiple entities and their associated relations from the knowledge graph | – |
-| [x] | ○ | `delete-observations` | `deleteObservations` | Delete specific observations from entities in the knowledge graph | – |
-| [x] | ○ | `delete-relations` | `deleteRelations` | Delete multiple relations from the knowledge graph | – |
-| [x] | ○ | `open-nodes` | `openNodes` | Open/expand specific nodes in the knowledge graph to show their connections and related entities | – |
-| [x] | ○ | `read-graph` | `readGraph` | Read and query the knowledge graph structure, entities, and relations | – |
-| [x] | ○ | `search-nodes` | `searchNodes` | Search for entities/nodes in the knowledge graph by content, name, or other fields | – |
-
-
-| ✓ | On | Tool ID | Function | Description | Requires |
-|---|---|---|---|---|---|
-
-#### NPM (5)
-
-| ✓ | On | Tool ID | Function | Description | Requires |
-|---|---|---|---|---|---|
-| [x] | ○ | `npm-build-order` | `npmBuildOrder` | Compute the layered build order for an npm package in a flat sibling-folders workspace. | – |
-| [x] | ○ | `npm-dag` | `npmDag` | Show the flattened directed acyclic graph of owned (intra-workspace) packages reachable from a package. | – |
-| [x] | ○ | `npm-doctor` | `npmDoctor` | Report issues in the workspace: version drift between declared and on-disk versions, | – |
-| [x] | ○ | `npm-list` | `npmList` | List every package in the workspace with its name, folder, version, and projen status. | – |
-| [x] | ○ | `npm-tree` | `npmTree` | Print the full recursive dependency tree of a package showing the path through dependencies. | – |
-
-#### PostgreSQL (4)
-
-| ✓ | On | Tool ID | Function | Description | Requires |
-|---|---|---|---|---|---|
-| [ ] | ○ | `postgres-describe-table` | `postgresDescribeTable` | Get detailed schema information about a table including columns, data types, constraints, indexes, and table metadata. Prefer this over postgresQuery("\\d table") or manual information_schema queries. Returns comprehensive table structure information. | – |
-| [ ] | ○ | `postgres-list-databases` | `postgresListDatabases` | List all databases on the PostgreSQL server. Prefer this over postgresQuery("SELECT datname FROM pg_database"). Returns database names with encoding, collation, and connection settings. System databases (postgres, template0, template1) are excluded by default. | – |
-| [ ] | ○ | `postgres-list-tables` | `postgresListTables` | List tables in a database with schema support. Prefer this over postgresQuery("SELECT * FROM information_schema.tables"). Returns table names with schema, owner, and size information. System schemas (pg_catalog, information_schema) are excluded. | – |
-| [ ] | ○ | `postgres-query` | `postgresQuery` | Execute custom SQL queries against a PostgreSQL database. Use this for data retrieval (SELECT), modifications (INSERT, UPDATE, DELETE), or operations not covered by specialized tools. For common tasks, prefer specialized tools: postgresListDatabases to list databases, postgresListTables to list tables, postgresDescribeTable to inspect schemas. Supports parameter binding for security. | – |
-
-#### Swagger (2)
-
-| ✓ | On | Tool ID | Function | Description | Requires |
-|---|---|---|---|---|---|
-| [ ] | ● | `open-api-client-generator-tool` | `generateOpenApiClient` | A tool to generate client code from OpenAPI specifications. | – |
-| [ ] | ● | `save-swagger-document-tool` | `saveSwaggerHubDocument` | A tool to save an openapi definition. | `SWAGGER_HUB_API_KEY` |
-
-#### Utility (15)
-
-| ✓ | On | Tool ID | Function | Description | Requires |
-|---|---|---|---|---|---|
-| [x] | ○ | `claude-code-usage` | `getClaudeCodeUsage` | Retrieve the usage statistics for a Claude Code project. | – |
-| [x] | ● | `clipboard` | `getClipboardContent` | Fetch the contents of the clipboard (text, images, or binary data). Used to see what is on the clipboard. | – |
-| [x] | ○ | `convert-unix-timestamp` | `convertUnixTimestamp` | Convert unix timestamps to human readable time representations | – |
-| [x] | ● | `doctor` | `doctor` | Diagnose MCP configuration issues when tools fail with authentication, connection, or permission errors. Checks for missing environment variables (API keys, tokens), invalid paths, and configuration problems. Use this when Splunk, Slack, GitHub, or other external service tools report errors. | – |
-| [x] | ○ | `execute-task` | `executeTask` | Get next pending task and mark tasks as completed in a unified execution workflow. Enforces one task in progress at a time per list. | – |
-| [x] | ○ | `get-converted-time` | `convertTime` | Convert time between timezones. | – |
-| [x] | ○ | `get-current-time` | `getCurrentTime` | Get current time in a specific timezone. | – |
-| [x] | ○ | `get-task-statistics` | `getTaskStatistics` | Get task completion statistics and history with comprehensive analytics | – |
-| [ ] | ○ | `location-to-coords` | `getCoordinatesFromLocation` | Convert a location or POI to latitude and longitude coordinates | `GEOCODE_MAPS_API_KEY` |
-| [x] | ○ | `logout` | `logout` | Log out of a single remote MCP server. Clears the locally-stored session token and opens the gateway credential manager (behind SSO) to revoke your saved credential for that server. | – |
-| [x] | ○ | `manage-task-lists` | `manageTaskLists` | Create, view, delete, and list task lists with comprehensive management capabilities | – |
-| [x] | ○ | `manage-tasks` | `manageTasks` | Add, edit, delete, and insert tasks within task lists with full CRUD capabilities | – |
-| [ ] | ○ | `reauth` | `reauth` | Force re-authentication for a given service. Clears stored tokens and triggers a fresh login flow. | – |
-| [x] | ○ | `reorder-tasks` | `reorderTasks` | Reorder tasks within a task list by updating their positions | – |
-| [-] | ○ | `weather` | `getWeatherForecast` | Get the weather forecast for a given latitude and longitude | – |
-
-#### k6 (6)
-
-| ✓ | On | Tool ID | Function | Description | Requires |
-|---|---|---|---|---|---|
-| [ ] | ○ | `k6-compare-test-results` | `compareK6TestResults` | Compare two k6 Cloud test runs side-by-side. Fetches both runs via v6 API and real performance metrics via v5 API, then compares P90, P95, RPS, error rate alongside duration and result with configurable thresholds. | `GRAFANA_K6_TOKEN` |
-| [ ] | ○ | `k6-get-metric-timeseries` | `getK6MetricTimeseries` | Fetch time-series metric data for a k6 Cloud test run via the v5 range API. Returns metric values over time at the specified step interval. | `GRAFANA_K6_TOKEN` |
-| [ ] | ○ | `k6-get-scenario-results` | `getK6ScenarioResults` | Retrieve test run results for a scenario (load test) in a k6 Cloud project. Finds the load test by name and returns recent or specific test run results with status, duration, and metadata. | `GRAFANA_K6_TOKEN` |
-| [ ] | ○ | `k6-get-test-metrics` | `getK6TestMetrics` | Fetch real performance metrics for a k6 Cloud test run via the v5 API. Returns per-endpoint and per-scenario P90, P95, RPS, error rate, and VUs with automatic ramp-up offset. | `GRAFANA_K6_TOKEN` |
-| [ ] | ○ | `k6-list-project-load-tests` | `listK6ProjectLoadTests` | List all load tests in a k6 Cloud project. Resolves project by ID or name (with partial matching) and paginates through all load tests. | `GRAFANA_K6_TOKEN` |
-| [ ] | ○ | `k6-list-user-projects` | `listK6UserProjects` | Validate k6 Cloud authentication and list all projects the authenticated user has access to, including per-project accessibility checks | `GRAFANA_K6_TOKEN` |
-
----
-
-## 2. Bundled MCP tools (82)
-
-Third-party MCP servers bundled and run locally by the gateway. Installed under
-`~/.qnscmcp/bundled/`. **These were missing from the previous inventory** — they are
-registered at runtime, so a source-only scan cannot see them.
-
-### `chrome-devtools-mcp` (26)
-
-| ✓ | On | Tool | Description |
-|---|---|---|---|
-| [ ] | ● | `click` | Clicks on the provided element |
-| [ ] | ● | `close-page` | Closes the page by its index. The last open page cannot be closed. |
-| [ ] | ● | `drag` | Drag an element onto another element |
-| [ ] | ● | `emulate` | Emulates various features on the selected page. |
-| [ ] | ● | `evaluate-script` | Evaluate a JavaScript function inside the currently selected page. Returns the response as JSON so returned values ha... |
-| [ ] | ● | `fill` | Type text into a input, text area or select an option from a <select> element. |
-| [ ] | ● | `fill-form` | Fill out multiple form elements at once |
-| [ ] | ● | `get-console-message` | Gets a console message by its ID. You can get all messages by calling listconsolemessages. |
-| [ ] | ● | `get-network-request` | Gets a network request by an optional reqid, if omitted returns the currently selected request in the DevTools Networ... |
-| [ ] | ● | `handle-dialog` | If a browser dialog was opened, use this command to handle it |
-| [ ] | ● | `hover` | Hover over the provided element |
-| [ ] | ● | `list-console-messages` | List all console messages for the currently selected page since the last navigation. |
-| [ ] | ● | `list-network-requests` | List all requests for the currently selected page since the last navigation. |
-| [ ] | ● | `list-pages` | Get a list of pages open in the browser. |
-| [ ] | ● | `navigate-page` | Navigates the currently selected page to a URL. |
-| [ ] | ● | `new-page` | Creates a new page |
-| [ ] | ● | `performance-analyze-insight` | Provides more detailed information on a specific Performance Insight of an insight set that was highlighted in the re... |
-| [ ] | ● | `performance-start-trace` | Starts a performance trace recording on the selected page. This can be used to look for performance problems and insi... |
-| [ ] | ● | `performance-stop-trace` | Stops the active performance trace recording on the selected page. |
-| [ ] | ● | `press-key` | Press a key or key combination. Use this when other input methods like fill() cannot be used (e.g., keyboard shortcut... |
-| [ ] | ● | `resize-page` | Resizes the selected page's window so that the page has specified dimension |
-| [ ] | ● | `select-page` | Select a page as a context for future tool calls. |
-| [ ] | ● | `take-screenshot` | Take a screenshot of the page or element. |
-| [ ] | ● | `take-snapshot` | Take a text snapshot of the currently selected page based on the a11y tree. The snapshot lists page elements along wi... |
-| [ ] | ● | `upload-file` | Upload a file through a provided element. |
-| [ ] | ● | `wait-for` | Wait for the specified text to appear on the selected page. |
-
-### `sharepoint` (56)
-
-| ✓ | On | Tool | Description |
-|---|---|---|---|
-| [ ] | ● | `addgroupmember` | Add a user to a SharePoint group |
-| [ ] | ● | `addnavigationlink` | Add a navigation link to a SharePoint site (global or quick navigation) |
-| [ ] | ● | `addviewfield` | Add a field to a SharePoint list view |
-| [ ] | ● | `batchcreatelistitems` | Create multiple items in a SharePoint list using a single batch request |
-| [ ] | ● | `batchdeletelistitems` | Delete multiple items from a SharePoint list using a single batch request |
-| [ ] | ● | `batchupdatelistitems` | Update multiple items in a SharePoint list using a single batch request |
-| [ ] | ● | `createlist` | Create a new SharePoint list or document library |
-| [ ] | ● | `createlistcontenttype` | Create a new content type in a SharePoint list |
-| [ ] | ● | `createlistfield` | Create a new field (column) in a SharePoint list |
-| [ ] | ● | `createlistitem` | Create a new item in a SharePoint list with specified field values |
-| [ ] | ● | `createlistview` | Create a new view for a SharePoint list with specified fields and settings |
-| [ ] | ● | `createmodernpage` | Create a modern page in SharePoint |
-| [ ] | ● | `deletelist` | Delete a SharePoint list or document library |
-| [ ] | ● | `deletelistcontenttype` | Delete a content type from a SharePoint list |
-| [ ] | ● | `deletelistfield` | Delete a field (column) from a SharePoint list |
-| [ ] | ● | `deletelistitem` | Delete an item from a SharePoint list |
-| [ ] | ● | `deletelistview` | Delete a view from a SharePoint list |
-| [ ] | ● | `deletemodernpage` | Delete a modern page from SharePoint |
-| [ ] | ● | `deletenavigationlink` | Delete a navigation link from a SharePoint site (global or quick navigation) |
-| [ ] | ● | `deletesitecontenttype` | Delete a content type from a SharePoint site |
-| [ ] | ● | `deletesubsite` | Delete a SharePoint subsite |
-| [ ] | ● | `getglobalnavigationlinks` | Get global navigation links from a SharePoint site |
-| [ ] | ● | `getgroupmembers` | Get members of a specific SharePoint group |
-| [ ] | ● | `getlistcontenttype` | Get a specific content type from a SharePoint list |
-| [ ] | ● | `getlistcontenttypes` | Get all content types from a specific SharePoint list |
-| [ ] | ● | `getlistfields` | Get detailed information about fields/columns in a SharePoint list |
-| [ ] | ● | `getlistitems` | Get all items from a specific SharePoint list identified by site URL and list title |
-| [ ] | ● | `getlists` | Get the list of SharePoint lists along with their Titles, URLs, ItemCounts, last modified date, description and base ... |
-| [ ] | ● | `getlistviews` | Get all views from a SharePoint list with optional field details |
-| [ ] | ● | `getmodernpage` | Get a specific modern page by ID from a SharePoint site |
-| [ ] | ● | `getmodernpages` | Get modern pages from a SharePoint site |
-| [ ] | ● | `getquicknavigationlinks` | Get quick navigation links (left navigation) from a SharePoint site |
-| [ ] | ● | `getregionalsettings` | Get regional settings from a SharePoint site |
-| [ ] | ● | `getsite` | Get the title of a SharePoint website |
-| [ ] | ● | `getsitecollectionfeatures` | Get all features from a SharePoint site collection |
-| [ ] | ● | `getsitecontenttype` | Get a specific content type from a SharePoint site |
-| [ ] | ● | `getsitecontenttypes` | Get all content types from a SharePoint site |
-| [ ] | ● | `getsitefeature` | Get a specific feature from a SharePoint site by feature ID |
-| [ ] | ● | `getsitefeatures` | Get all features from a SharePoint site |
-| [ ] | ● | `getsitegroups` | Get all SharePoint groups for a site |
-| [ ] | ● | `getsiteusers` | Get users from a SharePoint site, optionally filtered by role |
-| [ ] | ● | `getsubsites` | Get all subsites from a SharePoint site |
-| [ ] | ● | `getviewfields` | Get all fields from a specific SharePoint list view |
-| [ ] | ● | `moveviewfieldto` | Move a field to a specific position in a SharePoint list view |
-| [ ] | ● | `removeallviewfields` | Remove all fields from a SharePoint list view |
-| [ ] | ● | `removegroupmember` | Remove a user from a SharePoint group |
-| [ ] | ● | `removeviewfield` | Remove a field from a SharePoint list view |
-| [ ] | ● | `searchsharepointsite` | Search within a SharePoint site using KQL query |
-| [ ] | ● | `updatelist` | Update a SharePoint list properties (Title, Description, versioning settings, etc.) |
-| [ ] | ● | `updatelistcontenttype` | Update a content type in a SharePoint list |
-| [ ] | ● | `updatelistfield` | Update a field/column in a SharePoint list including display name, choices, etc. |
-| [ ] | ● | `updatelistitem` | Update an item in a SharePoint list |
-| [ ] | ● | `updatelistview` | Update an existing view for a SharePoint list |
-| [ ] | ● | `updatenavigationlink` | Update a navigation link in a SharePoint site (global or quick navigation) |
-| [ ] | ● | `updatesite` | Update a SharePoint site properties (Title, Description, etc.) |
-| [ ] | ● | `updatesitecontenttype` | Update a content type in a SharePoint site |
-
----
-
-## 3. Remote MCP servers (2)
-
-Reached over HTTP rather than spawned locally. Opt in with `tools.includeRemoteMCPs`.
-
-| ✓ | ID | Reached | Auth | Tools |
-|---|---|---|---|---|
-| [!] | `aws-knowledge-mcp-server` | Directly at `knowledge-mcp.global.api.aws` | None — public | 5 register, but calls are refused (see below) |
-| [ ] | `figma-dev` | `http://localhost:3845/mcp`, via the Figma desktop app | None — local | requires Figma running |
-
-17 others were removed: Atlassian, Datadog, PagerDuty, Slack, Stripe, New Relic,
-Postman, Kong, Cortex, Bitrise, Smartsheet, LogRocket, Lucid, Pendo, Amplitude, k6 and
-a `github` proxy. All routed through a hosted platform gateway at `*.ai.qnsc.vn` that
-is not deployed for this organization — those hostnames have no DNS records, so none of
-them could connect. Grafana k6 is still covered by the 6 native k6 tools, and GitHub by
-the 92 native GitHub tools.
-
-`aws-knowledge-mcp-server` connects and its 5 tools register, but invoking one returns
-`Http operation is not supported for gateway protocol type MCP` from AWS. That is the
-endpoint's own response, not this client: raw `curl` gets the same reply, and it is
-identical whether the handshake requests protocol `2024-11-05`, `2025-03-26` or
-`2025-06-18` (AWS negotiates `2025-03-26` in every case). `initialize` and `tools/list`
-succeed; only `tools/call` is refused. Needs checking against AWS's current guidance
-before the tools can be relied on.
-
-See [`src/remote-mcps/README.md`](src/remote-mcps/README.md) for what the gateway did.
-
-## 4. Local MCP servers (3)
-
-Spawned as local subprocesses; opt in via `includeLocalMCPs`. Args via `mcpArgs`.
-
-| ✓ | ID | Name | Description | Required env |
-|---|---|---|---|---|
-| [ ] | `dart-mcp` | Dart MCP | MCP server for Dart/Flutter cross platform development. | `DART_SDK` |
-| [ ] | `mobile-next-local` | Mobile Next | Mobile Next - MCP server for Mobile Development and Automation | – |
-| [ ] | `playwright-local` | Playwright | Local Playwright MCP server for browser automation and testing. Configure CLI arguments via mcpArgs in .qnscmcp.yaml config file. Supports various options including --extension for Chrome extension mode, --browser for browser selection, --headless for headless mode, and more. | `PLAYWRIGHT_BROWSERS_PATH` |
-
----
-
-## 5. Prompts (8)
-
-| ✓ | ID | Name | Description |
-|---|---|---|---|
-| [ ] | `class-diagram` | Create Class Diagram | Generate a Mermaid class diagram from a code snippet |
-| [ ] | `code-performance` | Create Code Performance | Generate a performance review from a code snippet |
-| [ ] | `code-security` | Perform Code Security Review | Generate a security review on a provided file path |
-| [ ] | `code-smell` | Perform Code Smell Review | Generate a code smell review on a provided file path |
-| [ ] | `flowchart` | Create Code Flowchart | Generates a Mermaid Flow Chart from a code snippet |
-| [ ] | `test-mcp-tools` | Test MCP Tools with Direct Calls | Guide for testing MCP tool implementations using direct MCP tool calls to validate functionality with real data |
-
----
-
-## 6. Resources (5)
-
-| ✓ | ID | Name | URI | Description |
-|---|---|---|---|---|
-| [ ] | `mcp-current-config` | mcp current configuration | `-` | View the current MCP configuration |
-| [ ] | `mcp-current-log` | mcp server current log | `-` | View the current mcp server log (if there is one) |
-| [ ] | `mcp-log` | mcp server log | `-` | View the a specific mcp server log (if there is one) |
-
----
-
-## 7. CLI commands (18)
-
-| ✓ | Command | Purpose |
-|---|---|---|
-| [ ] | `qnsc-mcp server` | Start the MCP server (stdio / httpStream) |
-| [ ] | `qnsc-mcp webserver` | Web UI / config editor |
-| [ ] | `qnsc-mcp doctor` | Validate config, env, keyring, TLS |
-| [ ] | `qnsc-mcp install` | Install / set up client integrations |
-| [ ] | `qnsc-mcp update` | Self-update to the latest release |
-| [ ] | `qnsc-mcp generate-config` | Scaffold a `.qnscmcp.yaml` |
-| [ ] | `qnsc-mcp list-tools` | List tools (`--filtered` = enabled only) |
-| [ ] | `qnsc-mcp list-prompts` | List prompts |
-| [ ] | `qnsc-mcp list-resources` | List resources |
-| [ ] | `qnsc-mcp get-prompt` | Show a prompt and its arguments |
-| [ ] | `qnsc-mcp remote-mcp` | Manage / inspect remote MCP servers |
-| [ ] | `qnsc-mcp local-mcp` | Manage / inspect local MCP servers |
-| [ ] | `qnsc-mcp bundled-mcp` | Manage / inspect bundled MCP servers |
-| [ ] | `qnsc-mcp view-logs` | View server logs |
-| [ ] | `qnsc-mcp tail-log-file` | Tail the active log file |
-| [ ] | `qnsc-mcp logout` | Clear stored credentials |
-| [ ] | `qnsc-mcp reauth` | Re-authenticate with the platform |
-| [ ] | `qnsc-mcp index` | Command entry/dispatch |
-
----
-
-## Review notes
-
-| Item | Status | Finding / action |
-|---|---|---|
-| 10 credential-free tools | ✅ pass | Exercised locally via `scripts/try-tool.ts`: time (3), knowledge graph (3, including a write), npm (2), doctor, clipboard. |
-| `npm-tree` | – | Not a defect: requires a `package` argument, which the probe omitted. |
-| `claude-code-usage` | – | Not a defect: correctly reported no Claude logs for this project. |
-| AWS Knowledge tools | ⛔ blocked | Register, but `tools/call` is refused by AWS. Reproduced with raw `curl`, so not a client bug. |
-| `aws-knowledge-mcp-server` | ✅ working | Was gateway-routed and therefore dead. Repointed to the public AWS endpoint via a new `getDirectMcpUrl()` helper (HTTPS + `api.aws` host allowlist). 5 tools verified live. |
-| `list-tools` display | ✅ fixed | Vendor tool names containing the `__` delimiter were truncated — all 5 AWS tools rendered as `aws`. Now keeps everything after the first delimiter. |
-| 18 other remote servers | ⛔ blocked | Need the platform gateway, or drop. Of these, only `k6` (Grafana) is in the current stack. |
-| Cloudflare | ➕ gap | In use, but no tooling exists. Cloudflare publishes official MCP servers. |
-
+<!-- Generated by scripts/generate-tools-doc.ts. Do not edit by hand: run
+     `bun run generate:tools-doc`. An earlier hand-written version claimed a tool
+     count that was wrong within a day, which is worse than having no document. -->
+
+Tools reachable when every category is enabled: **176**.
+
+A given install shows fewer, because categories are opt-in at install time. What each
+install actually exposes is listed in the bundle manifest and by `qnsc-mcp list-tools`.
+
+| Category | Tools |
+|---|---|
+| Bundled | 29 |
+| CrUX | 4 |
+| Github: Actions | 10 |
+| Github: Branches | 6 |
+| Github: Dependabot | 3 |
+| Github: Discussions | 5 |
+| Github: Gists | 5 |
+| Github: Issues | 10 |
+| Github: Orgs | 3 |
+| Github: Projects | 19 |
+| Github: Pulls | 15 |
+| Github: Releases | 2 |
+| Github: Repos | 6 |
+| Github: Search | 3 |
+| Github: Wiki | 1 |
+| k6 | 6 |
+| Knowledge Graph | 9 |
+| Microsoft 365 | 14 |
+| NPM | 5 |
+| PostgreSQL | 4 |
+| Swagger | 2 |
+| Utility | 15 |
+
+## Bundled
+
+| Tool | What it does |
+|---|---|
+| `chrome-devtools-mcp__click` | Clicks on the provided element |
+| `chrome-devtools-mcp__close_page` | Closes the page by its index |
+| `chrome-devtools-mcp__drag` | Drag an element onto another element |
+| `chrome-devtools-mcp__emulate` | Emulates various features on the target page. |
+| `chrome-devtools-mcp__evaluate_script` | Evaluate a JavaScript function inside the target page |
+| `chrome-devtools-mcp__fill` | Type text into an input, text area or select an option from a <select> element. |
+| `chrome-devtools-mcp__fill_form` | Fill out multiple form elements (inputs, selects, checkboxes, radios) at once |
+| `chrome-devtools-mcp__get_console_message` | Gets a console message by its ID |
+| `chrome-devtools-mcp__get_network_request` | Gets a network request by an optional reqid, if omitted returns the currently selected request in the DevTools Network panel |
+| `chrome-devtools-mcp__handle_dialog` | If a browser dialog was opened, use this command to handle it |
+| `chrome-devtools-mcp__hover` | Hover over the provided element |
+| `chrome-devtools-mcp__lighthouse_audit` | Get Lighthouse score and reports for accessibility, SEO, best practices, and agentic browsing |
+| `chrome-devtools-mcp__list_console_messages` | List all console messages for the target page since the last navigation. |
+| `chrome-devtools-mcp__list_network_requests` | Lists the most recent requests for the target page since the last navigation. |
+| `chrome-devtools-mcp__list_pages` | Get a list of pages open in the browser. |
+| `chrome-devtools-mcp__navigate_page` | Go to a URL, or back, forward, or reload |
+| `chrome-devtools-mcp__new_page` | Open a new tab and load a URL |
+| `chrome-devtools-mcp__performance_analyze_insight` | Provides more detailed information on a specific Performance Insight of an insight set that was highlighted in the results of a trace recording. |
+| `chrome-devtools-mcp__performance_start_trace` | Start a performance trace on the target webpage |
+| `chrome-devtools-mcp__performance_stop_trace` | Stop the active performance trace recording on the target webpage. |
+| `chrome-devtools-mcp__press_key` | Press a key or key combination |
+| `chrome-devtools-mcp__resize_page` | Resizes the page's window so that the page has specified dimension |
+| `chrome-devtools-mcp__select_page` | Select a page as a context for future tool calls. |
+| `chrome-devtools-mcp__take_heapsnapshot` | Capture a heap snapshot of the target page |
+| `chrome-devtools-mcp__take_screenshot` | Take a screenshot of the page or element. |
+| `chrome-devtools-mcp__take_snapshot` | Take a text snapshot of the target page based on the a11y tree |
+| `chrome-devtools-mcp__type_text` | Type text using keyboard into a previously focused input |
+| `chrome-devtools-mcp__upload_file` | Upload a file through a provided element. |
+| `chrome-devtools-mcp__wait_for` | Wait for the specified text to appear on the selected page. |
+
+## CrUX
+
+| Tool | What it does |
+|---|---|
+| `auditCoreWebVitals` | Perform a structured Core Web Vitals audit for an origin or URL using real-user data from the Google Chrome UX Report (CrUX) |
+| `compareCruxOrigins` | Compare web performance metrics across multiple origins or URLs side-by-side using real-user data from the Google Chrome UX Report (CrUX) |
+| `queryCruxHistory` | Query historical Core Web Vitals trends from the Google Chrome UX Report (CrUX) History API for an origin or URL |
+| `queryCruxMetrics` | Query current Core Web Vitals and performance metrics from the Google Chrome UX Report (CrUX) for an origin or URL |
+
+## Github: Actions
+
+| Tool | What it does |
+|---|---|
+| `cancelGithubWorkflowRun` | Cancels a workflow run |
+| `createGithubWorkflowDispatch` | Manually trigger a GitHub Actions workflow run |
+| `getGithubWorkflow` | Gets a specific workflow in a repository by ID or file name |
+| `getGithubWorkflowRun` | Gets a specific workflow run by ID |
+| `getGithubWorkflowRunJob` | Gets a specific job in a workflow run by ID |
+| `getGithubWorkflowRunLogs` | Gets a log for a workflow run by ID |
+| `listGithubWorkflowRunJobs` | Lists jobs for a workflow run |
+| `listGithubWorkflowRuns` | Lists all workflow runs for a repository |
+| `listGithubWorkflows` | Lists the workflows in a repository |
+| `rerunGithubWorkflow` | Re-runs a workflow by run ID |
+
+## Github: Branches
+
+| Tool | What it does |
+|---|---|
+| `createGithubBranch` | Creates a new branch in github repo |
+| `createOrUpdateGithubFileContent` | Creates or updates a file in a branch |
+| `getGithubBranch` | Gets a branch in a GitHub repository |
+| `listGithubBranches` | Lists branches for a GitHub repository |
+| `mergeGithubBranch` | Merges a branch in a GitHub repository |
+| `renameGithubBranch` | Renames a branch in a GitHub repository |
+
+## Github: Dependabot
+
+| Tool | What it does |
+|---|---|
+| `getDependabotAlert` | Retrieves a Dependabot alert |
+| `listDependabotAlerts` | List Dependabot alerts for a repository |
+| `updateDependabotAlert` | Updates a Dependabot alert |
+
+## Github: Discussions
+
+| Tool | What it does |
+|---|---|
+| `deleteGithubCommitCommentReaction` | Deletes a reaction to a commit comment |
+| `deleteGithubIssueCommentReaction` | Deletes a reaction to an issue comment |
+| `deleteGithubIssueReaction` | Deletes a reaction to an issue |
+| `deleteGithubPullRequestCommentReaction` | Deletes a reaction to a pull request review comment |
+| `deleteGithubReleaseReaction` | Deletes a reaction to a release |
+
+## Github: Gists
+
+| Tool | What it does |
+|---|---|
+| `createGithubGist` | Creates a new gist |
+| `deleteGithubGist` | Deletes a gist |
+| `getGithubGist` | Gets a specific gist by ID with full content |
+| `listGithubGists` | Lists gists for a user or authenticated user |
+| `updateGithubGist` | Updates an existing gist |
+
+## Github: Issues
+
+| Tool | What it does |
+|---|---|
+| `addGithubIssueComment` | Adds a comment to an issue in a GitHub repository |
+| `addGithubSubIssue` | Adds an existing issue as a sub-issue of a parent issue, creating a formal parent-child relationship visible in the Sub-issues section of the parent |
+| `createGithubIssue` | Creates a new issue in a GitHub repository |
+| `getGithubIssue` | Gets the contents of an issue within a repository |
+| `getGithubIssueComments` | Gets the comments of an issue within a repository |
+| `listGithubIssues` | Lists and filters repository issues |
+| `listGithubSubIssues` | Lists all sub-issues of a parent issue, showing the formal parent-child relationships established via addGithubSubIssue |
+| `removeGithubSubIssue` | Removes a sub-issue from a parent issue, dissolving the parent-child relationship without deleting either issue |
+| `searchGithubIssues` | Searches for issues and pull requests across GitHub |
+| `updateGithubIssue` | Updates an existing issue in a GitHub repository |
+
+## Github: Orgs
+
+| Tool | What it does |
+|---|---|
+| `getGithubOrganization` | Gets details for a specific organization |
+| `listGithubOrganizations` | Lists all organizations using cursor-based pagination |
+| `listMyGithubOrganizations` | Lists all organizations for the current user |
+
+## Github: Projects
+
+| Tool | What it does |
+|---|---|
+| `addGithubProjectDraftIssue` | Creates a draft issue directly in a GitHub Project V2 |
+| `addGithubProjectItem` | Adds an existing issue or pull request to a GitHub Project V2 |
+| `archiveGithubProjectItem` | Archives an item in a GitHub Project V2 |
+| `clearGithubProjectItemField` | Clears/resets a field value on a GitHub Project V2 item |
+| `convertGithubProjectDraftToIssue` | Converts a draft issue in a GitHub Project V2 into a real GitHub issue in the specified repository |
+| `createGithubProject` | Creates a new GitHub Project V2 for an organization or user |
+| `createGithubProjectField` | Creates a new custom field in a GitHub Project V2 |
+| `deleteGithubProjectField` | Deletes a custom field from a GitHub Project V2 |
+| `deleteGithubProjectItem` | Removes an item from a GitHub Project V2 |
+| `getGithubProject` | Gets a single GitHub Project V2 by number for an organization or user |
+| `listGithubProjectFields` | Lists fields/columns defined on a GitHub Project V2 |
+| `listGithubProjectItems` | Lists items (issues, pull requests, and draft issues) in a GitHub Project V2, including their field values |
+| `listGithubProjects` | Lists GitHub Projects V2 for an organization or user |
+| `unarchiveGithubProjectItem` | Restores an archived item in a GitHub Project V2, making it visible in default views again. |
+| `updateGithubProject` | Updates a GitHub Project V2 settings including title, description, readme, visibility, and closed state. |
+| `updateGithubProjectDraftIssue` | Updates the title and/or body of a draft issue in a GitHub Project V2. |
+| `updateGithubProjectField` | Updates a custom field in a GitHub Project V2 |
+| `updateGithubProjectItemField` | Sets a field value on a GitHub Project V2 item |
+| `updateGithubProjectItemPosition` | Updates the position of an item in a GitHub Project V2 |
+
+## Github: Pulls
+
+| Tool | What it does |
+|---|---|
+| `addGithubPullRequestReviewers` | Adds reviewers to a pull request |
+| `createGithubPullRequest` | Creates a new pull request in a repository |
+| `createGithubPullRequestReview` | Creates a review on a pull request |
+| `getGithubPullRequest` | Gets the details of a specific pull request within a repository |
+| `getGithubPullRequestComments` | Gets the comments on a pull request |
+| `getGithubPullRequestFiles` | Gets the list of files changed in a pull request |
+| `getGithubPullRequestReviews` | Gets the reviews on a pull request |
+| `getGithubPullRequestReviewThreads` | Lists review threads for a pull request, including resolution state and comment details. |
+| `getGithubPullRequestStatus` | Gets the combined status of all status checks for a pull request |
+| `listGithubPullRequests` | Lists and filters repository pull requests |
+| `markGithubPullRequestReady` | Marks a draft pull request as ready for review |
+| `mergeGithubPullRequest` | Merges a pull request |
+| `removeGithubPullRequestReviewers` | Removes reviewers from a pull request |
+| `setGithubPullRequestReviewThreadResolution` | Sets the resolution status of a review thread on a pull request |
+| `updateGithubPullRequestBranch` | Updates a pull request branch with the latest changes from the base branch |
+
+## Github: Releases
+
+| Tool | What it does |
+|---|---|
+| `getLatestGithubRelease` | Gets the latest published release for a GitHub repository |
+| `listGithubReleases` | Gets a list of releases for a GitHub repository |
+
+## Github: Repos
+
+| Tool | What it does |
+|---|---|
+| `getGithubRepository` | Gets details for a specific repository |
+| `getGithubRepositoryContent` | Gets the contents of a file or directory in a repository |
+| `getGithubRepositoryTopics` | Gets topics for a specific repository |
+| `listGithubRepositories` | Lists all repositories in an organization |
+| `listUserGithubRepositories` | Lists public repositories for the specified user |
+| `updateGithubRepositoryTopics` | Updates topics for a repository (add/remove/replace) |
+
+## Github: Search
+
+| Tool | What it does |
+|---|---|
+| `searchCode` | Searches for query terms inside of a file |
+| `searchCommits` | Find commits via various criteria on the default branch |
+| `searchRepos` | Find repositories via various criteria. |
+
+## Github: Wiki
+
+| Tool | What it does |
+|---|---|
+| `getGithubWikiContent` | Gets the content of a specific page from a GitHub wiki repository |
+
+## k6
+
+| Tool | What it does |
+|---|---|
+| `compareK6TestResults` | Compare two k6 Cloud test runs side-by-side |
+| `getK6MetricTimeseries` | Fetch time-series metric data for a k6 Cloud test run via the v5 range API |
+| `getK6ScenarioResults` | Retrieve test run results for a scenario (load test) in a k6 Cloud project |
+| `getK6TestMetrics` | Fetch real performance metrics for a k6 Cloud test run via the v5 API |
+| `listK6ProjectLoadTests` | List all load tests in a k6 Cloud project |
+| `listK6UserProjects` | Validate k6 Cloud authentication and list all projects the authenticated user has access to, including per-project accessibility checks |
+
+## Knowledge Graph
+
+| Tool | What it does |
+|---|---|
+| `addObservations` | Add new observations to existing entities in the knowledge graph |
+| `createEntities` | Create multiple new entities in the knowledge graph |
+| `createRelations` | Create multiple new relations between entities in the knowledge graph |
+| `deleteEntities` | Delete multiple entities and their associated relations from the knowledge graph |
+| `deleteObservations` | Delete specific observations from entities in the knowledge graph |
+| `deleteRelations` | Delete multiple relations from the knowledge graph |
+| `openNodes` | Open/expand specific nodes in the knowledge graph to show their connections and related entities |
+| `readGraph` | Read and query the knowledge graph structure, entities, and relations |
+| `searchNodes` | Search for entities/nodes in the knowledge graph by content, name, or other fields |
+
+## Microsoft 365
+
+| Tool | What it does |
+|---|---|
+| `createCalendarEvent` | Create a meeting on the signed-in user calendar and invite attendees |
+| `listCalendarEvents` | List the signed-in user calendar over a date range |
+| `listRecentMicrosoftFiles` | List the files the signed-in user recently opened or edited across OneDrive and SharePoint |
+| `listTeamsChannelMessages` | Browse Microsoft Teams channels and read their posts |
+| `listTeamsChats` | List the signed-in user Teams conversations, or read recent messages from one by passing chatId |
+| `readMicrosoftFile` | Read the text of a file in OneDrive or SharePoint that the signed-in user can access |
+| `readMicrosoftWorkbook` | Read an Excel workbook as rows and columns |
+| `readOutlookMessage` | Read a full Outlook message and list its attachments |
+| `searchMicrosoftFiles` | Search for files and documents across the signed-in user OneDrive and the SharePoint sites they can access |
+| `searchMicrosoftPeople` | Look up colleagues in the organisation directory by name or email address |
+| `searchOutlookMessages` | Search the signed-in user Outlook mailbox by subject, body or participant |
+| `sendOutlookMail` | Send an email as the signed-in user, or reply to an existing message |
+| `sendTeamsMessage` | Post a message into a Teams chat or channel, or reply under an existing channel post |
+| `updateCalendarEvent` | Change or cancel an existing meeting on the signed-in user calendar |
+
+## NPM
+
+| Tool | What it does |
+|---|---|
+| `npmBuildOrder` | Compute the layered build order for an npm package in a flat sibling-folders workspace |
+| `npmDag` | Show the flattened directed acyclic graph of owned (intra-workspace) packages reachable from a package |
+| `npmDoctor` | Report issues in the workspace: version drift between declared and on-disk versions, and dependency cycles |
+| `npmList` | List every package in the workspace with its name, folder, version, and projen status |
+| `npmTree` | Print the full recursive dependency tree of a package showing the path through dependencies |
+
+## PostgreSQL
+
+| Tool | What it does |
+|---|---|
+| `postgresDescribeTable` | Get detailed schema information about a table including columns, data types, constraints, indexes, and table metadata |
+| `postgresListDatabases` | List all databases on the PostgreSQL server |
+| `postgresListTables` | List tables in a database with schema support |
+| `postgresQuery` | Execute custom SQL queries against a PostgreSQL database |
+
+## Swagger
+
+| Tool | What it does |
+|---|---|
+| `generateOpenApiClient` | A tool to generate client code from OpenAPI specifications |
+| `saveSwaggerHubDocument` | A tool to save an openapi definition.This should be ideally used in conjunction with search results from swagger hub.When the definition is found, unless told o |
+
+## Utility
+
+| Tool | What it does |
+|---|---|
+| `convertTime` | Convert time between timezones. |
+| `convertUnixTimestamp` | Convert unix timestamps to human readable time representations |
+| `doctor` | Diagnose MCP configuration issues when tools fail with authentication, connection, or permission errors |
+| `executeTask` | Get next pending task and mark tasks as completed in a unified execution workflow |
+| `getClaudeCodeUsage` | Retrieve the usage statistics for a Claude Code project. |
+| `getClipboardContent` | Fetch the contents of the clipboard (text, images, or binary data) |
+| `getCoordinatesFromLocation` | Convert a location or POI to latitude and longitude coordinates |
+| `getCurrentTime` | Get current time in a specific timezone. |
+| `getTaskStatistics` | Get task completion statistics and history with comprehensive analytics |
+| `getWeatherForecast` | Get the weather forecast for a given latitude and longitude |
+| `logout` | Log out of a single remote MCP server |
+| `manageTaskLists` | Create, view, delete, and list task lists with comprehensive management capabilities |
+| `manageTasks` | Add, edit, delete, and insert tasks within task lists with full CRUD capabilities |
+| `reauth` | Force re-authentication for a given service |
+| `reorderTasks` | Reorder tasks within a task list by updating their positions |

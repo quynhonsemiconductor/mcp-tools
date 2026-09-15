@@ -53,7 +53,8 @@
     "logs:tail": "bun run src/mcp.ts view-logs --tail",
     "smoke-test": "bun run scripts/smoke-tests/cli-tests/index.ts",
     "docker:build": "docker build -f Dockerfile.test -t mcp:tests .",
-    "docker:test": "docker run --volume=\"$(pwd)/src:/home/bun/app/src\" -e NODE_ENV=test mcp:tests bun test"
+    "docker:test": "docker run --volume=\"$(pwd)/src:/home/bun/app/src\" -e NODE_ENV=test mcp:tests bun test",
+    "generate:tools-doc": "bun run scripts/generate-tools-doc.ts"
   },
   "lint-staged": {
     "*.{ts,js}": [
