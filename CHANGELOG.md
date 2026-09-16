@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.11](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.10...v0.1.11) (2026-09-15)
+
+
+### 🐛 Bug Fixes
+
+* declare what every tool does to the thing it touches ([#56](https://github.com/quynhonsemiconductor/mcp-tools/issues/56)) ([3245e55](https://github.com/quynhonsemiconductor/mcp-tools/commit/3245e55dcc27aeb13d557ce89d5fa810d5edc8cc))
+
 ## [0.1.10](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.9...v0.1.10) (2026-09-15)
 
 
