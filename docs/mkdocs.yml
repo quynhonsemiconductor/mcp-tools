@@ -10,6 +10,11 @@ docs_dir: src
 theme:
   name: material
   logo: images/qnsc-icon.png
+  # The site served Material's default favicon — a browser tab and a bookmark showed someone
+  # else's mark on our documentation. This is the brand kit's own favicon treatment: the mark
+  # inside the navy rounded square, which is what reads at 16px, where the bare transparent
+  # mark used for `logo` does not.
+  favicon: images/qnsc-favicon.png
   features:
     - navigation.instant
     - navigation.instant.prefetch
