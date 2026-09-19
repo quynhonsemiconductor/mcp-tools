@@ -8,6 +8,7 @@ import {
   OAuthError,
   OAuthHandler,
   type OAuthProviderConfig,
+  type OAuthResult,
   type StoredToken,
 } from '../../../services/auth';
 import {
@@ -46,12 +47,18 @@ function getBaseUrlFromApiUrl(apiUrl: string): string {
  *
  * @returns Object with authorizeUrl, tokenUrl, and userApiUrl
  */
-function getOAuthUrls(): { authorizeUrl: string; tokenUrl: string; userApiUrl: string } {
+function getOAuthUrls(): {
+  authorizeUrl: string;
+  tokenUrl: string;
+  deviceCodeUrl: string;
+  userApiUrl: string;
+} {
   const baseUrl = getBaseUrlFromApiUrl(GH_API_URL);
 
   return {
     authorizeUrl: `${baseUrl}/login/oauth/authorize`,
     tokenUrl: `${baseUrl}/login/oauth/access_token`,
+    deviceCodeUrl: `${baseUrl}/login/device/code`,
     userApiUrl: `${GH_API_URL}/user`,
   };
 }
@@ -84,23 +91,66 @@ export class GitHubOAuthHandler extends OAuthHandler {
    *
    * @param config - Optional OAuth configuration. If not provided, reads from environment.
    */
-  constructor(config?: { clientId: string; clientSecret: string }) {
+  constructor(config?: { clientId: string; clientSecret?: string }) {
     const resolvedConfig = config ?? getGitHubOAuthConfig();
     const oauthUrls = getOAuthUrls();
 
     const providerConfig: OAuthProviderConfig = {
       providerName: 'GitHub',
       clientId: resolvedConfig.clientId,
-      clientSecret: resolvedConfig.clientSecret,
+      // Empty, and nothing reads it. GitHub signs in here with the device grant, which needs no
+      // secret — see `startOAuthFlow` below and src/services/auth/device-flow.ts.
+      clientSecret: '',
       scopes: GITHUB_OAUTH_SCOPES,
       port: OAUTH_PORT,
       timeout: OAUTH_TIMEOUT_MS,
       authorizeUrl: oauthUrls.authorizeUrl,
       tokenUrl: oauthUrls.tokenUrl,
+      deviceCodeUrl: oauthUrls.deviceCodeUrl,
     };
     super(providerConfig);
 
     this.userApiUrl = oauthUrls.userApiUrl;
+  }
+
+  /**
+   * A client id is the whole configuration.
+   *
+   * This asked for a secret too, which is why a binary had to carry one. The device grant does not
+   * take a secret on sign-in, and GitHub does not ask for one when refreshing a token the device
+   * grant issued, so requiring it here only forced a secret to exist.
+   */
+  isConfigured(): boolean {
+    return !!this.config.clientId;
+  }
+
+  /**
+   * Never send `client_secret`. There is none, and GitHub rejects a request that carries an empty
+   * one rather than ignoring it.
+   */
+  protected shouldSendClientSecret(): boolean {
+    return false;
+  }
+
+  /**
+   * Sign in with the device grant.
+   *
+   * Replaces the browser redirect rather than sitting beside it. Keeping both would mean keeping a
+   * secret for the browser half, which is the thing being removed — and it would leave two sign-in
+   * paths where only one is exercised. A consequence worth knowing: no local callback server is
+   * started and no port is bound, so the app registration no longer needs a redirect URL and
+   * sign-in now works over SSH and in containers, where opening a browser never did.
+   */
+  async startOAuthFlow(): Promise<OAuthResult> {
+    if (!this.isConfigured()) {
+      return {
+        success: false,
+        error:
+          'GitHub sign-in is unavailable because this build carries no OAuth client id. ' +
+          'Set GITHUB_TOKEN to a personal access token instead.',
+      };
+    }
+    return this.runDeviceFlow();
   }
 
   /**

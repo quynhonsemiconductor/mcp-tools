@@ -206,10 +206,16 @@ The most valuable section. Each: what it is → why it bites → what to do.
   `build:prep` first, which regenerates all loaders** — so any hand-edit to them is silently
   overwritten on the next dev run. ✓
 - **C. Compiled binary ≠ `bun dev`.** Several things only exist in the compiled binary:
-  - **Embedded credentials:** OAuth client creds + secrets are XOR-_obfuscated_ (not encrypted)
-    and injected at build time via a Bun `define`. `EMBEDDED_CREDENTIAL_CONTEXT` only exists in
-    the binary, so **OAuth in `bun dev` requires real env-var creds**. Missing creds at build
-    time only `console.warn` — a binary can ship credential-less and "succeed." ✓ (scripts/build.ts)
+  - **Embedded credentials:** a release embeds the **GitHub OAuth client id and no secret**.
+    GitHub signs in with the device grant (RFC 8628), which sends no `client_secret` and needs
+    none to refresh the token it issued, so there is nothing secret to carry. Up to and including
+    v0.1.11 the secret WAS embedded, XOR-obfuscated against a key compiled in beside it — an
+    encoding, not a protection, in a public repository. `scripts/assert-no-embedded-secret.ts` runs
+    in CI and at release against the built artifact and fails if a `clientSecret` appears for a
+    device-flow provider; it was verified to fail against the published v0.1.11 binary. The
+    obfuscation machinery remains for Entra and `RELEASES_TOKEN`. Because nothing is embedded for
+    `bun dev` either, **OAuth in `bun dev` still needs a real `GITHUB_CLIENT_ID` in the env** — but
+    no secret.
   - **Native keyring binding:** `@napi-rs/keyring` loads a native `.node` at import; the binary
     entrypoint (`src/bin/mcp.ts`) extracts it to a temp dir and sets `NAPI_RS_NATIVE_LIBRARY_PATH`
     _before_ any other import. `keyring-loader.ts` exists because Bun's `--compile` breaks dynamic

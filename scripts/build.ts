@@ -251,6 +251,15 @@ const EMBEDDED_OAUTH_CLIENTS = ['github', 'entra'];
  * need.
  */
 const REQUIRED_FOR_RELEASE = ['github'];
+
+/**
+ * Clients that sign in with the device grant, and so embed a client id and no secret.
+ *
+ * GitHub is here because the grant makes a secret unnecessary — see the loop below. Entra is not:
+ * its handler is a confidential client, and changing that is a separate question from getting a
+ * secret out of a public repository's release assets.
+ */
+const DEVICE_FLOW_CLIENTS = ['github'];
 // NEW_RELIC_LICENSE_KEY was here. It let a release build bake in a telemetry key
 // for the previous owner's observability vendor: set that env var once in CI and
 // every installed binary would start sending traces there, with nothing in the
@@ -307,6 +316,46 @@ async function getEmbeddedCredentialDefines() {
     // Get {CLIENT}_CLIENT_ID and {CLIENT}_CLIENT_SECRET from env vars
     const clientIdEnv = process.env[`${clientUpper}_CLIENT_ID`];
     const clientSecretEnv = process.env[`${clientUpper}_CLIENT_SECRET`];
+
+    // A client that signs in with the device grant embeds an id and nothing else.
+    //
+    // The id is public — it appears in every sign-in request and in the URL a person visits. The
+    // secret was not, and it shipped anyway: XOR-obfuscated against a key compiled in beside it,
+    // in a public repository, which is an encoding rather than a protection. Anyone holding a
+    // released binary held the secret.
+    //
+    // The grant removes the need rather than hiding the value: GitHub sends no secret on sign-in
+    // and asks for none when refreshing a token the grant issued.
+    if (DEVICE_FLOW_CLIENTS.includes(client)) {
+      if (!clientIdEnv) {
+        if (isTaggedReleaseBuild() && REQUIRED_FOR_RELEASE.includes(client)) {
+          throw new Error(
+            `${clientUpper}_CLIENT_ID is required for a tagged release and is missing. Without ` +
+              `it the binary cannot sign anyone in and would ship demanding a token from every ` +
+              `user. Set the corresponding repository secret.`
+          );
+        }
+        console.warn(
+          `Missing ${clientUpper}_CLIENT_ID, not embedding a client id for ${clientUpper}.`
+        );
+        embeddedCredentialContext.oAuthCredentials![client] = {
+          clientId: undefined,
+          clientSecret: undefined
+        };
+        continue;
+      }
+      if (clientSecretEnv) {
+        console.warn(
+          `${clientUpper}_CLIENT_SECRET is set and is being ignored: ${clientUpper} signs in with ` +
+            `the device grant, which needs no secret. Nothing is embedded from it.`
+        );
+      }
+      embeddedCredentialContext.oAuthCredentials![client] = {
+        clientId: obfuscate(clientIdEnv, obfuscationKey),
+        clientSecret: undefined
+      };
+      continue;
+    }
 
     if (!clientIdEnv || !clientSecretEnv) {
       // A release without these is not a release anybody can use. Embedding the

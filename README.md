@@ -95,6 +95,24 @@ appears in `excludeCategories`.
 Credentials come from the environment, or from the prompts Claude Desktop shows at
 install. `qnsc-mcp doctor` reports what is missing.
 
+### Signing in to GitHub
+
+Nothing to configure. The first GitHub tool call prints a short code and a URL:
+
+```
+To finish signing in to GitHub, open https://github.com/login/device and enter the code WDJB-MJHT
+```
+
+Enter it there and run the request again. The token is stored in your OS keyring, under your
+own account, so it reaches exactly what you can already reach. Later calls read the keyring
+and do not ask again.
+
+This uses GitHub's device flow, which needs no client secret — so no secret is compiled into
+the binaries, and the published builds can be read by anyone without revealing one. It also
+means sign-in works over SSH and inside containers, where opening a browser never did.
+
+`GITHUB_TOKEN` still takes precedence if you would rather use a personal access token.
+
 ## Documentation
 
 |                                                |                                                 |

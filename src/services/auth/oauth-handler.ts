@@ -11,6 +11,11 @@ import net from 'node:net';
 import { URL, URLSearchParams } from 'node:url';
 import open from 'open';
 import { logDebug, logError, logInfo, logWarn } from '../logger';
+import {
+  type DeviceCodeGrant,
+  pollForDeviceToken,
+  requestDeviceCode,
+} from './device-flow';
 import type {
   GenericOAuthTokenResponse,
   GetAuthUrlResult,
@@ -109,6 +114,88 @@ export abstract class OAuthHandler {
    */
   isConfigured(): boolean {
     return !!(this.config.clientId && this.config.clientSecret);
+  }
+
+  /**
+   * Whether this provider signs in with the device grant rather than a browser redirect.
+   */
+  protected usesDeviceFlow(): boolean {
+    return !!this.config.deviceCodeUrl;
+  }
+
+  /**
+   * Ask the provider for a device code, without waiting for anyone to enter it.
+   *
+   * Separate from {@link runDeviceFlow} so the code can be shown before the wait begins. The
+   * browser flow's equivalent is `getAuthUrlOnly`, and it exists for the same reason: the thing a
+   * person has to act on must be obtainable without blocking on them having acted on it.
+   */
+  async beginDeviceAuthorization(): Promise<DeviceCodeGrant> {
+    if (!this.config.deviceCodeUrl) {
+      throw new OAuthError(
+        `${this.config.providerName} is not configured for the device flow`,
+        undefined,
+        'DEVICE_FLOW_UNAVAILABLE',
+      );
+    }
+    return requestDeviceCode(this.config.deviceCodeUrl, this.config.clientId, this.config.scopes);
+  }
+
+  /**
+   * Run the device grant end to end and return a stored token.
+   *
+   * The code is logged before polling starts, not after it finishes. A sign-in instruction that
+   * only appears once the wait is over is an instruction nobody can follow — the browser flow
+   * wrote its URL to a log file alone, and a teammate whose browser failed to open saw a timeout
+   * with no way to discover what they were supposed to do.
+   *
+   * The code is also carried on the failure, so the timeout message names the code and the URL
+   * rather than only reporting that time ran out.
+   */
+  protected async runDeviceFlow(): Promise<OAuthResult> {
+    let grant: DeviceCodeGrant;
+    try {
+      grant = await this.beginDeviceAuthorization();
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'Could not start sign-in',
+      };
+    }
+
+    const instruction =
+      `To finish signing in to ${this.config.providerName}, open ${grant.verificationUri} ` +
+      `and enter the code ${grant.userCode}`;
+    logInfo(instruction);
+
+    try {
+      const tokenResponse = await pollForDeviceToken(
+        this.config.tokenUrl,
+        this.config.clientId,
+        grant,
+      );
+      const userInfo = await this.getUserInfo(tokenResponse.accessToken);
+      const expiresAt =
+        tokenResponse.expiresInSeconds && tokenResponse.expiresInSeconds > 0
+          ? Date.now() + tokenResponse.expiresInSeconds * 1000
+          : undefined;
+
+      return {
+        success: true,
+        token: {
+          accessToken: tokenResponse.accessToken,
+          refreshToken: tokenResponse.refreshToken,
+          userId: userInfo.userId,
+          scope: tokenResponse.scope || '',
+          createdAt: Date.now(),
+          expiresAt,
+          metadata: { ...userInfo },
+        },
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Sign-in failed';
+      return { success: false, error: `${message} (${instruction})` };
+    }
   }
 
   /**

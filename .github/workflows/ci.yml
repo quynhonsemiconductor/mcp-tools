@@ -109,3 +109,13 @@ jobs:
         run: bun run build:binary
       - name: Start it and ask for its tools
         run: bun run scripts/smoke-binary.ts ./qnsc-mcp-ci
+      - name: No OAuth client secret is embedded
+        # A canary secret is set deliberately: the check is worth nothing if the variable it guards
+        # against is absent, which is the state every pull request would otherwise build in.
+        env:
+          GITHUB_CLIENT_ID: Ov23liCANARYIDFORCI
+          GITHUB_CLIENT_SECRET: CANARY_SECRET_THAT_MUST_NOT_SHIP
+        run: |
+          NO_SECURITY_SCAN=true NO_BUNDLING=true TARGET=bun-linux-x64 OUTFILE=qnsc-mcp-canary \
+            bun run build:binary
+          bun run scripts/assert-no-embedded-secret.ts ./qnsc-mcp-canary

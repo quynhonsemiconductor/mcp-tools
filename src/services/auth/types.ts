@@ -102,6 +102,14 @@ export interface OAuthProviderConfig {
   callbackPath?: string;
   /** Whether to use PKCE (Proof Key for Code Exchange). Defaults to true. Set to false for providers that don't support PKCE. */
   supportsPkce?: boolean;
+  /**
+   * The device-code endpoint, when this provider signs in with the device grant (RFC 8628).
+   *
+   * Presence is what makes the device flow available, because the grant needs nothing else that
+   * the browser flow does not already supply — no secret, no redirect URI, no local callback
+   * server, no registered port.
+   */
+  deviceCodeUrl?: string;
 }
 
 /**

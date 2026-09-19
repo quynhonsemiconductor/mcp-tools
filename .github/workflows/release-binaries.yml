@@ -99,8 +99,12 @@ jobs:
           # themselves on first use, so nobody has to create or paste a personal
           # access token. Absent secrets are not fatal: the build warns and the
           # binary falls back to GITHUB_TOKEN.
+          # The id only. GitHub signs in with the device grant, which sends no client secret and
+          # needs none to refresh the token it issued, so there is nothing for a binary to carry.
+          # GH_OAUTH_CLIENT_SECRET was passed here and compiled in, XOR-obfuscated against a key
+          # compiled in beside it — recoverable by anyone holding a release asset from a public
+          # repository. The repository secret can now be deleted.
           GITHUB_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
-          GITHUB_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
         run: bun run build:binary
 
       - name: Smoke test the binary
@@ -118,6 +122,18 @@ jobs:
         env:
           OUTFILE: ${{ matrix.outfile }}
         run: bun run scripts/smoke-binary.ts "./$OUTFILE"
+
+      - name: No OAuth client secret is embedded
+
+        # The secret this used to embed was recoverable from a public release asset. The
+
+        # check runs on the artifact rather than the source because the source never held it.
+
+        run: bun run scripts/assert-no-embedded-secret.ts "$OUTFILE"
+
+        env:
+
+          OUTFILE: ${{ matrix.outfile }}
 
       - name: Checksum
         # Values reach the shell as ENV, never as `${{ }}` inside `run:`. A template
