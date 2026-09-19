@@ -226,11 +226,20 @@ async function updateVersionInPackageJson(newVersion?: string) {
 
   const packageJsonContent = fs.readFileSync(packageJsonFilePath, 'utf-8');
   const packageJson = JSON.parse(packageJsonContent);
-  packageJson.version = newVersion ?? packageJson.version;
 
+  // Only write when the version actually changes. This rewrote the file on every build,
+  // including the common one that passes no version and assigns the value back to itself, and
+  // `JSON.stringify` ends without a newline — so any local build left package.json modified with
+  // a one-character diff, which then rides along in whatever commit came next.
+  if (!newVersion || newVersion === packageJson.version) {
+    console.log(`📌 package.json already at version: ${packageJson.version}`);
+    return packageJson.version;
+  }
+
+  packageJson.version = newVersion;
   fs.writeFileSync(
     packageJsonFilePath,
-    JSON.stringify(packageJson, null, 2),
+    `${JSON.stringify(packageJson, null, 2)}\n`,
     'utf-8'
   );
 
@@ -251,6 +260,15 @@ const EMBEDDED_OAUTH_CLIENTS = ['github', 'entra'];
  * need.
  */
 const REQUIRED_FOR_RELEASE = ['github'];
+
+/**
+ * Clients that sign in with the device grant, and so embed a client id and no secret.
+ *
+ * GitHub is here because the grant makes a secret unnecessary — see the loop below. Entra is not:
+ * its handler is a confidential client, and changing that is a separate question from getting a
+ * secret out of a public repository's release assets.
+ */
+const DEVICE_FLOW_CLIENTS = ['github'];
 // NEW_RELIC_LICENSE_KEY was here. It let a release build bake in a telemetry key
 // for the previous owner's observability vendor: set that env var once in CI and
 // every installed binary would start sending traces there, with nothing in the
@@ -307,6 +325,52 @@ async function getEmbeddedCredentialDefines() {
     // Get {CLIENT}_CLIENT_ID and {CLIENT}_CLIENT_SECRET from env vars
     const clientIdEnv = process.env[`${clientUpper}_CLIENT_ID`];
     const clientSecretEnv = process.env[`${clientUpper}_CLIENT_SECRET`];
+
+    // A client that signs in with the device grant embeds an id and nothing else.
+    //
+    // The id is public — it appears in every sign-in request and in the URL a person visits. The
+    // secret was not, and it shipped anyway: XOR-obfuscated against a key compiled in beside it,
+    // in a public repository, which is an encoding rather than a protection. Anyone holding a
+    // released binary held the secret.
+    //
+    // The grant removes the need rather than hiding the value: GitHub sends no secret on sign-in
+    // and asks for none when refreshing a token the grant issued.
+    if (DEVICE_FLOW_CLIENTS.includes(client)) {
+      if (!clientIdEnv) {
+        if (isTaggedReleaseBuild() && REQUIRED_FOR_RELEASE.includes(client)) {
+          throw new Error(
+            `${clientUpper}_CLIENT_ID is required for a tagged release and is missing. Without ` +
+              `it the binary cannot sign anyone in and would ship demanding a token from every ` +
+              `user. Set the corresponding repository secret.`
+          );
+        }
+        // Deliberately not interpolating the provider name. CodeQL treats anything derived from
+        // EMBEDDED_OAUTH_CLIENTS as sensitive and flags it as clear-text logging of a credential;
+        // the name is not one, but the alert is indistinguishable from a real leak in a review, and
+        // the message loses nothing by being fixed — only GitHub takes this path, and the thrown
+        // error above names the variable when it matters.
+        console.warn(
+          'Missing the client id for a device-flow provider, not embedding one. ' +
+            'Sign-in will fall back to a personal access token.'
+        );
+        embeddedCredentialContext.oAuthCredentials![client] = {
+          clientId: undefined,
+          clientSecret: undefined
+        };
+        continue;
+      }
+      if (clientSecretEnv) {
+        console.warn(
+          'A client secret is set for a device-flow provider and is being ignored: the device ' +
+            'grant needs none, so nothing is embedded from it and the variable can be removed.'
+        );
+      }
+      embeddedCredentialContext.oAuthCredentials![client] = {
+        clientId: obfuscate(clientIdEnv, obfuscationKey),
+        clientSecret: undefined
+      };
+      continue;
+    }
 
     if (!clientIdEnv || !clientSecretEnv) {
       // A release without these is not a release anybody can use. Embedding the

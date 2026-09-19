@@ -149,3 +149,15 @@ export function hasEmbeddedCredentials(provider: string): boolean {
   return idOk && secretOk;
 }
 
+/**
+ * Whether a client id was embedded, regardless of whether a secret was.
+ *
+ * For a provider that signs in with the device grant, this is the only question worth asking: the
+ * grant takes a client id and no secret. {@link hasEmbeddedCredentials} demands both, which is
+ * accurate for a confidential client and was the reason a GitHub client secret had to be embedded
+ * at all — the check, not the protocol, required it.
+ */
+export function hasEmbeddedClientId(provider: string): boolean {
+  return !!getEmbeddedCredentials(provider).clientId;
+}
+

@@ -24,7 +24,7 @@
 import { getOAuthConfig } from '../../../services/auth';
 import {
   getEmbeddedCredentials,
-  hasEmbeddedCredentials,
+  hasEmbeddedClientId,
 } from '../../../services/auth/embedded-credentials';
 
 /**
@@ -32,16 +32,17 @@ import {
  *
  * @returns OAuth config with clientId, clientSecret, and isConfigured flag
  */
-export function getGitHubOAuthConfig() {
-  const hasEmbedded = hasEmbeddedCredentials('github');
-  const embeddedCreds = hasEmbedded ? getEmbeddedCredentials('github') : undefined;
+export function getGitHubOAuthConfig(): { clientId: string; clientSecret: string; isConfigured: boolean } {
+  const embeddedCreds = hasEmbeddedClientId('github') ? getEmbeddedCredentials('github') : undefined;
+  const clientId = process.env.GITHUB_CLIENT_ID || embeddedCreds?.clientId || '';
 
-  return getOAuthConfig(
-    'GITHUB_CLIENT_ID',
-    'GITHUB_CLIENT_SECRET',
-    embeddedCreds ? () => embeddedCreds.clientId || '' : undefined,
-    embeddedCreds ? () => embeddedCreds.clientSecret || '' : undefined,
-  );
+  // `isConfigured` on the id alone. GitHub signs in with the device grant, which sends no secret
+  // and needs none to refresh what it issued, so a secret was never a requirement of the protocol
+  // — only of this function, which is what obliged a released binary to carry one.
+  //
+  // GITHUB_CLIENT_SECRET is deliberately not read. Honouring it would keep a code path that sends
+  // a secret, and the point is that there is nothing to send.
+  return { clientId, clientSecret: '', isConfigured: !!clientId };
 }
 
 /**
@@ -105,4 +106,4 @@ export const GITHUB_OAUTH_SCOPES = [
 ];
 
 /** Standard error message for unconfigured OAuth - used across modules */
-export const GITHUB_OAUTH_NOT_CONFIGURED_ERROR = 'GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET';
+export const GITHUB_OAUTH_NOT_CONFIGURED_ERROR = 'GITHUB_CLIENT_ID';
