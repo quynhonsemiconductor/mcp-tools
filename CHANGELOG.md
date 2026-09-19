@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.12](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.11...v0.1.12) (2026-09-19)
+
+
+### 🐛 Bug Fixes
+
+* **auth:** sign in to GitHub without shipping a client secret ([#60](https://github.com/quynhonsemiconductor/mcp-tools/issues/60)) ([5c37a02](https://github.com/quynhonsemiconductor/mcp-tools/commit/5c37a0255ab89ecf4d6b01435f375ef55689d44b))
+
 ## [0.1.11](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.10...v0.1.11) (2026-09-15)
 
 
