@@ -344,8 +344,14 @@ async function getEmbeddedCredentialDefines() {
               `user. Set the corresponding repository secret.`
           );
         }
+        // Deliberately not interpolating the provider name. CodeQL treats anything derived from
+        // EMBEDDED_OAUTH_CLIENTS as sensitive and flags it as clear-text logging of a credential;
+        // the name is not one, but the alert is indistinguishable from a real leak in a review, and
+        // the message loses nothing by being fixed — only GitHub takes this path, and the thrown
+        // error above names the variable when it matters.
         console.warn(
-          `Missing ${clientUpper}_CLIENT_ID, not embedding a client id for ${clientUpper}.`
+          'Missing the client id for a device-flow provider, not embedding one. ' +
+            'Sign-in will fall back to a personal access token.'
         );
         embeddedCredentialContext.oAuthCredentials![client] = {
           clientId: undefined,
@@ -355,8 +361,8 @@ async function getEmbeddedCredentialDefines() {
       }
       if (clientSecretEnv) {
         console.warn(
-          `${clientUpper}_CLIENT_SECRET is set and is being ignored: ${clientUpper} signs in with ` +
-            `the device grant, which needs no secret. Nothing is embedded from it.`
+          'A client secret is set for a device-flow provider and is being ignored: the device ' +
+            'grant needs none, so nothing is embedded from it and the variable can be removed.'
         );
       }
       embeddedCredentialContext.oAuthCredentials![client] = {
