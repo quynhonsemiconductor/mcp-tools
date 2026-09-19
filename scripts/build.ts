@@ -226,11 +226,20 @@ async function updateVersionInPackageJson(newVersion?: string) {
 
   const packageJsonContent = fs.readFileSync(packageJsonFilePath, 'utf-8');
   const packageJson = JSON.parse(packageJsonContent);
-  packageJson.version = newVersion ?? packageJson.version;
 
+  // Only write when the version actually changes. This rewrote the file on every build,
+  // including the common one that passes no version and assigns the value back to itself, and
+  // `JSON.stringify` ends without a newline — so any local build left package.json modified with
+  // a one-character diff, which then rides along in whatever commit came next.
+  if (!newVersion || newVersion === packageJson.version) {
+    console.log(`📌 package.json already at version: ${packageJson.version}`);
+    return packageJson.version;
+  }
+
+  packageJson.version = newVersion;
   fs.writeFileSync(
     packageJsonFilePath,
-    JSON.stringify(packageJson, null, 2),
+    `${JSON.stringify(packageJson, null, 2)}\n`,
     'utf-8'
   );
 
