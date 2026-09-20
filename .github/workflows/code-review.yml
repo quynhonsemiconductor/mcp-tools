@@ -1,13 +1,11 @@
 # =============================================================================
 # Code review — AI review of a pull request against QNSC's rules.
 #
-# TRIAL. This points at a BRANCH of the ci repository rather than `@v1`, because the reusable
-# workflow and the rule files it reads are still on that branch (quynhonsemiconductor/ci#152). The
-# effect is that this pull request reviews itself, which is the cheapest way to see what the reviewer
-# actually says before committing to it anywhere else.
+# Pinned to `@v1`, the shared major alias, which is how every other caller in this organisation
+# references the ci repository. It moved to include the reviewer when ci 1.22.0 released.
 #
-# Before merging: change both refs to `@v1` and drop `rules_ref`. A branch ref means a change to that
-# branch changes what runs here, with nothing in this repository to show it.
+# `rules_ref` is not passed, so the rules are read from the same `v1` the workflow came from — the
+# two move together, and a rule change cannot reach this repository without a ci release.
 #
 # Deliberately NOT a required check, and it should stay that way for a while. `main-protection` here
 # requires review threads to be resolved before a merge, so a reviewer that posts threads can block
@@ -35,13 +33,12 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    uses: quynhonsemiconductor/ci/.github/workflows/code-review.yml@feat/code-review-rules
+    uses: quynhonsemiconductor/ci/.github/workflows/code-review.yml@v1
     with:
       product: mcp-tools
       # No sql profile: this repository has no migrations, and no frontend profile because there are
       # no .tsx or .jsx files here at all.
       profiles: typescript,dockerfile,workflows
-      rules_ref: feat/code-review-rules
       # GLM on the Coding Plan endpoint. It speaks OpenAI chat completions rather than Anthropic's
       # protocol, and the default `llm_extra_body` disables Anthropic's thinking block, which that
       # endpoint will not accept — hence all three overrides rather than only the model.
