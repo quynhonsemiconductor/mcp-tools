@@ -26,11 +26,12 @@ concurrency:
 
 jobs:
   review:
-    # Bounded like every other job in this repository, and for a stronger reason than most: this one
-    # makes blocking calls to an external model endpoint, so a hung request would otherwise hold a
-    # runner until GitHub's 360-minute default. Valid on a `uses:` job, and the called workflow's own
-    # timeout does not cover the caller.
-    timeout-minutes: 25
+    # No `timeout-minutes` here: GitHub does not allow it on a job that calls a reusable workflow —
+    # only name, uses, with, secrets, needs, if and permissions. The bound lives on the job inside
+    # ci/.github/workflows/code-review.yml instead, which is the job that actually runs.
+    #
+    # The reviewer asked for it here and asserted it was supported. It is not, and actionlint rejects
+    # the file. Worth keeping as a note: the concern was right, the remedy was confidently wrong.
     permissions:
       contents: read
       pull-requests: write
