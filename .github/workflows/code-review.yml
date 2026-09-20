@@ -26,14 +26,19 @@ concurrency:
 
 jobs:
   review:
+    # Bounded like every other job in this repository, and for a stronger reason than most: this one
+    # makes blocking calls to an external model endpoint, so a hung request would otherwise hold a
+    # runner until GitHub's 360-minute default. Valid on a `uses:` job, and the called workflow's own
+    # timeout does not cover the caller.
+    timeout-minutes: 25
     permissions:
       contents: read
       pull-requests: write
     uses: quynhonsemiconductor/ci/.github/workflows/code-review.yml@feat/code-review-rules
     with:
       product: mcp-tools
-      # No sql profile: this repository has no migrations. No frontend either — the only .tsx here is
-      # not a user interface.
+      # No sql profile: this repository has no migrations, and no frontend profile because there are
+      # no .tsx or .jsx files here at all.
       profiles: typescript,dockerfile,workflows
       rules_ref: feat/code-review-rules
       # GLM on the Coding Plan endpoint. It speaks OpenAI chat completions rather than Anthropic's
