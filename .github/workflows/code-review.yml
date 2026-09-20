@@ -49,5 +49,16 @@ jobs:
       use_anthropic_protocol: 'false'
       llm_extra_body: '{}'
       model: glm-5.3
+      # High and critical findings become line-level review threads, which must be resolved before this
+      # branch can merge. Medium and low stay in the summary.
+      #
+      # Not `all`, on the evidence of the first review this reviewer ran here: of two findings, the one
+      # that was confidently wrong was a `medium` — it asserted `timeout-minutes` works on a job calling
+      # a reusable workflow, which GitHub does not allow. At `all` that would have stalled the branch
+      # until someone dismissed it. At `high` it is advice.
+      inline_from_severity: high
+      # Comments arrive as our own App rather than github-actions[bot]. Identity only.
+      app_id: ${{ vars.CODE_REVIEW_APP_ID }}
     secrets:
       llm_token: ${{ secrets.Z_AI_CODING_API_KEY }}
+      app_private_key: ${{ secrets.CODE_REVIEW_APP_KEY }}
