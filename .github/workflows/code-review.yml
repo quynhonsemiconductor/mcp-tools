@@ -1,0 +1,61 @@
+# =============================================================================
+# Code review — AI review of a pull request against QNSC's rules.
+#
+# Pinned to `@v1`, the shared major alias, which is how every other caller in this organisation
+# references the ci repository. It moved to include the reviewer when ci 1.22.0 released.
+#
+# `rules_ref` is not passed, so the rules are read from the same `v1` the workflow came from — the
+# two move together, and a rule change cannot reach this repository without a ci release.
+#
+# Deliberately NOT a required check, and it should stay that way for a while. `main-protection` here
+# requires review threads to be resolved before a merge, so a reviewer that posts threads can block
+# every pull request until someone clicks through them. The shared workflow defaults to a single
+# summary comment for that reason.
+# =============================================================================
+
+name: Code review
+
+on:
+  pull_request:
+
+concurrency:
+  group: code-review-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # No `timeout-minutes` here: GitHub does not allow it on a job that calls a reusable workflow —
+    # only name, uses, with, secrets, needs, if and permissions. The bound lives on the job inside
+    # ci/.github/workflows/code-review.yml instead, which is the job that actually runs.
+    #
+    # The reviewer asked for it here and asserted it was supported. It is not, and actionlint rejects
+    # the file. Worth keeping as a note: the concern was right, the remedy was confidently wrong.
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: quynhonsemiconductor/ci/.github/workflows/code-review.yml@v1
+    with:
+      product: mcp-tools
+      # No sql profile: this repository has no migrations, and no frontend profile because there are
+      # no .tsx or .jsx files here at all.
+      profiles: typescript,dockerfile,workflows
+      # GLM on the Coding Plan endpoint. It speaks OpenAI chat completions rather than Anthropic's
+      # protocol, and the default `llm_extra_body` disables Anthropic's thinking block, which that
+      # endpoint will not accept — hence all three overrides rather than only the model.
+      llm_url: https://open.bigmodel.cn/api/coding/paas/v4
+      use_anthropic_protocol: 'false'
+      llm_extra_body: '{}'
+      model: glm-5.3
+      # High and critical findings become line-level review threads, which must be resolved before this
+      # branch can merge. Medium and low stay in the summary.
+      #
+      # Not `all`, on the evidence of the first review this reviewer ran here: of two findings, the one
+      # that was confidently wrong was a `medium` — it asserted `timeout-minutes` works on a job calling
+      # a reusable workflow, which GitHub does not allow. At `all` that would have stalled the branch
+      # until someone dismissed it. At `high` it is advice.
+      inline_from_severity: high
+      # Comments arrive as our own App rather than github-actions[bot]. Identity only.
+      app_id: ${{ vars.CODE_REVIEW_APP_ID }}
+    secrets:
+      llm_token: ${{ secrets.Z_AI_CODING_API_KEY }}
+      app_private_key: ${{ secrets.CODE_REVIEW_APP_KEY }}
