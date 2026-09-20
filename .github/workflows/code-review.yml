@@ -1,0 +1,47 @@
+# =============================================================================
+# Code review — AI review of a pull request against QNSC's rules.
+#
+# TRIAL. This points at a BRANCH of the ci repository rather than `@v1`, because the reusable
+# workflow and the rule files it reads are still on that branch (quynhonsemiconductor/ci#152). The
+# effect is that this pull request reviews itself, which is the cheapest way to see what the reviewer
+# actually says before committing to it anywhere else.
+#
+# Before merging: change both refs to `@v1` and drop `rules_ref`. A branch ref means a change to that
+# branch changes what runs here, with nothing in this repository to show it.
+#
+# Deliberately NOT a required check, and it should stay that way for a while. `main-protection` here
+# requires review threads to be resolved before a merge, so a reviewer that posts threads can block
+# every pull request until someone clicks through them. The shared workflow defaults to a single
+# summary comment for that reason.
+# =============================================================================
+
+name: Code review
+
+on:
+  pull_request:
+
+concurrency:
+  group: code-review-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: quynhonsemiconductor/ci/.github/workflows/code-review.yml@feat/code-review-rules
+    with:
+      product: mcp-tools
+      # No sql profile: this repository has no migrations. No frontend either — the only .tsx here is
+      # not a user interface.
+      profiles: typescript,dockerfile,workflows
+      rules_ref: feat/code-review-rules
+      # GLM on the Coding Plan endpoint. It speaks OpenAI chat completions rather than Anthropic's
+      # protocol, and the default `llm_extra_body` disables Anthropic's thinking block, which that
+      # endpoint will not accept — hence all three overrides rather than only the model.
+      llm_url: https://open.bigmodel.cn/api/coding/paas/v4
+      use_anthropic_protocol: 'false'
+      llm_extra_body: '{}'
+      model: glm-5.3
+    secrets:
+      llm_token: ${{ secrets.Z_AI_CODING_API_KEY }}
