@@ -24,6 +24,26 @@ import { readFileSync } from 'node:fs';
  */
 const DEVICE_FLOW_CLIENTS = ['github'];
 
+/**
+ * Replace any `clientSecret` value with a marker before the match is printed.
+ *
+ * Without this the failure pasted the secret itself into CI logs, which are persistent and readable by
+ * anyone with access to the run — so the guard that exists to stop a secret shipping was widening its
+ * exposure at the moment it fired. The value is obfuscated in the binary, and this repository's own
+ * rule is that obfuscation is not protection.
+ *
+ * The shape is what diagnoses the failure: the provider name and the presence of a `clientSecret` key.
+ * The value adds nothing a reader needs.
+ */
+function redactSecretValues(text: string): string {
+  // The value alternation allows an escaped quote inside a quoted value. Without that, the first `\"`
+  // ended the match early and the remainder — part of the secret — was printed after the marker.
+  return text.replace(
+    /(clientSecret["']?\s*:\s*)("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|[^,}\s]+)/g,
+    '$1<redacted>',
+  );
+}
+
 const binaryPath = process.argv[2];
 if (!binaryPath) {
   console.error('Usage: bun run scripts/assert-no-embedded-secret.ts <path-to-binary>');
@@ -42,6 +62,9 @@ try {
 
 let failed = false;
 
+// Trim long matches in the error output so a failure stays readable.
+const MATCH_PREVIEW_LIMIT = 200;
+
 for (const client of DEVICE_FLOW_CLIENTS) {
   // The bundler emits the define with unquoted keys, so both spellings are accepted.
   const pattern = new RegExp(`["']?${client}["']?\\s*:\\s*\\{([^}]*)\\}`, 'g');
@@ -52,13 +75,17 @@ for (const client of DEVICE_FLOW_CLIENTS) {
     continue;
   }
 
-  const offending = matches.filter((m) => /clientSecret\s*:/.test(m[1]));
+  // The key may be quoted or bare: the bundler emits unquoted keys, and a JSON-shaped context emits
+  // `"clientSecret":`. Detection has to accept both, and previously did not — so a quoted key was a
+  // false NEGATIVE, meaning a binary carrying a secret would have passed this guard silently. The
+  // redaction below already accepted both forms, and the two must agree or one of them is wrong.
+  const offending = matches.filter((m) => /clientSecret["']?\s*:/.test(m[1]));
   if (offending.length > 0) {
     failed = true;
     console.error(
       `✖ ${client}: the binary carries a clientSecret. ${client} signs in with the device grant, ` +
         `which needs no secret, so this should not have been embedded.\n` +
-        `  found: ${offending[0][0].slice(0, 200)}`,
+        `  found: ${redactSecretValues(offending[0][0]).slice(0, MATCH_PREVIEW_LIMIT)}`,
     );
   } else {
     console.log(`✓ ${client}: embedded entry carries a client id and no secret`);

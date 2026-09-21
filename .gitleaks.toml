@@ -19,6 +19,13 @@ paths = [
   # realistic-looking credentials to the hardcoded-secrets validation check, so it
   # will always contain matches and always should.
   '''src/services/validation/checks/mcp/hardcoded-secrets\.test\.ts''',
+  # Tests for the guard that stops a client secret reaching a released binary. The cases feed
+  # it fixtures shaped like the embedded credential context and assert the value is redacted
+  # before printing, so the file has to contain something secret-shaped. Values are prefixed
+  # FIXTURE-NOT-A-REAL-SECRET. A path entry rather than a regex one, because history is scanned
+  # with --log-opts=--all and an earlier commit on this branch used a base64-shaped value —
+  # rewriting history to satisfy a scanner is worse than recording why the path is exempt.
+  '''scripts/assert-no-embedded-secret\.test\.ts''',
   # Fixtures asserting that the log sanitizer and the config validator redact or
   # reject credentials — same reasoning: the input has to look real to test the code.
   '''src/services/telemetry/log-sanitizer\.test\.ts''',
