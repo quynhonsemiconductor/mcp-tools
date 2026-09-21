@@ -23,7 +23,7 @@ export interface LocalMCPServerDefinition {
    * - Multiple: ['brew tap example-org/tap', 'brew install example-org/tap/example-mcp']
    */
   installation?: string | string[];
-  /** Launch command for local MCP servers (e.g., 'npx @playwright/mcp@0.0.52') */
+  /** Launch command for local MCP servers (e.g., 'npx @playwright/mcp@0.0.82') */
   launch: string;
   /** Required environment variables for the local server */
   requiredEnvVars?: string[];
@@ -49,7 +49,7 @@ export const AVAILABLE_LOCAL_MCP_SERVERS: LocalMCPServerDefinition[] = [
     description:
       'Local Playwright MCP server for browser automation and testing. Configure CLI arguments via mcpArgs in .qnscmcp.yaml config file. Supports various options including --extension for Chrome extension mode, --browser for browser selection, --headless for headless mode, and more.',
     category: 'development',
-    launch: 'npx @playwright/mcp@0.0.52',
+    launch: 'npx @playwright/mcp@0.0.82',
     requiredEnvVars: ['PLAYWRIGHT_BROWSERS_PATH'],
     env: {
       PLAYWRIGHT_MCP_EXTENSION_TOKEN: process.env.PLAYWRIGHT_MCP_EXTENSION_TOKEN || '',
