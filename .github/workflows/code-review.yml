@@ -47,16 +47,17 @@ jobs:
       use_anthropic_protocol: 'false'
       llm_extra_body: '{}'
       model: glm-5.3
-      # Every finding becomes a line-level review thread, which `required_review_thread_resolution`
-      # then requires someone to resolve before this branch can merge. That is the point: a finding
-      # nobody has to answer is a finding that gets scrolled past.
+      # Only high and critical findings become review threads that must be resolved before merging.
+      # Medium and low are collected in the summary comment as advice.
       #
-      # The cost is real and was paid on the first review here: of two findings, one was a `medium`
-      # asserting `timeout-minutes` works on a job calling a reusable workflow, which GitHub does not
-      # allow. At this setting a wrong finding stalls the branch until someone resolves it. Resolving
-      # with a reply saying why it is wrong is the intended response — the record is worth more than
-      # the click costs.
-      inline_from_severity: all
+      # `all` was tried and is too strict for this codebase: on one two-file pull request it produced ten
+      # findings across four rounds, several of them about comments in the fix for the previous round, and
+      # one was a confidently wrong `medium` asserting `timeout-minutes` works on a job calling a reusable
+      # workflow. A wrong finding that stalls a branch costs more than a right one in a summary saves.
+      #
+      # The shared workflow posts a verdict either way, so a clean review says so rather than being
+      # indistinguishable from a review that never ran.
+      inline_from_severity: high
       # Comments arrive as our own App rather than github-actions[bot]. Identity only.
       app_id: ${{ vars.CODE_REVIEW_APP_ID }}
     secrets:
