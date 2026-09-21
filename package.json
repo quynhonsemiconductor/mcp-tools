@@ -114,7 +114,7 @@
     "table": "^6.9.0",
     "tar": "7.5.21",
     "tough-cookie": "6.0.2",
-    "turndown": "7.2.2",
+    "turndown": "7.2.4",
     "unpdf": "1.8.1",
     "vectra": "0.11.1",
     "yargs": "^17.7.2",
