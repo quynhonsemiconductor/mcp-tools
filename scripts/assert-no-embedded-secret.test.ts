@@ -36,7 +36,7 @@ async function fixture(contents: string): Promise<string> {
   return path;
 }
 
-function run(path: string) {
+async function run(path: string) {
   const res = spawnSync('bun', ['run', SCRIPT, path], { encoding: 'utf-8' });
   return { status: res.status, out: `${res.stdout}${res.stderr}` };
 }
@@ -44,8 +44,10 @@ function run(path: string) {
 describe('assert-no-embedded-secret', () => {
   /** The value must not appear, which is the whole point of the redaction. */
   it('never prints the clientSecret value it found', async () => {
-    const secret = 'c2VjcmV0LXZhbHVlLXRoYXQtbXVzdC1ub3QtYXBwZWFy';
-    const { status, out } = run(await fixture(`github:{clientId:"YWJj",clientSecret:"${secret}"}`));
+    // Deliberately not base64-shaped: a realistic-looking value here trips the repository's own
+    // secret scanner, which is correct behaviour on its part and useless noise on ours.
+    const secret = 'FIXTURE-NOT-A-REAL-SECRET-00000000';
+    const { status, out } = await run(await fixture(`github:{clientId:"FIXTUREID",clientSecret:"${secret}"}`));
 
     expect(status).toBe(1);
     expect(out).not.toContain(secret);
@@ -57,11 +59,11 @@ describe('assert-no-embedded-secret', () => {
    * leave a reader unable to tell which provider or which key was at fault.
    */
   it('keeps the provider, the key name and the public clientId visible', async () => {
-    const { out } = run(await fixture('github:{clientId:"YWJj",clientSecret:"shhh"}'));
+    const { out } = await run(await fixture('github:{clientId:"FIXTUREID",clientSecret:"FIXTURE-NOT-A-REAL-SECRET-11111111"}'));
 
     expect(out).toContain('github');
     expect(out).toContain('clientSecret');
-    expect(out).toContain('YWJj');
+    expect(out).toContain('FIXTUREID');
   });
 
   /**
@@ -70,15 +72,38 @@ describe('assert-no-embedded-secret', () => {
    * as the thing a test would catch.
    */
   it('redacts an unquoted value too, which is the form the bundler emits', async () => {
-    const { status, out } = run(await fixture('github:{clientId:YWJj,clientSecret:bare-secret-value}'));
+    const { status, out } = await run(await fixture('github:{clientId:FIXTUREID,clientSecret:FIXTURE-NOT-A-REAL-SECRET-22222222}'));
 
     expect(status).toBe(1);
-    expect(out).not.toContain('bare-secret-value');
+    expect(out).not.toContain('FIXTURE-NOT-A-REAL-SECRET-22222222');
     expect(out).toContain('<redacted>');
   });
 
+  /**
+   * A value containing an escaped quote used to end the match early, so the tail of the secret was
+   * printed after the marker. The reviewer found this by reading the alternation rather than by running
+   * it.
+   */
+  it('redacts a value containing an escaped quote, tail included', async () => {
+    const { status, out } = await run(await fixture(String.raw`github:{clientId:"FIXTUREID",clientSecret:"AB\"CD-FIXTURE-33333333"}`));
+
+    expect(status).toBe(1);
+    expect(out).not.toContain('CD-FIXTURE-33333333');
+    expect(out).toContain('<redacted>');
+  });
+
+  /**
+   * Detection and redaction must accept the same shapes. A quoted key matched the redaction but not the
+   * detection, which made it a false NEGATIVE: a binary carrying a secret would have passed.
+   */
+  it('detects a quoted key, not only a bare one', async () => {
+    const { status } = await run(await fixture('github:{"clientId":"FIXTUREID","clientSecret":"FIXTURE-NOT-A-REAL-SECRET-44444444"}'));
+
+    expect(status).toBe(1);
+  });
+
   it('passes a binary that carries a client id and no secret', async () => {
-    const { status, out } = run(await fixture('github:{clientId:"YWJj"}'));
+    const { status, out } = await run(await fixture('github:{clientId:"FIXTUREID"}'));
 
     expect(status).toBe(0);
     expect(out).toContain('no secret');
@@ -89,7 +114,7 @@ describe('assert-no-embedded-secret', () => {
    * be reported as a violation — the guard is about a secret being present, not an id being absent.
    */
   it('reports nothing to check when no entry was embedded', async () => {
-    const { status } = run(await fixture('no embedded credential context here'));
+    const { status } = await run(await fixture('no embedded credential context here'));
 
     expect(status).toBe(0);
   });

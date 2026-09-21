@@ -36,7 +36,12 @@ const DEVICE_FLOW_CLIENTS = ['github'];
  * The value adds nothing a reader needs.
  */
 function redactSecretValues(text: string): string {
-  return text.replace(/(clientSecret["']?\s*:\s*)(["'][^"']*["']|[^,}\s]+)/g, '$1<redacted>');
+  // The value alternation allows an escaped quote inside a quoted value. Without that, the first `\"`
+  // ended the match early and the remainder — part of the secret — was printed after the marker.
+  return text.replace(
+    /(clientSecret["']?\s*:\s*)("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|[^,}\s]+)/g,
+    '$1<redacted>',
+  );
 }
 
 const binaryPath = process.argv[2];
@@ -70,7 +75,11 @@ for (const client of DEVICE_FLOW_CLIENTS) {
     continue;
   }
 
-  const offending = matches.filter((m) => /clientSecret\s*:/.test(m[1]));
+  // The key may be quoted or bare: the bundler emits unquoted keys, and a JSON-shaped context emits
+  // `"clientSecret":`. Detection has to accept both, and previously did not — so a quoted key was a
+  // false NEGATIVE, meaning a binary carrying a secret would have passed this guard silently. The
+  // redaction below already accepted both forms, and the two must agree or one of them is wrong.
+  const offending = matches.filter((m) => /clientSecret["']?\s*:/.test(m[1]));
   if (offending.length > 0) {
     failed = true;
     console.error(
