@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.13](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.12...v0.1.13) (2026-09-21)
+
+
+### ♻️ Refactors
+
+* name the number that truncates a failure message ([#68](https://github.com/quynhonsemiconductor/mcp-tools/issues/68)) ([f801f70](https://github.com/quynhonsemiconductor/mcp-tools/commit/f801f70533b657049f4cb50d764a0bd2072970e8))
+
 ## [0.1.12](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.11...v0.1.12) (2026-09-19)
 
 
