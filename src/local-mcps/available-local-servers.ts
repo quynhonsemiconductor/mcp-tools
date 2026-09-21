@@ -60,7 +60,7 @@ export const AVAILABLE_LOCAL_MCP_SERVERS: LocalMCPServerDefinition[] = [
     name: 'Mobile Next',
     description: 'Mobile Next - MCP server for Mobile Development and Automation',
     category: 'development',
-    launch: 'npx @mobilenext/mobile-mcp@0.0.33',
+    launch: 'npx @mobilenext/mobile-mcp@0.0.62',
   },
   {
     id: 'dart-mcp',
