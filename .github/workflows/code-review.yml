@@ -7,10 +7,8 @@
 # `rules_ref` is not passed, so the rules are read from the same `v1` the workflow came from — the
 # two move together, and a rule change cannot reach this repository without a ci release.
 #
-# Deliberately NOT a required check: its findings are advice, and a wrong one must never gate a merge
-# on its own.
-#
-# It does gate merges indirectly, and that is chosen rather than accidental. `inline_from_severity: all`
+# Not a required check, which is a narrower statement than it sounds: this workflow failing cannot fail
+# the merge by itself. Its FINDINGS do gate the merge, and that is chosen rather than accidental. `inline_from_severity: all`
 # makes every finding a review thread, and `main-protection` requires threads to be resolved before
 # merging — so each finding needs an answer. Resolving with a reply explaining why a finding is wrong is
 # the intended response; the record is the point.

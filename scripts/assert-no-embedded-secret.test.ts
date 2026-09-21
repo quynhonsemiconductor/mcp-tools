@@ -85,10 +85,12 @@ describe('assert-no-embedded-secret', () => {
    * it.
    */
   it('redacts a value containing an escaped quote, tail included', async () => {
-    const { status, out } = await run(await fixture(String.raw`github:{clientId:"FIXTUREID",clientSecret:"AB\"CD-FIXTURE-33333333"}`));
+    const { status, out } = await run(
+      await fixture(String.raw`github:{clientId:"FIXTUREID",clientSecret:"FIXTURE-NOT-A-REAL-SECRET-AB\"CD33333333"}`),
+    );
 
     expect(status).toBe(1);
-    expect(out).not.toContain('CD-FIXTURE-33333333');
+    expect(out).not.toContain('CD33333333');
     expect(out).toContain('<redacted>');
   });
 
