@@ -42,6 +42,9 @@ try {
 
 let failed = false;
 
+// Trim long matches in the error output so a failure stays readable.
+const MATCH_PREVIEW_LIMIT = 200;
+
 for (const client of DEVICE_FLOW_CLIENTS) {
   // The bundler emits the define with unquoted keys, so both spellings are accepted.
   const pattern = new RegExp(`["']?${client}["']?\\s*:\\s*\\{([^}]*)\\}`, 'g');
@@ -58,7 +61,7 @@ for (const client of DEVICE_FLOW_CLIENTS) {
     console.error(
       `✖ ${client}: the binary carries a clientSecret. ${client} signs in with the device grant, ` +
         `which needs no secret, so this should not have been embedded.\n` +
-        `  found: ${offending[0][0].slice(0, 200)}`,
+        `  found: ${offending[0][0].slice(0, MATCH_PREVIEW_LIMIT)}`,
     );
   } else {
     console.log(`✓ ${client}: embedded entry carries a client id and no secret`);
