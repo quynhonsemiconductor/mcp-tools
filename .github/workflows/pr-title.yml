@@ -45,4 +45,4 @@ jobs:
       # Pinned to a commit, not the v1 tag. Every other action in this repository is
       # pinned, and a tag can be moved — Semgrep flags the mutable form, correctly. The
       # ci repository's pin-drift job reports when a pin here falls behind.
-      - uses: quynhonsemiconductor/ci/actions/pr-title-conventional-commits@501509660d0fb3491569327afc65fdb5c5403a41 # v1
+      - uses: quynhonsemiconductor/ci/actions/pr-title-conventional-commits@52b7f31b217942289ffb7db3ccc839ee9cbb39b2 # v1
