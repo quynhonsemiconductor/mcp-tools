@@ -169,6 +169,10 @@ When creating a new tool:
      - `fix:`, `refactor:`, `style:` commits trigger PATCH releases
      - `feat:` commits trigger MINOR releases
      - `BREAKING CHANGE:` in the footer triggers MAJOR releases
+   - One pull request per feature or per layer, stacked when they depend on each other. The `PR size`
+     check labels every pull request by lines of code (tests, docs, lockfiles and generated files are
+     not counted) and comments above 1,000; above 2,500 the AI review runs only on opened / reopened /
+     ready for review.
 
 5. **Refactoring**
    - When refactoring always `git mv` files, do not delete or move them. We must keep our git history!
