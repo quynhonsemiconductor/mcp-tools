@@ -158,7 +158,7 @@
   "trustedDependencies": [],
   "overrides": {
     "fast-xml-parser": "5.11.2",
-    "protobufjs": "8.8.0",
+    "protobufjs": "8.8.1",
     "tmp": "0.2.7",
     "@opentelemetry/core": "2.8.0"
   }
