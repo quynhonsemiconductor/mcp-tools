@@ -44,6 +44,7 @@ jobs:
     uses: quynhonsemiconductor/ci/.github/workflows/actions-security.yml@v1
     with:
       blocking: true
+      combine: true # actionlint + zizmor as ONE job; the required check is `actions-security / Workflow security (actionlint, zizmor)`
 
   security:
     # NO job-level `permissions:` block, deliberately — this job inherits the
@@ -59,5 +60,8 @@ jobs:
     uses: quynhonsemiconductor/ci/.github/workflows/security.yml@v1
     with:
       product: mcp-tools
+      # Gitleaks + osv-scanner + Semgrep as ONE job; the required check is
+      # `security / Security scans (Gitleaks, osv-scanner, Semgrep)`.
+      combine: true
       scan_container: false
       osv_blocking: true
