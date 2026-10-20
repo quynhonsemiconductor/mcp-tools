@@ -39,9 +39,10 @@ org, because they depend on infrastructure that is not deployed for `quynhonsemi
 - **`aws-knowledge-mcp-server`** connects to the public AWS endpoint and registers 5 tools with
   no credentials, but calling one currently returns an error from AWS — reachable but not
   usable at the moment. ✓
-- The old remote fleet (17 servers) was **removed**; see §5. Do not describe agile ALM tools, New Relic,
-  Splunk, Salesforce, Snowflake, Kong (as a remote server), Datadog, PagerDuty, Slack, Stripe,
-  or the rest as available — they are gone.
+- The old remote fleet (17 servers) was **removed**; see §5. Do not describe the retired
+  integrations — the third-party agile ALM product, New Relic, Splunk, Salesforce, Snowflake,
+  Kong (as a remote server), Datadog, PagerDuty, Slack, Stripe, or the rest — as available;
+  they are gone.
 
 ## 1. What & why
 

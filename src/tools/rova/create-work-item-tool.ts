@@ -27,9 +27,9 @@ export const ROVA_WORK_ITEM_TYPES = ['story', 'task', 'defect'] as const;
 export const ROVA_PRIORITIES = ['none', 'low', 'normal', 'high', 'urgent'] as const;
 
 /**
- * Schedule states, from `work_item_schedule_state`. the agile ALM business-maturity dimension,
- * separate from the per-project workflow engine. Spelled with underscores, and the
- * terminal state is 'release' rather than 'released'.
+ * Schedule states, from `work_item_schedule_state`. These carry the business-maturity
+ * dimension of an agile ALM tool, separate from the per-project workflow engine. Spelled
+ * with underscores, and the terminal state is 'release' rather than 'released'.
  */
 export const ROVA_SCHEDULE_STATES = [
   'idea',
