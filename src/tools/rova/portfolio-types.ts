@@ -7,7 +7,7 @@
  *
  * Their state is deliberately not a story's schedule state. The schema says why: a
  * portfolio item's lifecycle is a funnel — intake, discovery, prioritisation, developing,
- * measuring — while a story's is a delivery flow, and Rally likewise keeps them apart.
+ * measuring — while a story's is a delivery flow, and agile ALM tools likewise keep them apart.
  * They also carry `name` where a work item carries `title`.
  */
 
@@ -34,7 +34,7 @@ export const ROVA_PORTFOLIO_STATES = [
 ] as const;
 
 /**
- * From `preliminary_estimate_size`. T-shirt sizing, Rally's PreliminaryEstimate.
+ * From `preliminary_estimate_size`. T-shirt sizing, the agile ALM PreliminaryEstimate field.
  *
  * The size-to-points mapping is deliberately not encoded anywhere: it is per-project
  * configuration, so a size means whatever that project says it means.
