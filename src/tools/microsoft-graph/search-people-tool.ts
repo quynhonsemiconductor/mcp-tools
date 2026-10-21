@@ -18,7 +18,7 @@ export const SearchMicrosoftPeopleSchema = z.object({
   query: z
     .string()
     .min(1)
-    .describe('Name or email address to look for, e.g. "Nghia" or "nghiavt"'),
+    .describe('Name or email address to look for, e.g. "Alice" or "alice"'),
   limit: z.number().int().min(1).max(25).default(10).describe('Maximum people to return'),
 });
 

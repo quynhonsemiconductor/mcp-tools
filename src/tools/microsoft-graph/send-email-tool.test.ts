@@ -15,7 +15,7 @@ describe('assertRecipientsAllowed', () => {
   const allowed = ['qnsc.vn'];
 
   it('permits addresses inside the organisation', () => {
-    expect(() => assertRecipientsAllowed(['NghiaVT@qnsc.vn', 'sinh@qnsc.vn'], allowed)).not.toThrow();
+    expect(() => assertRecipientsAllowed(['Alice@qnsc.vn', 'bob@qnsc.vn'], allowed)).not.toThrow();
   });
 
   it('refuses an outside address', () => {
