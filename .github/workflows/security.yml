@@ -41,7 +41,7 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    uses: quynhonsemiconductor/ci/.github/workflows/actions-security.yml@v1
+    uses: quynhonsemiconductor/ci/.github/workflows/actions-security.yml@691668f7a1bd4f4a3416f9224ae7ff7ebe831a3a # v1.23.0
     with:
       blocking: true
       combine: true # actionlint + zizmor as ONE job; the required check is `actions-security / Workflow security (actionlint, zizmor)`
@@ -57,7 +57,7 @@ jobs:
     # before `if:`, so `scan_container: false` does not spare it. The run then dies as
     # startup_failure: zero jobs, no checks at all, which reads as "not started yet"
     # rather than as a failure.
-    uses: quynhonsemiconductor/ci/.github/workflows/security.yml@v1
+    uses: quynhonsemiconductor/ci/.github/workflows/security.yml@691668f7a1bd4f4a3416f9224ae7ff7ebe831a3a # v1.23.0
     with:
       product: mcp-tools
       # Gitleaks + osv-scanner + Semgrep as ONE job; the required check is
