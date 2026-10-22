@@ -75,14 +75,6 @@ const qnscMcpConfigSchema = z
           ),
       })
       .optional(),
-    insiders: z
-      .boolean()
-      .default(false)
-      .optional()
-      .describe(
-        'Enable insiders/preview features such as Entra ID SSO authentication. ' +
-          'Set to true to opt in to pre-GA features for testing.',
-      ),
     prompts: z
       .object({
         repositories: z
@@ -117,7 +109,6 @@ export type QnscMcpConfig = z.infer<typeof qnscMcpConfigSchema>;
  * Default configuration if no RC file is found
  */
 export const defaultConfig: QnscMcpConfig = {
-  insiders: false,
   logging: {
     enabled: true,
     level: 'info',
