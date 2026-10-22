@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MCP Tools</title>
+  <!-- Theme manager loaded early to prevent FOUC -->
+  <script src="js/theme-manager.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/config-editor.css">
@@ -326,5 +328,8 @@
 
   <div id="modal-container"></div>
 
+  <script src="js/app.js"></script>
+  <script type="module" src="js/config-editor.js"></script>
+  <script src="js/logs-viewer.js"></script>
 </body>
 </html>
