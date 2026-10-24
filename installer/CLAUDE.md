@@ -55,7 +55,7 @@ error TS2688: Cannot find type definition file for 'fs-extra'.
 
 This indicates **corrupted node_modules**, not a tsconfig issue. Fix with:
 ```bash
-rm -rf node_modules && npm install
+rm -rf node_modules && npm ci
 ```
 
 Do NOT modify tsconfig.json to fix this - the config is correct.
@@ -63,8 +63,8 @@ Do NOT modify tsconfig.json to fix this - the config is correct.
 ## Build & Test
 
 ```bash
-# Install dependencies
-npm install
+# Install dependencies (frozen; installer/package-lock.json is committed)
+npm ci
 
 # Run tests
 bun test
