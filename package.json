@@ -145,7 +145,6 @@
     "brace-expansion@>=2 <2.1.7": "2.1.7",
     "brace-expansion@<1.1.21": "1.1.21",
     "hono@<4.13.11": "4.13.11",
-    "ip-address@<10.7.4": "10.7.4",
-    "@anthropic-ai/mcpb>zod": "4.6.6"
+    "ip-address@<10.7.4": "10.7.4"
   }
 }

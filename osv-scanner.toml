@@ -5,3 +5,8 @@
 id = "GHSA-86w9-cpqp-85rv"
 ignoreUntil = 2026-11-24T00:00:00Z
 reason = """node-forge 1.4.0: the advisory lists NO fixed release (1.4.0 is the latest; OSV marks it last_affected), so there is nothing to bump to. The copy rides @anthropic-ai/mcpb -> galactus, a dev-only packaging chain (MCPB bundle build); nothing shipped parses untrusted certs with it. Re-triage on the next node-forge release or when @anthropic-ai/mcpb moves off galactus."""
+
+[[IgnoredVulns]]
+id = "GHSA-mrhx-c7xc-m3w5"
+ignoreUntil = 2026-11-24T00:00:00Z
+reason = """ONLY the nested zod 3.25.76 under @anthropic-ai/mcpb (dev-only MCPB packaging chain; the server bundles never import it) — mcpb 2.1.2, the latest release, still declares zod ^3.25.67, and bun 1.3.11 (the CI pin) cannot apply a scoped parent>child override to move it. Our own zod is 4.6.6. Re-triage when mcpb ships zod-4 support or the repo bumps its bun/CI version."""
