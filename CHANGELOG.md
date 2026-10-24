@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.13](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.12...v0.1.13) (2026-10-22)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency @modelcontextprotocol/sdk to v1.31.0 [security] ([#74](https://github.com/quynhonsemiconductor/mcp-tools/issues/74)) ([446a901](https://github.com/quynhonsemiconductor/mcp-tools/commit/446a901e40a61599639d9ba3765310ea52b683a7))
+* **deps:** update dependency @modelcontextprotocol/sdk to v1.32.0 [security] ([#81](https://github.com/quynhonsemiconductor/mcp-tools/issues/81)) ([27e548d](https://github.com/quynhonsemiconductor/mcp-tools/commit/27e548da3307ef3ea3ce01198023964e2cdb9447))
+* **deps:** update dependency axios to v1.20.0 [security] ([#72](https://github.com/quynhonsemiconductor/mcp-tools/issues/72)) ([bd9bb63](https://github.com/quynhonsemiconductor/mcp-tools/commit/bd9bb63f66d72103686a51e66c1a84756f4108a0))
+* **deps:** update dependency handlebars to v4.7.10 [security] ([#76](https://github.com/quynhonsemiconductor/mcp-tools/issues/76)) ([83436f6](https://github.com/quynhonsemiconductor/mcp-tools/commit/83436f60a783ba37af1efcfa50f9f0e95cd0280a))
+* **deps:** update dependency turndown to v7.2.4 ([#67](https://github.com/quynhonsemiconductor/mcp-tools/issues/67)) ([816dac4](https://github.com/quynhonsemiconductor/mcp-tools/commit/816dac4ac03d239c87bea972f010308aca5017bf))
+
+
+### ♻️ Refactors
+
+* name the number that truncates a failure message ([#68](https://github.com/quynhonsemiconductor/mcp-tools/issues/68)) ([f801f70](https://github.com/quynhonsemiconductor/mcp-tools/commit/f801f70533b657049f4cb50d764a0bd2072970e8))
+
 ## [0.1.12](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.11...v0.1.12) (2026-09-19)
 
 
