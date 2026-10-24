@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.14](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.13...v0.1.14) (2026-10-24)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** zod 4.6.6 for GHSA-mrhx-c7xc-m3w5 (CVSS 8.2) ([#87](https://github.com/quynhonsemiconductor/mcp-tools/issues/87)) ([b167c89](https://github.com/quynhonsemiconductor/mcp-tools/commit/b167c89d231ac3cb7689c31ad53d4766d38a823b))
+
 ## [0.1.13](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.12...v0.1.13) (2026-10-22)
 
 
