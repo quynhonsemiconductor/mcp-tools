@@ -1,7 +1,7 @@
 # Dev Container for FastMCP Server
 # See https://containers.dev/ for more info
 
-FROM mcr.microsoft.com/devcontainers/typescript-node:20-bullseye
+FROM mcr.microsoft.com/devcontainers/typescript-node:20-bullseye@sha256:da34e2f52e604ed67295c3e7b8347ff23fa1e278e81f83c9d322e74a9c72b352
 
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
