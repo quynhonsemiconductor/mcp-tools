@@ -4,6 +4,9 @@
 name: Installer dist:win check
 
 on:
+  push:
+    branches:
+      - ci/installer-dist-win-check
   workflow_dispatch:
 
 permissions:
