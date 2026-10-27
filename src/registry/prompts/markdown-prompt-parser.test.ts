@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import {
   getSchemaDescription,
   isSchemaOptional,
@@ -6,23 +6,6 @@ import {
 
 import { mockFS, realFsModule, setupStandardMocks } from '../../test-utils/mocks';
 const { mockPath } = setupStandardMocks();
-
-// The preload-mocked node:fs would make findMarkdownFiles/parseMarkdownPrompt see
-// empty directories. Point 'fs' at the real module for these suites; the global
-// afterEach mock.restore() plus the next file's setupStandardMocks put the mock
-// back afterwards.
-const registerRealFs = () => {
-  mock.module('fs', () => ({ default: realFsModule, ...realFsModule }));
-  mock.module('node:fs', () => ({ default: realFsModule, ...realFsModule }));
-};
-
-// Put the mocked fs back before the next test file runs: this file is the only
-// thing that un-mocked it, and ~207 other files never call setupStandardMocks,
-// so a real node:fs left registered here would leak into them under --randomize.
-afterAll(() => {
-  mock.module('fs', () => ({ default: mockFS, ...mockFS }));
-  mock.module('node:fs', () => ({ default: mockFS, ...mockFS }));
-});
 
 import {
   findMarkdownFiles,
@@ -35,11 +18,6 @@ import {
 } from './markdown-prompt-parser';
 
 describe('markdown-prompt-parser', () => {
-  const templatePath = mockPath.realPath.resolve(
-    __dirname,
-    '../../../templates/prompt-template.md',
-  );
-
   describe('parseFrontmatter', () => {
     it('should parse valid YAML frontmatter', () => {
       const content = `---
@@ -345,18 +323,39 @@ Should be MCP compatible by default.`;
       expect(result.config?.requiredTools).toEqual([]);
     });
   });
-  // These two suites walk and read real files. The standard mocks stub node:fs
-  // module-wide, so point the two members they use back at the real implementations
-  // for their duration (mockFS keeps its identity; only these members change).
-  describe('findMarkdownFiles', () => {
-    const templatesDir = mockPath.realPath.resolve(__dirname, '../../../templates');
-    const templatePath = mockPath.realPath.resolve(
-      __dirname,
-      '../../../templates/prompt-template.md',
+  // These two suites exercise the fs-backed half of the parser through the
+  // standard mockFS container (repo idiom): configuring mockImplementation on the
+  // container propagates everywhere, unlike re-registering the module, whose
+  // namespace copies are stale by the time the parser's binding reads them
+  // (verified: a real-fs registration passed on darwin and failed on linux CI,
+  // another file's readdir leaking through).
+  const templatesDir = mockPath.join(__dirname, '../../../templates');
+  const templatePath = mockPath.join(templatesDir, 'prompt-template.md');
+  // Content comes from the fixture file itself, read through the real fs captured
+  // in mocks.ts before the mock registration — one source of truth for the
+  // fixture, deterministic under the mocks.
+  const TEMPLATE_CONTENT = realFsModule.readFileSync(templatePath, 'utf-8');
+  const dirent = (name: string) => ({
+    name,
+    isFile: () => name.endsWith('.md'),
+    isDirectory: () => !name.endsWith('.md'),
+  });
+
+  beforeEach(() => {
+    mockFS.readdirSync.mockImplementation((currentPath: unknown) =>
+      currentPath === templatesDir ? [dirent('prompt-template.md'), dirent('notes.txt')] : [],
     );
+    mockFS.readFileSync.mockImplementation((filePath: unknown) =>
+      filePath === templatePath ? TEMPLATE_CONTENT : '',
+    );
+  });
 
-    beforeEach(registerRealFs);
+  afterEach(() => {
+    mockFS.readdirSync.mockReset();
+    mockFS.readFileSync.mockReset();
+  });
 
+  describe('findMarkdownFiles', () => {
     it('should find the template file', () => {
       const files = findMarkdownFiles(templatesDir);
 
@@ -383,8 +382,6 @@ Should be MCP compatible by default.`;
   });
 
   describe('parseMarkdownPrompt', () => {
-    beforeEach(registerRealFs);
-
     it('should parse the template file', () => {
       const result = parseMarkdownPrompt(templatePath);
 
