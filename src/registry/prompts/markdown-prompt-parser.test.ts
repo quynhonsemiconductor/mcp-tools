@@ -181,11 +181,17 @@ Just content.`;
       expect(Object.keys(result!.arguments)).toEqual(['level']);
       expect(getSchemaDescription(result!.arguments.level)).toBe('Analysis level');
       // Verify the enum values are embedded in the schema. zod v4 removed _def,
-      // so assert through the schema's own parse behaviour.
+      // so assert through the schema's own parse behaviour. The MCP compat type
+      // (ZodRawShapeCompat) is a wide union that hides safeParse from the checker,
+      // so read it through the minimal structural surface the assertion needs.
+      const parses: (
+        schema: { safeParse(value: unknown): { success: boolean } },
+        value: string,
+      ) => boolean = (schema, value) => schema.safeParse(value).success;
       const levelSchema = result!.arguments.level;
-      expect(levelSchema.safeParse('shallow').success).toBe(true);
-      expect(levelSchema.safeParse('deep').success).toBe(true);
-      expect(levelSchema.safeParse('bogus').success).toBe(false);
+      expect(parses(levelSchema, 'shallow')).toBe(true);
+      expect(parses(levelSchema, 'deep')).toBe(true);
+      expect(parses(levelSchema, 'bogus')).toBe(false);
     });
 
     it('should handle mcp_tools frontmatter option', () => {
