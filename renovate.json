@@ -31,6 +31,12 @@
   ],
   "packageRules": [
     {
+      "description": "One bun toolchain bump: the .bun-version regex pin and the bun-types devDependency must move in the same PR, or typecheck compiles one version while CI, the container and the release build run another.",
+      "matchManagers": ["custom", "npm"],
+      "matchDepNames": ["bun", "bun-types"],
+      "groupName": "bun toolchain"
+    },
+    {
       "description": "chrome-devtools-mcp tags carry the package name as a prefix, as in chrome-devtools-mcp-v1.9.0, so the version has to be extracted before it can be compared. Without this the tags sort as plain strings and the newest release is not recognised. Wait before proposing a newly published version. A compromised release is usually caught and yanked within days, and without a delay Renovate would open a PR minutes after publication \u2014 which for these packages means code that ends up inside the released binary. Flagged by Semgrep on the first version of this config.",
       "matchDatasources": ["github-tags"],
       "matchPackageNames": ["ChromeDevTools/chrome-devtools-mcp"],

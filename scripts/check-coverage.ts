@@ -6,8 +6,8 @@
  * form fails the run unconditionally — the suite reported 87% line and 85%
  * function coverage against a 0.78 threshold and still exited non-zero, with no
  * message saying why — while the object form is ignored entirely, passing even
- * when set to 0.99. CI pins a different version again (1.3.11), so the behaviour
- * is not something to depend on. That combination is why this repository's `test`
+ * when set to 0.99. The bun version is pinned per consumer (.bun-version), so the
+ * behaviour is not something to depend on. That combination is why this repository's `test`
  * check was red while every test passed.
  *
  * Reading `coverage/lcov.info` instead gives the same gate with a stated number,

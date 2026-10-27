@@ -1,10 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import {
   getSchemaDescription,
   isSchemaOptional,
 } from '@modelcontextprotocol/sdk/server/zod-compat.js';
 
-import { realFsModule, setupStandardMocks } from '../../test-utils/mocks';
+import { mockFS, realFsModule, setupStandardMocks } from '../../test-utils/mocks';
 const { mockPath } = setupStandardMocks();
 
 // The preload-mocked node:fs would make findMarkdownFiles/parseMarkdownPrompt see
@@ -15,6 +15,14 @@ const registerRealFs = () => {
   mock.module('fs', () => ({ default: realFsModule, ...realFsModule }));
   mock.module('node:fs', () => ({ default: realFsModule, ...realFsModule }));
 };
+
+// Put the mocked fs back before the next test file runs: this file is the only
+// thing that un-mocked it, and ~207 other files never call setupStandardMocks,
+// so a real node:fs left registered here would leak into them under --randomize.
+afterAll(() => {
+  mock.module('fs', () => ({ default: mockFS, ...mockFS }));
+  mock.module('node:fs', () => ({ default: mockFS, ...mockFS }));
+});
 
 import {
   findMarkdownFiles,
@@ -398,7 +406,6 @@ Should be MCP compatible by default.`;
     });
 
     it('should handle non-existent file', () => {
-      registerRealFs();
       const result = parseMarkdownPrompt('/non/existent/file.md');
 
       expect(result.config).toBe(null);
