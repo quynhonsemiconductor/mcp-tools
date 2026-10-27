@@ -16,7 +16,7 @@ A cross-platform GUI installer for QNSC-MCP built with Electron.
 
 ```bash
 cd installer
-npm install
+npm ci
 ```
 
 ### Build for Current Platform

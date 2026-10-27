@@ -42,6 +42,8 @@ coverage.txt
 **/*.bun
 yarn.lock
 package-lock.json
+# The installer builds with npm; its lockfile is committed (frozen install via npm ci).
+!installer/package-lock.json
 
 **/.claude/settings.local.json
 .qnscmcp.yaml
