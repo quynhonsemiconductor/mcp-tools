@@ -42,6 +42,18 @@ const DEFAULT_MIN_FUNCTIONS = 0.75;
 
 const LCOV_PATH = path.join(process.cwd(), 'coverage', 'lcov.info');
 
+// Test scaffolding is excluded from the totals before the gate runs: helpers and
+// fixtures that exist only to exercise other modules are not shipped code, and
+// counting them drags the average down without a meaningful "should this be
+// covered?" answer. bun 1.4's coverageExclude config is ignored (verified on
+// 1.4.4: an explicit "**/config.ts" exclude still reports the file), so the
+// filter lives here where the behaviour is testable and version-independent.
+const SCAFFOLDING_PATTERNS = [/\/src\/test-utils\//, /__test__\//, /__mocks__\//];
+
+function isTestScaffolding(sfPath: string): boolean {
+  return SCAFFOLDING_PATTERNS.some((pattern) => pattern.test(sfPath));
+}
+
 interface Totals {
   linesFound: number;
   linesHit: number;
@@ -62,6 +74,13 @@ interface Totals {
  */
 export function sumLcov(lcov: string): Totals {
   const totals: Totals = { linesFound: 0, linesHit: 0, functionsFound: 0, functionsHit: 0 };
+
+  // lcov groups counters per file under an SF: header; drop scaffolding blocks whole.
+  const blocks = lcov
+    .split('SF:')
+    .slice(1)
+    .filter((block) => !isTestScaffolding(block.split('\n')[0]));
+  lcov = blocks.map((block) => `SF:${block}`).join('');
 
   for (const line of lcov.split('\n')) {
     const [key, rawValue] = line.split(':');

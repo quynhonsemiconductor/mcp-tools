@@ -17,7 +17,7 @@ import {
   parseMarkdownPrompt,
 } from './markdown-prompt-parser';
 
-describe.skip('markdown-prompt-parser', () => {
+describe('markdown-prompt-parser', () => {
   const templatePath = mockPath.realPath.resolve(
     __dirname,
     '../../../templates/prompt-template.md',
@@ -180,9 +180,12 @@ Just content.`;
       const result = frontmatterToPromptConfig(frontmatter, 'test.md');
       expect(Object.keys(result!.arguments)).toEqual(['level']);
       expect(getSchemaDescription(result!.arguments.level)).toBe('Analysis level');
-      // Verify the enum values are embedded in the schema
-      const levelSchema = result!.arguments.level as any;
-      expect(levelSchema._def.values).toEqual(['shallow', 'deep']);
+      // Verify the enum values are embedded in the schema. zod v4 removed _def,
+      // so assert through the schema's own parse behaviour.
+      const levelSchema = result!.arguments.level;
+      expect(levelSchema.safeParse('shallow').success).toBe(true);
+      expect(levelSchema.safeParse('deep').success).toBe(true);
+      expect(levelSchema.safeParse('bogus').success).toBe(false);
     });
 
     it('should handle mcp_tools frontmatter option', () => {
@@ -316,7 +319,9 @@ Should be MCP compatible by default.`;
     });
   });
 
-  describe('findMarkdownFiles', () => {
+  // Skipped: needs a real filesystem walk; setupStandardMocks stubs node:fs, and the
+  // templates/prompt-template.md fixture these suites read was removed.
+  describe.skip('findMarkdownFiles', () => {
     it('should find the template file', () => {
       const templatesDir = mockPath.realPath.resolve(__dirname, '../../../templates');
       const files = findMarkdownFiles(templatesDir);
@@ -345,7 +350,7 @@ Should be MCP compatible by default.`;
     });
   });
 
-  describe('parseMarkdownPrompt', () => {
+  describe.skip('parseMarkdownPrompt', () => {
     it('should parse the template file', () => {
       const result = parseMarkdownPrompt(templatePath);
 
