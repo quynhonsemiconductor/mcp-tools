@@ -1,10 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import {
   getSchemaDescription,
   isSchemaOptional,
 } from '@modelcontextprotocol/sdk/server/zod-compat.js';
 
-import { mockFS, realFsModule, setupStandardMocks } from '../../test-utils/mocks';
+import { realFsModule, setupStandardMocks } from '../../test-utils/mocks';
 const { mockPath } = setupStandardMocks();
 
 import {
@@ -341,41 +341,47 @@ Should be MCP compatible by default.`;
     isDirectory: () => !name.endsWith('.md'),
   });
 
-  beforeEach(() => {
-    mockFS.readdirSync.mockImplementation((currentPath: unknown) =>
-      currentPath === templatesDir ? [dirent('prompt-template.md'), dirent('notes.txt')] : [],
-    );
-    mockFS.readFileSync.mockImplementation((filePath: unknown) =>
-      filePath === templatePath ? TEMPLATE_CONTENT : '',
-    );
-  });
+  let parser: typeof import('./markdown-prompt-parser');
 
-  afterEach(() => {
-    mockFS.readdirSync.mockReset();
-    mockFS.readFileSync.mockReset();
+  beforeEach(async () => {
+    // Point the fs the PARSER sees at fixture data. mock.module mutates the module
+    // namespace in place on some platforms and replaces it on others; a fresh
+    // import under a unique query re-resolves against the registry we just set,
+    // which is deterministic on both.
+    mock.module('fs', () => ({
+      default: {
+        readdirSync: (p: unknown) =>
+          p === templatesDir ? [dirent('prompt-template.md'), dirent('notes.txt')] : [],
+        readFileSync: (p: unknown) => (p === templatePath ? TEMPLATE_CONTENT : ''),
+      },
+    }));
+    // Bun resolves the query string as a separate module instance; TS has no
+    // type for it.
+    // @ts-expect-error query-string cache-bust import
+    parser = await import('./markdown-prompt-parser?fixture-fs');
   });
 
   describe('findMarkdownFiles', () => {
     it('should find the template file', () => {
-      const files = findMarkdownFiles(templatesDir);
+      const files = parser.findMarkdownFiles(templatesDir);
 
       expect(files).toContain(templatePath);
     });
 
     it('should filter files by patterns', () => {
-      const files = findMarkdownFiles(templatesDir, ['**/prompt-template.md']);
+      const files = parser.findMarkdownFiles(templatesDir, ['**/prompt-template.md']);
 
       expect(files).toContain(templatePath);
       expect(files.every((file) => file.includes('prompt-template.md'))).toBe(true);
     });
 
     it('should return empty array for non-existent directory', () => {
-      const files = findMarkdownFiles('/non/existent/path');
+      const files = parser.findMarkdownFiles('/non/existent/path');
       expect(files).toEqual([]);
     });
 
     it('should handle pattern that matches no files', () => {
-      const files = findMarkdownFiles(templatesDir, ['**/non-existent.md']);
+      const files = parser.findMarkdownFiles(templatesDir, ['**/non-existent.md']);
 
       expect(files).toEqual([]);
     });
@@ -383,7 +389,7 @@ Should be MCP compatible by default.`;
 
   describe('parseMarkdownPrompt', () => {
     it('should parse the template file', () => {
-      const result = parseMarkdownPrompt(templatePath);
+      const result = parser.parseMarkdownPrompt(templatePath);
 
       expect(result.config).not.toBe(null);
       expect(result.config?.name).toBe('Code Security Analysis');
@@ -403,7 +409,7 @@ Should be MCP compatible by default.`;
     });
 
     it('should handle non-existent file', () => {
-      const result = parseMarkdownPrompt('/non/existent/file.md');
+      const result = parser.parseMarkdownPrompt('/non/existent/file.md');
 
       expect(result.config).toBe(null);
       expect(result.content).toBe('');
@@ -411,7 +417,7 @@ Should be MCP compatible by default.`;
 
     it('should handle file read permissions errors', () => {
       // Test with a directory instead of a file to trigger an error
-      const result = parseMarkdownPrompt('/');
+      const result = parser.parseMarkdownPrompt('/');
 
       expect(result.config).toBe(null);
       expect(result.content).toBe('');
