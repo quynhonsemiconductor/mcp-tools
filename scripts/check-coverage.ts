@@ -48,7 +48,7 @@ const LCOV_PATH = path.join(process.cwd(), 'coverage', 'lcov.info');
 // covered?" answer. bun 1.4's coverageExclude config is ignored (verified on
 // 1.4.4: an explicit "**/config.ts" exclude still reports the file), so the
 // filter lives here where the behaviour is testable and version-independent.
-const SCAFFOLDING_PATTERNS = [/\/src\/test-utils\//, /__test__\//, /__mocks__\//];
+const SCAFFOLDING_PATTERNS = [/src\/test-utils\//, /__test__\//, /__mocks__\//];
 
 function isTestScaffolding(sfPath: string): boolean {
   return SCAFFOLDING_PATTERNS.some((pattern) => pattern.test(sfPath));

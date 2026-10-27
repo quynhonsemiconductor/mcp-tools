@@ -1,11 +1,20 @@
-import { describe, expect, it } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import {
   getSchemaDescription,
   isSchemaOptional,
 } from '@modelcontextprotocol/sdk/server/zod-compat.js';
 
-import { setupStandardMocks } from '../../test-utils/mocks';
+import { realFsModule, setupStandardMocks } from '../../test-utils/mocks';
 const { mockPath } = setupStandardMocks();
+
+// The preload-mocked node:fs would make findMarkdownFiles/parseMarkdownPrompt see
+// empty directories. Point 'fs' at the real module for these suites; the global
+// afterEach mock.restore() plus the next file's setupStandardMocks put the mock
+// back afterwards.
+const registerRealFs = () => {
+  mock.module('fs', () => ({ default: realFsModule, ...realFsModule }));
+  mock.module('node:fs', () => ({ default: realFsModule, ...realFsModule }));
+};
 
 import {
   findMarkdownFiles,
@@ -328,19 +337,25 @@ Should be MCP compatible by default.`;
       expect(result.config?.requiredTools).toEqual([]);
     });
   });
+  // These two suites walk and read real files. The standard mocks stub node:fs
+  // module-wide, so point the two members they use back at the real implementations
+  // for their duration (mockFS keeps its identity; only these members change).
+  describe('findMarkdownFiles', () => {
+    const templatesDir = mockPath.realPath.resolve(__dirname, '../../../templates');
+    const templatePath = mockPath.realPath.resolve(
+      __dirname,
+      '../../../templates/prompt-template.md',
+    );
 
-  // Skipped: needs a real filesystem walk; setupStandardMocks stubs node:fs, and the
-  // templates/prompt-template.md fixture these suites read was removed.
-  describe.skip('findMarkdownFiles', () => {
+    beforeEach(registerRealFs);
+
     it('should find the template file', () => {
-      const templatesDir = mockPath.realPath.resolve(__dirname, '../../../templates');
       const files = findMarkdownFiles(templatesDir);
 
       expect(files).toContain(templatePath);
     });
 
     it('should filter files by patterns', () => {
-      const templatesDir = mockPath.realPath.resolve(__dirname, '../../../templates');
       const files = findMarkdownFiles(templatesDir, ['**/prompt-template.md']);
 
       expect(files).toContain(templatePath);
@@ -353,14 +368,15 @@ Should be MCP compatible by default.`;
     });
 
     it('should handle pattern that matches no files', () => {
-      const templatesDir = mockPath.realPath.resolve(__dirname, '../../../templates');
       const files = findMarkdownFiles(templatesDir, ['**/non-existent.md']);
 
       expect(files).toEqual([]);
     });
   });
 
-  describe.skip('parseMarkdownPrompt', () => {
+  describe('parseMarkdownPrompt', () => {
+    beforeEach(registerRealFs);
+
     it('should parse the template file', () => {
       const result = parseMarkdownPrompt(templatePath);
 
@@ -382,6 +398,7 @@ Should be MCP compatible by default.`;
     });
 
     it('should handle non-existent file', () => {
+      registerRealFs();
       const result = parseMarkdownPrompt('/non/existent/file.md');
 
       expect(result.config).toBe(null);

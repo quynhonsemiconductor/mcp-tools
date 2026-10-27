@@ -65,7 +65,7 @@ Where it sits in the system:
 
 The fastest way to prove the repo is alive.
 
-- **Prereqs:** **Bun ≥ 1.3.11** (the CI pin; `engines.bun` enforces the floor). A `preinstall`
+- **Prereqs:** **Bun ≥ 1.3.11** (floor; install the version `.bun-version` names — that file is the pin CI, the container and the release build all read; `engines.bun` enforces the floor). A `preinstall`
   hook (`scripts/check-bun-version.cjs`) hard-exits if your Bun is below the engine floor. ✓
   Package manager is Bun only (no `package-lock.json`).
 - **Setup:** `bun install`.
@@ -242,7 +242,7 @@ for this org.
 
 - **CI (`.github/workflows/`):** ✓
   - `ci.yml` — on PR + push to `main`: three jobs, `bun run typecheck`, `bun x eslint .`, and
-    `bun test`. Bun pinned to `1.3.11`.
+    `bun test`. Bun pinned by `.bun-version` (setup-bun `bun-version-file`).
   - `security.yml` — thin caller of the shared `quynhonsemiconductor/ci` reusable suite: Semgrep
     (SAST), Gitleaks (secrets), osv-scanner (dependency CVEs). Container scanning is disabled
     (`scan_container: false`) because this repo ships binaries, not an image. Also runs weekly.

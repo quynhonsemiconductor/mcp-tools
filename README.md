@@ -41,7 +41,7 @@ categories to enable; every tool is listed by name on that screen.
 
 ### From source
 
-Only needed to work on the toolkit itself. Requires [Bun](https://bun.sh) `>=1.3.11`.
+Only needed to work on the toolkit itself. Requires [Bun](https://bun.sh) — install the version [`.bun-version`](.bun-version) names (`curl -fsSL https://bun.sh/install | bash -s "bun-v$(cat .bun-version)"`); `engines.bun` enforces the floor.
 
 ```bash
 bun install

@@ -1,5 +1,8 @@
 // Import the real modules first to get a reference before mock.module replaces them
 const realFs = require('fs');
+// Real fs, exported for tests that must walk/read real files: preload registers the
+// fs mocks at module load, so a plain import in a test file resolves to the mock.
+export const realFsModule = realFs;
 const realOs = require('os');
 const realPath = require('path');
 const realConfig = require('../config');

@@ -1,4 +1,8 @@
-FROM oven/bun:latest
+# Pin comes from .bun-version via the docker:* scripts' --build-arg, so the
+# container runs the same Bun as CI and the release build. `latest` drifted
+# independently of every other pin.
+ARG BUN_VERSION
+FROM oven/bun:${BUN_VERSION}
 
 # Copy configuration files first for better layer caching
 COPY package.json bun.* .bun-version babel.config.js eslint.config.js tsconfig.json bunfig.toml ./

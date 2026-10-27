@@ -13,6 +13,14 @@
     },
     {
       "customType": "regex",
+      "description": "The bun toolchain pin. .bun-version is the single source (CI setup-bun bun-version-file, the Dockerfile.test build arg, the release build); without this manager Renovate could not see it, and the devDependency it used to track was removed. npm datasource: the bun package on npm publishes the same versions as the GitHub releases.",
+      "managerFilePatterns": ["/^\\.bun-version$/"],
+      "matchStrings": ["^(?<currentValue>[0-9][0-9a-zA-Z.+-]*)\\s*$"],
+      "depNameTemplate": "bun",
+      "datasourceTemplate": "npm"
+    },
+    {
+      "customType": "regex",
       "description": "Versions of the local MCP servers launched through npx, pinned inline in the launch string rather than declared as dependencies. @playwright/mcp was pinned at 0.0.52 against an upstream 0.0.80, and @mobilenext/mobile-mcp at 0.0.33 against 1.0.4.",
       "managerFilePatterns": ["/^src/local-mcps/available-local-servers\\.ts$/"],
       "matchStrings": [
