@@ -32,7 +32,7 @@
   "packageRules": [
     {
       "description": "One bun toolchain bump: the .bun-version regex pin and the bun-types devDependency must move in the same PR, or typecheck compiles one version while CI, the container and the release build run another.",
-      "matchManagers": ["custom", "npm"],
+      "matchManagers": ["custom.regex", "npm"],
       "matchDepNames": ["bun", "bun-types"],
       "groupName": "bun toolchain"
     },
