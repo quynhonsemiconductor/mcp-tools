@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import {
   getSchemaDescription,
   isSchemaOptional,
 } from '@modelcontextprotocol/sdk/server/zod-compat.js';
 
-import { setupStandardMocks } from '../../test-utils/mocks';
+import { realFsModule, setupStandardMocks } from '../../test-utils/mocks';
 const { mockPath } = setupStandardMocks();
 
 import {
@@ -17,12 +17,7 @@ import {
   parseMarkdownPrompt,
 } from './markdown-prompt-parser';
 
-describe.skip('markdown-prompt-parser', () => {
-  const templatePath = mockPath.realPath.resolve(
-    __dirname,
-    '../../../templates/prompt-template.md',
-  );
-
+describe('markdown-prompt-parser', () => {
   describe('parseFrontmatter', () => {
     it('should parse valid YAML frontmatter', () => {
       const content = `---
@@ -180,9 +175,22 @@ Just content.`;
       const result = frontmatterToPromptConfig(frontmatter, 'test.md');
       expect(Object.keys(result!.arguments)).toEqual(['level']);
       expect(getSchemaDescription(result!.arguments.level)).toBe('Analysis level');
-      // Verify the enum values are embedded in the schema
-      const levelSchema = result!.arguments.level as any;
-      expect(levelSchema._def.values).toEqual(['shallow', 'deep']);
+      // Verify the enum values are embedded in the schema. zod v4 removed _def, so
+      // assert through the schema's own parse behaviour. The MCP compat type
+      // (ZodRawShapeCompat) is a wide union that hides safeParse from tsc, so go
+      // through the minimal structural surface instead of a cast to any. A schema
+      // without safeParse fails the assertion below.
+      const parses = (schema: unknown, value: string): boolean => {
+        if (typeof schema !== 'object' || schema === null) return false;
+        const candidate = schema as Record<string, unknown>;
+        if (typeof candidate.safeParse !== 'function') return false;
+        const result = candidate.safeParse(value) as { success: boolean };
+        return result.success;
+      };
+      const levelSchema = result!.arguments.level;
+      expect(parses(levelSchema, 'shallow')).toBe(true);
+      expect(parses(levelSchema, 'deep')).toBe(true);
+      expect(parses(levelSchema, 'bogus')).toBe(false);
     });
 
     it('should handle mcp_tools frontmatter option', () => {
@@ -315,31 +323,65 @@ Should be MCP compatible by default.`;
       expect(result.config?.requiredTools).toEqual([]);
     });
   });
+  // These two suites exercise the fs-backed half of the parser through the
+  // standard mockFS container (repo idiom): configuring mockImplementation on the
+  // container propagates everywhere, unlike re-registering the module, whose
+  // namespace copies are stale by the time the parser's binding reads them
+  // (verified: a real-fs registration passed on darwin and failed on linux CI,
+  // another file's readdir leaking through).
+  const templatesDir = mockPath.join(__dirname, '../../../templates');
+  const templatePath = mockPath.join(templatesDir, 'prompt-template.md');
+  // Content comes from the fixture file itself, read through the real fs captured
+  // in mocks.ts before the mock registration — one source of truth for the
+  // fixture, deterministic under the mocks.
+  const TEMPLATE_CONTENT = realFsModule.readFileSync(templatePath, 'utf-8');
+  const dirent = (name: string) => ({
+    name,
+    isFile: () => name.endsWith('.md'),
+    isDirectory: () => !name.endsWith('.md'),
+  });
+
+  let parser: typeof import('./markdown-prompt-parser');
+
+  beforeEach(async () => {
+    // Point the fs the PARSER sees at fixture data. mock.module mutates the module
+    // namespace in place on some platforms and replaces it on others; a fresh
+    // import under a unique query re-resolves against the registry we just set,
+    // which is deterministic on both.
+    mock.module('fs', () => ({
+      default: {
+        readdirSync: (p: unknown) =>
+          p === templatesDir ? [dirent('prompt-template.md'), dirent('notes.txt')] : [],
+        readFileSync: (p: unknown) => (p === templatePath ? TEMPLATE_CONTENT : ''),
+      },
+    }));
+    // Bun resolves the query string as a separate module instance; TS has no
+    // type for it.
+    // @ts-expect-error query-string cache-bust import
+    parser = await import('./markdown-prompt-parser?fixture-fs');
+  });
 
   describe('findMarkdownFiles', () => {
     it('should find the template file', () => {
-      const templatesDir = mockPath.realPath.resolve(__dirname, '../../../templates');
-      const files = findMarkdownFiles(templatesDir);
+      const files = parser.findMarkdownFiles(templatesDir);
 
       expect(files).toContain(templatePath);
     });
 
     it('should filter files by patterns', () => {
-      const templatesDir = mockPath.realPath.resolve(__dirname, '../../../templates');
-      const files = findMarkdownFiles(templatesDir, ['**/prompt-template.md']);
+      const files = parser.findMarkdownFiles(templatesDir, ['**/prompt-template.md']);
 
       expect(files).toContain(templatePath);
       expect(files.every((file) => file.includes('prompt-template.md'))).toBe(true);
     });
 
     it('should return empty array for non-existent directory', () => {
-      const files = findMarkdownFiles('/non/existent/path');
+      const files = parser.findMarkdownFiles('/non/existent/path');
       expect(files).toEqual([]);
     });
 
     it('should handle pattern that matches no files', () => {
-      const templatesDir = mockPath.realPath.resolve(__dirname, '../../../templates');
-      const files = findMarkdownFiles(templatesDir, ['**/non-existent.md']);
+      const files = parser.findMarkdownFiles(templatesDir, ['**/non-existent.md']);
 
       expect(files).toEqual([]);
     });
@@ -347,7 +389,7 @@ Should be MCP compatible by default.`;
 
   describe('parseMarkdownPrompt', () => {
     it('should parse the template file', () => {
-      const result = parseMarkdownPrompt(templatePath);
+      const result = parser.parseMarkdownPrompt(templatePath);
 
       expect(result.config).not.toBe(null);
       expect(result.config?.name).toBe('Code Security Analysis');
@@ -367,7 +409,7 @@ Should be MCP compatible by default.`;
     });
 
     it('should handle non-existent file', () => {
-      const result = parseMarkdownPrompt('/non/existent/file.md');
+      const result = parser.parseMarkdownPrompt('/non/existent/file.md');
 
       expect(result.config).toBe(null);
       expect(result.content).toBe('');
@@ -375,7 +417,7 @@ Should be MCP compatible by default.`;
 
     it('should handle file read permissions errors', () => {
       // Test with a directory instead of a file to trigger an error
-      const result = parseMarkdownPrompt('/');
+      const result = parser.parseMarkdownPrompt('/');
 
       expect(result.config).toBe(null);
       expect(result.content).toBe('');

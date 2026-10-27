@@ -46,8 +46,12 @@ questions about using or developing the toolkit.
    curl -fsSL https://bun.sh/install | bash
    ```
 
+   Pin your version to the repo's: `.bun-version` is the single source for CI and
+   the release build, so install the version it names
+   (`curl -fsSL https://bun.sh/install | bash -s "bun-v$(cat .bun-version)"`).
+
    Required versions (from `package.json` engines):
-   - Bun: >= 1.3.4
+   - Bun: >= 1.3.11 (the floor; install the version .bun-version names)
    - Node: >= 22.14.1
    - npm: >= 10.9.2
 
