@@ -31,7 +31,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    uses: quynhonsemiconductor/ci/.github/workflows/code-review.yml@691668f7a1bd4f4a3416f9224ae7ff7ebe831a3a # v1.23.0
+    uses: quynhonsemiconductor/ci/.github/workflows/code-review.yml@198c470a4f3ab57bfd74a987592287acd2d249dc # v1.25.0
     with:
       product: mcp-tools
       profiles: typescript,dockerfile,workflows
