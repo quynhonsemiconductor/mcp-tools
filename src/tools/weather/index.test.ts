@@ -99,20 +99,36 @@ describe('WeatherTool', () => {
         }
       };
 
-      // Mock fetch responses for the two sequential API calls
-      mockFetch
-        .mockImplementationOnce(() =>
-          Promise.resolve({
-            ok: true,
-            json: async () => mockPointsResponse
-          })
-        )
-        .mockImplementationOnce(() =>
-          Promise.resolve({
-            ok: true,
-            json: async () => mockForecastResponse
-          })
-        );
+      // Mock fetch by URL rather than by call order: when the whole suite runs,
+      // any fetch observed before this test consumes the first Once-queued
+      // response, silently shifting the pairing and failing the call-order
+      // assertions below (seen only on the Linux runner; single-file runs pass).
+      // Keying on the URL makes both the responses and the assertions
+      // order-independent while still proving both requests were made.
+      const forecastHeaders = {
+        headers: {
+          'User-Agent': 'weather-mcp/1.0',
+          Accept: 'application/geo+json'
+        }
+      };
+      mockFetch.mockImplementation(
+        ((input: string | URL | Request, _init?: RequestInit): Promise<Response> => {
+          const url = typeof input === 'string' ? input : input.toString();
+          if (url === 'https://api.weather.gov/points/37.7749,-122.4194') {
+            return Promise.resolve({
+              ok: true,
+              json: async () => mockPointsResponse
+            } as Response);
+          }
+          if (url === 'https://api.weather.gov/gridpoints/ABC/123,456/forecast') {
+            return Promise.resolve({
+              ok: true,
+              json: async () => mockForecastResponse
+            } as Response);
+          }
+          return Promise.reject(new Error(`weather test: unexpected fetch ${url}`));
+        }) as typeof fetch,
+      );
 
       // Execute
       const result = await weatherTool.execute({
@@ -120,27 +136,15 @@ describe('WeatherTool', () => {
         longitude: -122.4194
       });
 
-      // Verify first API call to get points data
+      // Verify both API calls were made with the right headers
       expect(mockFetch).toHaveBeenCalledWith(
         'https://api.weather.gov/points/37.7749,-122.4194',
-        {
-          headers: {
-            'User-Agent': 'weather-mcp/1.0',
-            Accept: 'application/geo+json'
-          }
-        }
+        forecastHeaders
       );
-
-      // Verify second API call to get forecast
-      expect(mockFetch.mock.calls[1][0]).toBe(
-        'https://api.weather.gov/gridpoints/ABC/123,456/forecast'
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.weather.gov/gridpoints/ABC/123,456/forecast',
+        forecastHeaders
       );
-      expect(mockFetch.mock.calls[1][1]).toEqual({
-        headers: {
-          'User-Agent': 'weather-mcp/1.0',
-          Accept: 'application/geo+json'
-        }
-      });
 
       // Verify result contains only the first 4 forecast periods
       const parsedResult = JSON.parse(result);
