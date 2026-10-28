@@ -20,7 +20,7 @@
         "@opentelemetry/sdk-trace-base": "2.2.0",
         "@opentelemetry/sdk-trace-node": "2.2.0",
         "@opentelemetry/semantic-conventions": "1.38.0",
-        "@types/luxon": "3.7.5",
+        "@types/luxon": "3.7.6",
         "@types/pg": "8.16.0",
         "@types/semver": "7.7.1",
         "@types/tar": "6.1.13",
@@ -78,6 +78,7 @@
       },
     },
   },
+  "trustedDependencies": [],
   "overrides": {
     "@opentelemetry/core": "2.8.0",
     "brace-expansion@<1.1.21": {
@@ -747,7 +748,7 @@
 
     "@types/json-schema": ["@types/json-schema@7.0.15", "", {}, "sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA=="],
 
-    "@types/luxon": ["@types/luxon@3.7.5", "", {}, "sha512-jJ41Q4z6ZVO260MNDdHfW7+7a5iMiX8Mr6ZJHcmgrvhZha6dz5704o/lF2kKl6URjH6ivEL97w9xS/MgpJEphg=="],
+    "@types/luxon": ["@types/luxon@3.7.6", "", {}, "sha512-6KSjliQAXK8ZLgFQO4B7iE4Rpf/B3rItzCFuXezBY/XIAGxOdLd7vRNK9/StRPwiS/yJsVbB7HKpW46B8tcEuQ=="],
 
     "@types/marked": ["@types/marked@6.0.0", "", { "dependencies": { "marked": "*" } }, "sha512-jmjpa4BwUsmhxcfsgUit/7A9KbrC48Q0q8KvnY107ogcjGgTFDlIL3RpihNpx2Mu1hM4mdFQjoVc4O6JoGKHsA=="],
 
