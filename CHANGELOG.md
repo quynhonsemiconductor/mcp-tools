@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.15](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.14...v0.1.15) (2026-10-31)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** force glob and minimatch past their advisories ([#105](https://github.com/quynhonsemiconductor/mcp-tools/issues/105)) ([8168e93](https://github.com/quynhonsemiconductor/mcp-tools/commit/8168e93ed94331016f430e640844effd1290b2d1))
+* **test:** key weather fetch mocks by URL, not call order ([#99](https://github.com/quynhonsemiconductor/mcp-tools/issues/99)) ([e1b7105](https://github.com/quynhonsemiconductor/mcp-tools/commit/e1b71054b4b4775c828af9b0be0f608ac67bbba5))
+
 ## [0.1.14](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.13...v0.1.14) (2026-10-24)
 
 
