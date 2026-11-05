@@ -52,7 +52,7 @@ questions about using or developing the toolkit.
 
    Required versions (from `package.json` engines):
    - Bun: >= 1.3.11 (the floor; install the version .bun-version names)
-   - Node: >= 22.14.1
+   - Node: >= 24.0.0
    - npm: >= 10.9.2
 
 2. **Initial Setup**
