@@ -1,6 +1,6 @@
 {
   "name": "qnsc-mcp",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "QNSC MCP Tools Server",
   "private": true,
   "repository": {
@@ -17,7 +17,7 @@
   "engines": {
     "bun": ">=1.3.11",
     "npm": ">=10.9.2",
-    "node": ">=22.14.1"
+    "node": ">=24.0.0"
   },
   "scripts": {
     "preinstall": "node scripts/check-bun-version.cjs",
