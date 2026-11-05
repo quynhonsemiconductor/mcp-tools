@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.16](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.15...v0.1.16) (2026-11-05)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency @modelcontextprotocol/sdk to v1.32.2 ([#93](https://github.com/quynhonsemiconductor/mcp-tools/issues/93)) ([5257b15](https://github.com/quynhonsemiconductor/mcp-tools/commit/5257b159d9bd19868e00c15ee9ca846eadfedf74))
+* **deps:** update dependency @types/luxon to v3.7.6 ([#94](https://github.com/quynhonsemiconductor/mcp-tools/issues/94)) ([42fcdfa](https://github.com/quynhonsemiconductor/mcp-tools/commit/42fcdfa82079ac61215978f8e2968f96d7855af7))
+* **deps:** update dependency minimatch to v11 [security] ([#103](https://github.com/quynhonsemiconductor/mcp-tools/issues/103)) ([a512102](https://github.com/quynhonsemiconductor/mcp-tools/commit/a512102d2aad0fc0b03f14f2601d3b96b4071930))
+* **deps:** update dependency zod to v4.6.7 ([#95](https://github.com/quynhonsemiconductor/mcp-tools/issues/95)) ([f98d83e](https://github.com/quynhonsemiconductor/mcp-tools/commit/f98d83e6693c5b9f4acd9800c239da75dc252956))
+
 ## [0.1.15](https://github.com/quynhonsemiconductor/mcp-tools/compare/v0.1.14...v0.1.15) (2026-11-04)
 
 
